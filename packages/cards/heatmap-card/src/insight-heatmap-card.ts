@@ -243,7 +243,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
     `;
   }
 
-  protected override updated(changedProps: Map<string, unknown>): void {
+  override updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
     requestAnimationFrame(() => this._drawHeatmap());
   }

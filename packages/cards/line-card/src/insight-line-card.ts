@@ -5,7 +5,7 @@
  * step rendering modes with drag-to-zoom.
  */
 
-import { html, type TemplateResult } from "lit";
+import { html, css, type TemplateResult } from "lit";
 import { customElement } from "lit/decorators.js";
 import uPlot from "uplot";
 
@@ -40,6 +40,73 @@ declare global {
 
 @customElement("insight-line-card")
 export class InsightLineCard extends InsightBaseCard {
+  // uPlot injects CSS into document.head which doesn't reach Shadow DOM —
+  // include the essential uPlot styles here directly.
+  static styles = [
+    InsightBaseCard.styles,
+    css`
+      .uplot-wrapper {
+        width: 100%;
+        display: block;
+      }
+
+      /* uPlot core layout — must be in Shadow DOM since uPlot injects to document.head */
+      .u-wrap {
+        display: block;
+        position: relative;
+        user-select: none;
+        width: 100%;
+      }
+      .u-over, .u-under { position: absolute; }
+      .u-under { overflow: hidden; }
+      .u-axis { position: absolute; }
+
+      /* Legend below the plot */
+      .u-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+        padding: 4px 0 0;
+        font-size: 12px;
+        color: var(--secondary-text-color);
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .u-legend tr { display: flex; align-items: center; gap: 4px; }
+      .u-legend td { padding: 0; border: none; }
+      .u-legend .u-marker { width: 10px; height: 10px; border-radius: 50%; }
+
+      /* Cursor & selection */
+      .u-select {
+        background: rgba(0,0,0,0.07);
+        position: absolute;
+        pointer-events: none;
+      }
+      .u-cursor-x, .u-cursor-y {
+        position: absolute;
+        left: 0; top: 0;
+        pointer-events: none;
+        will-change: transform;
+        z-index: 100;
+      }
+      .u-cursor-x { height: 100%; border-right: 1px dashed #607D8B; }
+      .u-cursor-y { width: 100%; border-bottom: 1px dashed #607D8B; }
+      .u-cursor-pt {
+        position: absolute;
+        top: 0; left: 0;
+        border-radius: 50%;
+        pointer-events: none;
+        will-change: transform;
+        z-index: 100;
+        background-clip: padding-box !important;
+      }
+      .u-axis.u-off,
+      .u-select.u-off,
+      .u-cursor-x.u-off,
+      .u-cursor-y.u-off,
+      .u-cursor-pt.u-off { display: none; }
+    `,
+  ];
   static readonly cardType = "custom:insight-line-card";
   static readonly cardName = "InsightChart Line";
   static readonly cardDescription =
@@ -113,8 +180,8 @@ export class InsightLineCard extends InsightBaseCard {
         fill: isArea ? hexToRgba(color, config.fill_opacity ?? 0.15) : undefined,
         width: config.line_width ?? 2,
         // step drawing
-        drawStyle: isStep ? (1 as uPlot.Series.DrawStyle) : (0 as uPlot.Series.DrawStyle),
-        lineInterpolation: lineInterpolation as uPlot.Series.LineInterpolation,
+        drawStyle: drawStyle as uPlot.Series["drawStyle"],
+        lineInterpolation: lineInterpolation as uPlot.Series["lineInterpolation"],
         spanGaps: false,
       });
     });
@@ -152,7 +219,9 @@ export class InsightLineCard extends InsightBaseCard {
 
   /** Build uPlot options object */
   private _buildOptions(config: InsightLineConfig): uPlot.Options {
-    const chartWidth = Math.max(100, this._cardWidth - 32);
+    // Measure actual available width from the wrapper element if possible
+    const wrapper = this.shadowRoot?.querySelector<HTMLDivElement>(".uplot-wrapper");
+    const chartWidth = Math.max(100, wrapper?.clientWidth || this._cardWidth - 32);
     const chartHeight = getChartHeight(this._cardWidth);
     const isDark = this.isDarkTheme;
 

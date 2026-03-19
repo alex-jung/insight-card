@@ -37,11 +37,17 @@ export interface HassEntity {
 // ---------------------------------------------------------------------------
 
 export interface HassHistoryEntry {
-  entity_id: string;
-  state: string;
-  attributes: HassEntityAttributes;
-  last_changed: string;
-  last_updated: string;
+  // Legacy format (pre-2022.10)
+  entity_id?: string;
+  state?: string;
+  attributes?: HassEntityAttributes;
+  last_changed?: string;
+  last_updated?: string;
+  // Minimal response format (>= 2022.10): compressed keys
+  s?: string;   // state
+  a?: HassEntityAttributes; // attributes
+  lu?: number;  // last_updated (Unix seconds)
+  lc?: number;  // last_changed (Unix seconds, only when differs from lu)
 }
 
 // ---------------------------------------------------------------------------

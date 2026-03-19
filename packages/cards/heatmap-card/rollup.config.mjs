@@ -10,32 +10,25 @@ const production = process.env.NODE_ENV === "production";
 
 /** @type {import("rollup").RollupOptions} */
 export default {
-  input: "src/insight-line-card.ts",
-
+  input: "src/insight-heatmap-card.ts",
   output: {
-    file: "../../../dist/insight-line-card.js",
+    file: "../../../dist/insight-heatmap-card.js",
     format: "es",
     sourcemap: !production,
   },
-
   plugins: [
     alias({
       entries: [
         { find: "@insight-chart/core", replacement: resolve(__dirname, "../../core/src/index.ts") },
       ],
     }),
-    nodeResolve({
-      browser: true,
-      exportConditions: ["browser", "module", "import", "default"],
-      extensions: [".ts", ".js"],
-    }),
+    nodeResolve({ browser: true, exportConditions: ["browser", "module", "import", "default"], extensions: [".ts", ".js"] }),
     esbuild({
       target: "es2020",
       tsconfig: resolve(__dirname, "../../../tsconfig.json"),
     }),
     production && terser({ format: { comments: false } }),
   ].filter(Boolean),
-
   onwarn(warning, warn) {
     if (warning.code === "CIRCULAR_DEPENDENCY") return;
     warn(warning);

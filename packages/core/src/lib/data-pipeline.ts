@@ -91,9 +91,13 @@ async function fetchHistory(
   startTime: Date,
   endTime: Date,
 ): Promise<DataPoint[]> {
-  type HistoryResponse = HassHistoryEntry[][];
+  // HA returns either Array[][] (old) or Record<entityId, Entry[]> (new ≥ 2022.10)
+  type HistoryResponseArray = HassHistoryEntry[][];
+  type HistoryResponseDict = Record<string, HassHistoryEntry[]>;
 
-  const response = await hass.callWS<HistoryResponse>({
+  console.debug("[InsightChart] history request", { entityId, startTime, endTime });
+
+  const response = await hass.callWS<HistoryResponseArray | HistoryResponseDict>({
     type: "history/history_during_period",
     start_time: startTime.toISOString(),
     end_time: endTime.toISOString(),
@@ -102,16 +106,37 @@ async function fetchHistory(
     significant_changes_only: false,
   });
 
-  const entries: HassHistoryEntry[] = Array.isArray(response)
-    ? (response[0] ?? [])
-    : [];
+  const isArray = Array.isArray(response);
+  const responseKeys = !isArray ? Object.keys(response as object) : [];
+  console.debug("[InsightChart] history response", { entityId, isArray, responseKeys, firstEntry: !isArray ? (response as HistoryResponseDict)[responseKeys[0]]?.[0] : (response as HistoryResponseArray)[0]?.[0] });
+
+  let entries: HassHistoryEntry[];
+  if (isArray) {
+    entries = (response as HistoryResponseArray)[0] ?? [];
+  } else {
+    // Try exact match first, then case-insensitive fallback
+    const dict = response as HistoryResponseDict;
+    entries = dict[entityId] ?? dict[entityId.toLowerCase()] ?? [];
+  }
 
   const points: DataPoint[] = [];
   for (const entry of entries) {
-    const v = parseFloat(entry.state);
+    // Support both legacy (state/last_changed) and minimal (s/lc/lu) formats
+    const stateStr = entry.s ?? entry.state ?? "";
+    const v = parseFloat(stateStr);
     if (!isFinite(v)) continue;
-    points.push({ t: new Date(entry.last_changed).getTime(), v });
+    let t: number;
+    if (entry.lc !== undefined) {
+      t = entry.lc * 1000;
+    } else if (entry.lu !== undefined) {
+      t = entry.lu * 1000;
+    } else {
+      t = new Date(entry.last_changed ?? entry.last_updated ?? "").getTime();
+    }
+    if (!isFinite(t)) continue;
+    points.push({ t, v });
   }
+  console.debug("[InsightChart] history parsed", { entityId, points: points.length });
   return points;
 }
 

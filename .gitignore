@@ -27,5 +27,17 @@ coverage/
 .env
 .env.local
 
+# Home Assistant runtime data
+docker/ha-config/.storage/
+docker/ha-config/home-assistant*
+docker/ha-config/tts/
+docker/ha-config/deps/
+docker/ha-config/blueprints/
+docker/ha-config/www/
+docker/ha-config/.HA_VERSION
+docker/ha-config/.ha_run.lock
+docker/ha-config/.cache/
+docker/ha-config/.cloud/
+
 # Architecture
 architecture/

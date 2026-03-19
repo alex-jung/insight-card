@@ -53,7 +53,7 @@ export abstract class InsightBaseEditor
   // -------------------------------------------------------------------------
 
   setConfig(config: LovelaceCardConfig): void {
-    this._config = config as InsightBaseConfig;
+    this._config = config as unknown as InsightBaseConfig;
   }
 
   // -------------------------------------------------------------------------

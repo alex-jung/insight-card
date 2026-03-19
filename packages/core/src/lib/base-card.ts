@@ -138,7 +138,17 @@ export abstract class InsightBaseCard extends LitElement {
     if (!config) {
       throw new Error("InsightChart: setConfig called without a config object");
     }
-    if (!config.entities || !Array.isArray(config.entities) || config.entities.length === 0) {
+
+    // Work on a copy — HA may pass a frozen object
+    const cfg = { ...config } as Record<string, unknown>;
+
+    // Allow heatmap-style configs with a single `entity` key
+    if (!cfg["entities"] && cfg["entity"]) {
+      cfg["entities"] = [cfg["entity"]];
+    }
+
+    const resolved = cfg as unknown as InsightBaseConfig;
+    if (!resolved.entities || !Array.isArray(resolved.entities) || resolved.entities.length === 0) {
       throw new Error(
         "InsightChart: config must contain at least one entity in the 'entities' array",
       );
@@ -146,8 +156,10 @@ export abstract class InsightBaseCard extends LitElement {
 
     this._config = {
       ...this.getDefaultConfig(),
-      ...config,
+      ...resolved,
     } as InsightBaseConfig;
+
+    console.debug("[InsightChart] setConfig", this.tagName, this._config);
 
     // If card is already connected, fetch data immediately
     if (this.hass) {
@@ -176,6 +188,11 @@ export abstract class InsightBaseCard extends LitElement {
   private async _fetchData(): Promise<void> {
     if (!this._config || !this.hass) return;
 
+    const entities = this._config.entities.map((e) =>
+      typeof e === "string" ? e : e.entity,
+    );
+    console.debug("[InsightChart] fetchData start", this.tagName, { entities, hours: this._config.hours });
+
     this._loading = true;
     this._error = undefined;
     this._lastFetchHass = this.hass;
@@ -187,10 +204,15 @@ export abstract class InsightBaseCard extends LitElement {
         this._config.entities,
         hours,
       );
+      console.debug(
+        "[InsightChart] fetchData done",
+        this.tagName,
+        this._data.map((d) => ({ entity: d.entityId, points: d.data.length })),
+      );
     } catch (err) {
       this._error =
         err instanceof Error ? err.message : "Failed to fetch data";
-      console.error("[InsightChart] Data fetch failed:", err);
+      console.error("[InsightChart] fetchData error", this.tagName, err);
     } finally {
       this._loading = false;
     }

@@ -1,0 +1,40 @@
+default_config:
+
+homeassistant:
+    name: InsightChart Dev
+    latitude: 48.1351
+    longitude: 11.5820
+    unit_system: metric
+    time_zone: Europe/Berlin
+
+lovelace:
+  mode: storage
+  dashboards:
+    insight-dev:
+      mode: yaml
+      filename: ui-lovelace.yaml
+      title: InsightChart Dev
+      icon: mdi:chart-line
+      show_in_sidebar: true
+
+
+# Dummy sensors for testing
+template:
+    - trigger:
+          - platform: time_pattern
+            minutes: "/1"
+      sensor:
+          - name: "Test Temperature Living Room"
+            unit_of_measurement: "°C"
+            state: "{{ (range(180, 250) | random) / 10 }}"
+            device_class: temperature
+
+          - name: "Test Temperature Bedroom"
+            unit_of_measurement: "°C"
+            state: "{{ (range(160, 220) | random) / 10 }}"
+            device_class: temperature
+
+          - name: "Test Power"
+            unit_of_measurement: "W"
+            state: "{{ range(100, 3000) | random }}"
+            device_class: power
