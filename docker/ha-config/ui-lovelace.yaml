@@ -1,47 +1,48 @@
 title: InsightChart Dev
 
 views:
-  - title: Line Card
-    icon: mdi:chart-line
-    cards:
-      - type: custom:insight-line-card
-        title: Temperature Comparison
-        entities:
-          - entity: sensor.test_temperature_living_room
-            name: Living Room
-            color: "#FF6B4A"
-          - entity: sensor.test_temperature_bedroom
-            name: Bedroom
-            color: "#4AAFFF"
-        hours: 24
-        style: area
-        zoom: true
-        show_stats: true
+    - title: Line Card
+      icon: mdi:chart-line
+      cards:
+          - type: custom:insight-line-card
+            title: Temperature Comparison
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom
+                  color: "#4AAFFF"
+            hours: 24
+            style: area
+            zoom: true
+            show_stats: true
 
-      - type: custom:insight-line-card
-        title: Power (Line)
-        entities:
-          - entity: sensor.test_power
-            name: Power
-            color: "#6BDB6B"
-        hours: 12
-        style: line
+          - type: custom:insight-line-card
+            title: Power (Line)
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#6BDB6B"
+            hours: 12
+            style: line
 
-  - title: Bar Card
-    icon: mdi:chart-bar
-    cards:
-      - type: custom:insight-bar-card
-        title: Daily Power Consumption
-        entities:
-          - entity: sensor.test_power
-        group_by: hour
-        aggregate: mean
+    - title: Bar Card
+      icon: mdi:chart-bar
+      cards:
+          - type: custom:insight-bar-card
+            title: Daily Power Consumption
+            entities:
+                - entity: sensor.test_power
+            group_by: hour
+            hours: 24
+            aggregate: mean
 
-  - title: Heatmap
-    icon: mdi:chart-box
-    cards:
-      - type: custom:insight-heatmap-card
-        title: Power Heatmap
-        entity: sensor.test_power
-        hours: 168
-        color_scale: YlOrRd
+    - title: Heatmap
+      icon: mdi:chart-box
+      cards:
+          - type: custom:insight-heatmap-card
+            title: Power Heatmap
+            entity: sensor.test_power
+            hours: 24
+            color_scale: YlOrRd

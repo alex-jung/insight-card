@@ -28,13 +28,16 @@ template:
             unit_of_measurement: "°C"
             state: "{{ (range(180, 250) | random) / 10 }}"
             device_class: temperature
+            state_class: measurement
 
           - name: "Test Temperature Bedroom"
             unit_of_measurement: "°C"
             state: "{{ (range(160, 220) | random) / 10 }}"
             device_class: temperature
+            state_class: measurement
 
           - name: "Test Power"
             unit_of_measurement: "W"
             state: "{{ range(100, 3000) | random }}"
             device_class: power
+            state_class: measurement
