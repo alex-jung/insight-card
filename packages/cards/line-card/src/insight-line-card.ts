@@ -60,6 +60,14 @@ export class InsightLineCard extends InsightBaseCard {
       .u-under { overflow: hidden; }
       .u-axis { position: absolute; }
 
+      /* Canvas must be constrained to logical size — uPlot sets 2x pixel
+         dimensions for HiDPI but relies on injected CSS for the CSS size */
+      .u-wrap canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
       /* Legend below the plot */
       .u-legend {
         display: flex;
@@ -181,7 +189,7 @@ export class InsightLineCard extends InsightBaseCard {
         width: config.line_width ?? 2,
         drawStyle,
         lineInterpolation,
-        spanGaps: false,
+        spanGaps: true,
       } as any);
     });
 
