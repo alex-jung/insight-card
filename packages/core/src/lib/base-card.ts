@@ -4,7 +4,7 @@
  * Subclasses must implement `renderChart()` and optionally `getDefaultConfig()`.
  */
 
-import { LitElement, html, css, type TemplateResult, type PropertyValues } from "lit";
+import { LitElement, html, css, type TemplateResult, type PropertyValues, type CSSResultGroup } from "lit";
 import { property, state } from "lit/decorators.js";
 
 import type {
@@ -347,7 +347,7 @@ export abstract class InsightBaseCard extends LitElement {
   // Styles
   // -------------------------------------------------------------------------
 
-  static styles = css`
+  static styles: CSSResultGroup = css`
     :host {
       display: block;
     }

@@ -5,7 +5,7 @@
  * step rendering modes with drag-to-zoom.
  */
 
-import { html, css, type TemplateResult } from "lit";
+import { html, css, type TemplateResult, type CSSResultGroup } from "lit";
 import { customElement } from "lit/decorators.js";
 import uPlot from "uplot";
 
@@ -29,7 +29,6 @@ declare global {
       name: string;
       description: string;
       preview?: boolean;
-      documentationURL?: string;
     }>;
   }
 }
@@ -42,7 +41,7 @@ declare global {
 export class InsightLineCard extends InsightBaseCard {
   // uPlot injects CSS into document.head which doesn't reach Shadow DOM —
   // include the essential uPlot styles here directly.
-  static styles = [
+  static styles: CSSResultGroup = [
     InsightBaseCard.styles,
     css`
       .uplot-wrapper {
@@ -174,16 +173,16 @@ export class InsightLineCard extends InsightBaseCard {
       const drawStyle: number = isStep ? 1 : 0; // 0 = line, 1 = bars/step
       const lineInterpolation: number = isStep ? 2 : config.curve === "smooth" ? 0 : 0;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       series.push({
         label: ec.name ?? this._data[i]?.friendlyName ?? ec.entity,
         stroke: color,
         fill: isArea ? hexToRgba(color, config.fill_opacity ?? 0.15) : undefined,
         width: config.line_width ?? 2,
-        // step drawing
-        drawStyle: drawStyle as uPlot.Series["drawStyle"],
-        lineInterpolation: lineInterpolation as uPlot.Series["lineInterpolation"],
+        drawStyle,
+        lineInterpolation,
         spanGaps: false,
-      });
+      } as any);
     });
 
     return series;
@@ -306,7 +305,7 @@ export class InsightLineCard extends InsightBaseCard {
   }
 
   /** Called by the LitElement lifecycle after every render */
-  protected override updated(changedProps: Map<string, unknown>): void {
+  override updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
 
     // Defer uPlot setup until after the DOM is painted
@@ -363,5 +362,4 @@ window.customCards.push({
   name: InsightLineCard.cardName,
   description: InsightLineCard.cardDescription,
   preview: true,
-  documentationURL: "https://github.com/your-org/insight-chart",
 });

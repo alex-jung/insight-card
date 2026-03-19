@@ -5,7 +5,7 @@
  * Canvas 2D API — no external chart library required.
  */
 
-import { html, css, type TemplateResult } from "lit";
+import { html, css, type TemplateResult, type CSSResultGroup } from "lit";
 import { customElement } from "lit/decorators.js";
 
 import {
@@ -282,7 +282,7 @@ export class InsightBarCard extends InsightBaseCard {
     });
   }
 
-  static styles = [
+  static styles: CSSResultGroup = [
     super.styles,
     css`
       .bar-canvas {

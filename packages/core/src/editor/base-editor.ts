@@ -6,7 +6,7 @@
  * Subclasses implement `renderCardOptions()` with card-specific controls.
  */
 
-import { LitElement, html, css, type TemplateResult } from "lit";
+import { LitElement, html, css, type TemplateResult, type CSSResultGroup } from "lit";
 import { property, state } from "lit/decorators.js";
 
 import type {
@@ -240,7 +240,7 @@ export abstract class InsightBaseEditor
   // Styles
   // -------------------------------------------------------------------------
 
-  static styles = css`
+  static styles: CSSResultGroup = css`
     :host {
       display: block;
     }
