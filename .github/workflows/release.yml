@@ -1,0 +1,88 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build and publish GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      # -----------------------------------------------------------------------
+      # 1. Checkout
+      # -----------------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # -----------------------------------------------------------------------
+      # 2. Set up Node.js
+      # -----------------------------------------------------------------------
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      # -----------------------------------------------------------------------
+      # 3. Install dependencies
+      # -----------------------------------------------------------------------
+      - name: Install dependencies
+        run: npm ci
+
+      # -----------------------------------------------------------------------
+      # 4. Build all cards
+      # -----------------------------------------------------------------------
+      - name: Build all cards
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      # -----------------------------------------------------------------------
+      # 5. Validate HACS compatibility
+      # -----------------------------------------------------------------------
+      - name: Validate HACS compatibility
+        run: node tools/hacs-validate.mjs
+
+      # -----------------------------------------------------------------------
+      # 6. Collect release artifacts
+      # -----------------------------------------------------------------------
+      - name: List dist/ files
+        run: ls -lh dist/
+
+      # -----------------------------------------------------------------------
+      # 7. Create GitHub Release
+      # -----------------------------------------------------------------------
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "InsightChart ${{ github.ref_name }}"
+          body: |
+            ## InsightChart ${{ github.ref_name }}
+
+            Install via HACS, or download the `.js` files below and copy them
+            to your Home Assistant `config/www/` folder, then add the resources
+            in Settings → Dashboards → Resources.
+
+            ### Included cards
+
+            | File | Card |
+            |------|------|
+            | `insight-line-card.js` | `custom:insight-line-card` |
+            | `insight-bar-card.js` | `custom:insight-bar-card` |
+            | `insight-heatmap-card.js` | `custom:insight-heatmap-card` |
+
+            See the [README](https://github.com/${{ github.repository }}#readme)
+            for configuration options.
+          files: |
+            dist/*.js
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}

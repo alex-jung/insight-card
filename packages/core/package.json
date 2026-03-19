@@ -1,0 +1,12 @@
+{
+  "name": "@insight-chart/core",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "peerDependencies": {
+    "lit": "^3.0.0"
+  }
+}

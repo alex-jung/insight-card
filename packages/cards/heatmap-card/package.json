@@ -1,0 +1,14 @@
+{
+  "name": "insight-heatmap-card",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c rollup.config.mjs"
+  },
+  "dependencies": {
+    "@insight-chart/core": "*"
+  },
+  "devDependencies": {
+    "lit": "^3.0.0"
+  }
+}
