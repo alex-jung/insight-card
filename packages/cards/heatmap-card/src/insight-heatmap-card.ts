@@ -10,7 +10,7 @@
  *   - month_day     — columns: days of month, rows: months
  */
 
-import { html, css, type TemplateResult } from "lit";
+import { html, css, type TemplateResult, type CSSResultGroup } from "lit";
 import { customElement } from "lit/decorators.js";
 
 import {
@@ -243,7 +243,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
     `;
   }
 
-  protected override updated(changedProps: Map<string, unknown>): void {
+  override updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
     requestAnimationFrame(() => this._drawHeatmap());
   }
@@ -348,7 +348,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
     }
   }
 
-  static styles = [
+  static styles: CSSResultGroup = [
     super.styles,
     css`
       .heatmap-canvas {

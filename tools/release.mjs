@@ -101,7 +101,7 @@ for (const cardName of cardDirs) {
   log(`Building ${cardName} …`);
   try {
     run(
-      `node --experimental-vm-modules ../../node_modules/.bin/rollup -c rollup.config.mjs`,
+      `node ${JSON.stringify(join(ROOT, "node_modules", ".bin", "rollup"))} -c rollup.config.mjs`,
       cardDir,
     );
     log(`  [ok] ${cardName}`);

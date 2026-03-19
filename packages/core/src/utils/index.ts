@@ -234,7 +234,8 @@ export function getChartHeight(width: number): number {
  * Create a debounced version of `fn` that delays invocation by `ms`
  * milliseconds. Resets the timer on every call.
  */
-export function debounce<T extends (...args: unknown[]) => void>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function debounce<T extends (...args: any[]) => void>(
   fn: T,
   ms: number,
 ): T {

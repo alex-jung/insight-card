@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "strict": true,
     "noEmit": true,
@@ -20,7 +20,8 @@
     }
   },
   "include": [
-    "packages/*/src/**/*.ts",
+    "packages/core/src/**/*.ts",
+    "packages/cards/*/src/**/*.ts",
     "tools/**/*.mjs"
   ],
   "exclude": [
