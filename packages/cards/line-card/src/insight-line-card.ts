@@ -15,6 +15,8 @@ import {
   type InsightEntityConfig,
   hexToRgba,
   generateColors,
+  formatValue,
+  formatDateTime,
   getChartHeight,
   findNumericSensor,
 } from "@insight-chart/core";
@@ -113,6 +115,47 @@ export class InsightLineCard extends InsightBaseCard {
       .u-cursor-x.u-off,
       .u-cursor-y.u-off,
       .u-cursor-pt.u-off { display: none; }
+
+      /* Custom floating tooltip */
+      .u-tooltip {
+        position: absolute;
+        pointer-events: none;
+        z-index: 200;
+        background: var(--card-background-color, #fff);
+        border: 1px solid var(--divider-color, #e0e0e0);
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        color: var(--primary-text-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        white-space: nowrap;
+        display: none;
+      }
+      .u-tooltip-time {
+        color: var(--secondary-text-color);
+        margin-bottom: 4px;
+        font-size: 0.7rem;
+      }
+      .u-tooltip-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 1px 0;
+      }
+      .u-tooltip-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .u-tooltip-name {
+        color: var(--secondary-text-color);
+        flex: 1;
+      }
+      .u-tooltip-value {
+        font-weight: 500;
+        text-align: right;
+      }
     `,
   ];
   static readonly cardType = "custom:insight-line-card";
@@ -124,6 +167,8 @@ export class InsightLineCard extends InsightBaseCard {
   private _uplot?: uPlot;
   /** Reference to the container element uPlot renders into */
   private _chartContainer?: HTMLDivElement;
+  /** Floating tooltip element — lives inside u-wrap */
+  private _tooltipEl?: HTMLDivElement;
 
   // -------------------------------------------------------------------------
   // HA editor integration
@@ -287,10 +332,61 @@ export class InsightLineCard extends InsightBaseCard {
       ],
       legend: {
         show: !this.isMobile,
-        live: true,
+        live: false,
+      },
+      hooks: {
+        setCursor: [(u) => this._updateTooltip(u)],
+        ready: [(u) => {
+          this._tooltipEl = document.createElement("div");
+          this._tooltipEl.className = "u-tooltip";
+          u.root.appendChild(this._tooltipEl);
+        }],
+        destroy: [() => {
+          this._tooltipEl = undefined;
+        }],
       },
       padding: [8, 8, 0, 0],
     };
+  }
+
+  /** Update the floating tooltip position and content on cursor move */
+  private _updateTooltip(u: uPlot): void {
+    const tooltip = this._tooltipEl;
+    if (!tooltip) return;
+
+    const idx = u.cursor.idx;
+    // uPlot sets cursor.left to -10 when mouse leaves the plot area
+    if (idx == null || (u.cursor.left ?? -1) < 0) {
+      tooltip.style.display = "none";
+      return;
+    }
+
+    const ts = u.data[0][idx];
+    if (ts == null) { tooltip.style.display = "none"; return; }
+
+    const colors = generateColors(this.entityConfigs.length);
+    const rows = this._data.map((dataset, i) => {
+      const val = u.data[i + 1]?.[idx];
+      if (val == null) return "";
+      const unit = dataset.unit ? ` ${dataset.unit}` : "";
+      const color = this.entityConfigs[i]?.color ?? colors[i];
+      const name = dataset.friendlyName;
+      return `<div class="u-tooltip-row">
+        <span class="u-tooltip-dot" style="background:${color}"></span>
+        <span class="u-tooltip-name">${name}</span>
+        <span class="u-tooltip-value">${formatValue(val)}${unit}</span>
+      </div>`;
+    }).filter(Boolean).join("");
+
+    tooltip.innerHTML = `<div class="u-tooltip-time">${formatDateTime(ts * 1000)}</div>${rows}`;
+    tooltip.style.display = "block";
+
+    // Position relative to u-wrap; cursor coords are relative to u-over
+    const left = u.cursor.left! + u.over.offsetLeft;
+    const top = u.cursor.top! + u.over.offsetTop;
+    const flip = left > u.width / 2;
+    tooltip.style.left = flip ? `${left - tooltip.offsetWidth - 12}px` : `${left + 12}px`;
+    tooltip.style.top = `${Math.max(0, top - tooltip.offsetHeight / 2)}px`;
   }
 
   // -------------------------------------------------------------------------
