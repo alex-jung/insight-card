@@ -134,6 +134,11 @@ export interface InsightLineConfig extends InsightBaseConfig {
    * @default "auto"
    */
   y_range?: "auto" | [number, number];
+  /**
+   * Timestamp format shown in the hover tooltip.
+   * @default "datetime"
+   */
+  tooltip_format?: "time" | "date" | "datetime";
 }
 
 // ---------------------------------------------------------------------------

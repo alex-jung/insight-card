@@ -16,6 +16,8 @@ import {
   hexToRgba,
   generateColors,
   formatValue,
+  formatTime,
+  formatDate,
   formatDateTime,
   getChartHeight,
   findNumericSensor,
@@ -364,6 +366,14 @@ export class InsightLineCard extends InsightBaseCard {
     const ts = u.data[0][idx];
     if (ts == null) { tooltip.style.display = "none"; return; }
 
+    const config = this._config as InsightLineConfig;
+    const tsMs = ts * 1000;
+    const fmt = config.tooltip_format ?? "datetime";
+    const timeLabel =
+      fmt === "time" ? formatTime(tsMs) :
+      fmt === "date" ? formatDate(tsMs) :
+      formatDateTime(tsMs);
+
     const colors = generateColors(this.entityConfigs.length);
     const rows = this._data.map((dataset, i) => {
       const val = u.data[i + 1]?.[idx];
@@ -378,7 +388,7 @@ export class InsightLineCard extends InsightBaseCard {
       </div>`;
     }).filter(Boolean).join("");
 
-    tooltip.innerHTML = `<div class="u-tooltip-time">${formatDateTime(ts * 1000)}</div>${rows}`;
+    tooltip.innerHTML = `<div class="u-tooltip-time">${timeLabel}</div>${rows}`;
     tooltip.style.display = "block";
 
     // Position relative to u-wrap; cursor coords are relative to u-over
