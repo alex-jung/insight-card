@@ -326,6 +326,10 @@ export abstract class InsightBaseCard extends LitElement {
             ? html`<div class="error" style="height:${chartHeight}px">
                 <span class="error-icon">⚠</span> ${this._error}
               </div>`
+            : !this._loading && this._data.every((d) => d.data.length === 0)
+            ? html`<div class="no-data" style="height:${chartHeight}px">
+                Nicht genug Daten vorhanden
+              </div>`
             : html`
                 <div
                   class="chart-container breakpoint-${breakpoint}"
@@ -410,6 +414,15 @@ export abstract class InsightBaseCard extends LitElement {
 
     .error-icon {
       font-size: 1.2em;
+    }
+
+    /* No data */
+    .no-data {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--disabled-text-color, #9e9e9e);
+      font-size: 0.875rem;
     }
 
     /* Stats footer */

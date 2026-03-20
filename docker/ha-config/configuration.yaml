@@ -41,3 +41,14 @@ template:
             state: "{{ range(100, 3000) | random }}"
             device_class: power
             state_class: measurement
+
+          # Sensor with numeric attributes — for attribute demo
+          - name: "Test Climate"
+            unit_of_measurement: "°C"
+            state: "{{ (range(190, 230) | random) / 10 }}"
+            device_class: temperature
+            state_class: measurement
+            attributes:
+              current_temperature: "{{ (range(190, 230) | random) / 10 }}"
+              target_temperature: "{{ (range(200, 220) | random) / 10 }}"
+              humidity: "{{ range(40, 70) | random }}"

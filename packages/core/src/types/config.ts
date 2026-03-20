@@ -28,6 +28,13 @@ export interface InsightEntityConfig {
    */
   statistics?: HassStatisticsPeriod;
   /**
+   * Use a specific entity attribute as the data source instead of the state.
+   * The attribute value must be numeric. Combine with `unit` to set the
+   * correct unit of measurement (attributes have no unit metadata).
+   * Example: attribute: "current_temperature"
+   */
+  attribute?: string;
+  /**
    * Override the unit of measurement shown in stats and tooltips.
    * Useful together with `scale` (e.g. scale: 0.001, unit: "kW").
    */

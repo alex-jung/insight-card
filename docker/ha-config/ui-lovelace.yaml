@@ -98,3 +98,26 @@ views:
             hours: 12
             style: line
             show_stats: true
+
+          # attribute: Zwei Attribute desselben Sensors in einer Card
+          - type: custom:insight-line-card
+            title: Climate — attributes as source
+            entities:
+                - entity: sensor.test_climate
+                  name: Current Temp
+                  color: "#FF6B4A"
+                  attribute: current_temperature
+                  unit: "°C"
+                - entity: sensor.test_climate
+                  name: Target Temp
+                  color: "#4AAFFF"
+                  attribute: target_temperature
+                  unit: "°C"
+                - entity: sensor.test_climate
+                  name: Humidity
+                  color: "#6BDB6B"
+                  attribute: humidity
+                  unit: "%"
+            hours: 12
+            style: line
+            show_stats: true
