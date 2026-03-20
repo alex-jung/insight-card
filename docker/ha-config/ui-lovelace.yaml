@@ -37,6 +37,45 @@ views:
             group_by: hour
             aggregate: mean
 
+    - title: Statistics API
+      icon: mdi:database-clock
+      cards:
+          # Auto-switch: hours > 72 → Statistics API, period: "hour"
+          - type: custom:insight-line-card
+            title: Temperature — 7d (Statistics API auto)
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom
+                  color: "#4AAFFF"
+            hours: 168
+            style: area
+            show_stats: true
+
+          # Explizites statistics-Feld: erzwingt Statistics API unabhängig von hours
+          - type: custom:insight-line-card
+            title: Temperature — explicit statistics hour
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+                  statistics: "hour"
+            hours: 24
+            style: line
+            show_stats: true
+
+          # 30-Tage mit period: day
+          - type: custom:insight-bar-card
+            title: Power — 30d (Statistics API, period day)
+            entities:
+                - entity: sensor.test_power
+                  statistics: "day"
+            hours: 720
+            group_by: day
+            aggregate: mean
+
     - title: Heatmap
       icon: mdi:chart-box
       cards:

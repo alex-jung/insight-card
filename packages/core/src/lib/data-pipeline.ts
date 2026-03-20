@@ -170,6 +170,8 @@ async function fetchStatistics(
 ): Promise<DataPoint[]> {
   type StatisticsResponse = Record<string, HassStatisticsEntry[]>;
 
+  console.debug("[InsightChart] statistics request", { entityId, period, startTime, endTime });
+
   const response = await hass.callWS<StatisticsResponse>({
     type: "recorder/statistics_during_period",
     start_time: startTime.toISOString(),
@@ -187,6 +189,7 @@ async function fetchStatistics(
     if (v == null || !isFinite(v)) continue;
     points.push({ t: new Date(entry.start).getTime(), v });
   }
+  console.debug("[InsightChart] statistics parsed", { entityId, period, points: points.length });
   return points;
 }
 
@@ -253,7 +256,10 @@ export async function getEntityData(
 
   let rawPoints: DataPoint[];
 
-  if (cfg.statistics || hours > HISTORY_THRESHOLD_HOURS) {
+  const useStatistics = cfg.statistics != null || hours > HISTORY_THRESHOLD_HOURS;
+  console.debug("[InsightChart] data source", { entityId, useStatistics, hours, explicit: cfg.statistics });
+
+  if (useStatistics) {
     const period = cfg.statistics ?? choosePeriod(hours);
     rawPoints = await fetchStatistics(hass, entityId, startTime, endTime, period);
   } else {
