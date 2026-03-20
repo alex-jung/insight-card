@@ -294,11 +294,33 @@ export class InsightLineCard extends InsightBaseCard {
       ? "rgba(255,255,255,0.08)"
       : cs.getPropertyValue("--divider-color").trim() || "rgba(0,0,0,0.08)";
 
-    // y-axis scale
-    const yScaleOpts: uPlot.Scale =
-      Array.isArray(config.y_range)
-        ? { range: config.y_range as [number, number] }
-        : { auto: true };
+    // Y-axis scale — fixed range, soft bounds, or auto
+    const yMin = config.y_min;
+    const yMax = config.y_max;
+    const yScaleOpts: uPlot.Scale = Array.isArray(config.y_range)
+      ? { range: config.y_range as [number, number] }
+      : (yMin !== undefined || yMax !== undefined)
+      ? {
+          range: (_u, dataMin, dataMax) => [
+            yMin !== undefined ? Math.min(dataMin, yMin) : dataMin,
+            yMax !== undefined ? Math.max(dataMax, yMax) : dataMax,
+          ],
+        }
+      : { auto: true };
+
+    // Y-axis label: use common unit from all datasets (if they share one)
+    const units = [...new Set(this._data.map((d) => d.unit).filter(Boolean))];
+    const yUnit = units.length === 1 ? units[0] : "";
+
+    // Y-axis tick value formatter
+    const decimals = config.decimals;
+    const yValFormatter = (
+      _u: uPlot,
+      vals: (number | null)[],
+    ): (string | number | null)[] =>
+      vals.map((v) =>
+        v == null ? "" : formatValue(v, undefined, decimals),
+      );
 
     return {
       width: chartWidth,
@@ -330,6 +352,10 @@ export class InsightLineCard extends InsightBaseCard {
           ticks: { stroke: gridStroke, width: 1 },
           font: "12px sans-serif",
           size: 60,
+          label: yUnit,
+          labelSize: yUnit ? 16 : 0,
+          labelFont: "11px sans-serif",
+          values: yValFormatter,
         },
       ],
       legend: {

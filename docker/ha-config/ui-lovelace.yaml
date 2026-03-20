@@ -27,6 +27,24 @@ views:
             hours: 12
             style: line
 
+    - title: Line Card Features
+      icon: mdi:chart-line-variant
+      cards:
+          - type: custom:insight-line-card
+            title: "Y-Axis: soft bounds y_min=0, decimals=1"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom
+                  color: "#4AAFFF"
+            hours: 24
+            style: area
+            y_min: 0
+            decimals: 1
+            show_stats: true
+
     - title: Bar Card
       icon: mdi:chart-bar
       cards:

@@ -135,6 +135,20 @@ export interface InsightLineConfig extends InsightBaseConfig {
    */
   y_range?: "auto" | [number, number];
   /**
+   * Soft Y minimum — axis extends below this value only if data requires it.
+   * Useful to always show zero: y_min: 0
+   */
+  y_min?: number;
+  /**
+   * Soft Y maximum — axis extends above this value only if data requires it.
+   */
+  y_max?: number;
+  /**
+   * Fixed decimal places for Y-axis tick labels and tooltip values.
+   * Defaults to auto (0 for integers, 1 for floats).
+   */
+  decimals?: number;
+  /**
    * Timestamp format shown in the hover tooltip.
    * @default "datetime"
    */
