@@ -63,6 +63,8 @@ export {
   getChartHeight,
   debounce,
   findNumericSensor,
+  parsePeriod,
+  aggregateTimeSeries,
 } from "./utils/index.js";
 
 export type { Stats } from "./utils/index.js";

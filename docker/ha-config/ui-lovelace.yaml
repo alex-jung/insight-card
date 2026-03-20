@@ -195,6 +195,50 @@ views:
             hours: 168
             color_scale: YlOrRd
 
+    - title: Aggregation Demo
+      icon: mdi:chart-timeline-variant
+      cards:
+          # Rohwerte ohne Aggregation
+          - type: custom:insight-line-card
+            title: "Power — raw (no aggregation)"
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#4AAFFF"
+            hours: 24
+            style: line
+            show_stats: true
+
+          # Karten-Level: 1h Mittelwert
+          - type: custom:insight-line-card
+            title: "Power — 1h mean (card-level)"
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#FF6B4A"
+            hours: 24
+            style: area
+            aggregate: mean
+            aggregate_period: "1h"
+            show_stats: true
+
+          # Per-Entity Override: Living Room = mean, Bedroom = max
+          - type: custom:insight-line-card
+            title: "Temp — per-entity aggregate (30m)"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room (mean)
+                  color: "#FF6B4A"
+                  aggregate: mean
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom (max)
+                  color: "#4AAFFF"
+                  aggregate: max
+            hours: 24
+            style: line
+            aggregate_period: "30m"
+            show_stats: true
+
     - title: Scale Demo
       icon: mdi:scale
       cards:

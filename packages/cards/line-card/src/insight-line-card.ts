@@ -23,6 +23,8 @@ import {
   formatDateTime,
   getChartHeight,
   findNumericSensor,
+  parsePeriod,
+  aggregateTimeSeries,
 } from "@insight-chart/core";
 
 // ---------------------------------------------------------------------------
@@ -268,10 +270,23 @@ export class InsightLineCard extends InsightBaseCard {
   private _buildUplotData(): uPlot.AlignedData {
     if (this._data.length === 0) return [[], []];
 
+    const config = this._config as InsightLineConfig;
+    const cardPeriodMs = config.aggregate_period ? parsePeriod(config.aggregate_period) : NaN;
+    const cardMethod = config.aggregate;
+
+    // Apply per-entity (or card-level) aggregation to raw data before alignment
+    const datasets = this._data.map((dataset, i) => {
+      const ec = this.entityConfigs[i];
+      const method = ec?.aggregate ?? cardMethod;
+      const periodMs = cardPeriodMs;
+      if (!method || !isFinite(periodMs)) return dataset.data;
+      return aggregateTimeSeries(dataset.data, periodMs, method);
+    });
+
     // Merge all timestamps across all entities and sort
     const allTimestamps = new Set<number>();
-    for (const dataset of this._data) {
-      for (const point of dataset.data) {
+    for (const data of datasets) {
+      for (const point of data) {
         // uPlot expects seconds, not milliseconds
         allTimestamps.add(Math.floor(point.t / 1000));
       }
@@ -279,15 +294,13 @@ export class InsightLineCard extends InsightBaseCard {
     const timestamps = Array.from(allTimestamps).sort((a, b) => a - b);
 
     // Build a lookup for each entity
-    const valueSeries: (number | null | undefined)[][] = this._data.map(
-      (dataset) => {
-        const map = new Map<number, number>();
-        for (const point of dataset.data) {
-          map.set(Math.floor(point.t / 1000), point.v);
-        }
-        return timestamps.map((ts) => map.get(ts) ?? null);
-      },
-    );
+    const valueSeries: (number | null | undefined)[][] = datasets.map((data) => {
+      const map = new Map<number, number>();
+      for (const point of data) {
+        map.set(Math.floor(point.t / 1000), point.v);
+      }
+      return timestamps.map((ts) => map.get(ts) ?? null);
+    });
 
     return [timestamps, ...valueSeries] as uPlot.AlignedData;
   }

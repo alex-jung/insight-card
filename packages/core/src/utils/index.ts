@@ -256,6 +256,66 @@ export function findNumericSensor(
 }
 
 // ---------------------------------------------------------------------------
+// Time-series aggregation
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse a period string to milliseconds.
+ * Supports: "30m", "1h", "6h", "1d", "1w"
+ * Returns NaN for unknown formats.
+ */
+export function parsePeriod(s: string): number {
+  const m = s.match(/^(\d+(?:\.\d+)?)(m|h|d|w)$/);
+  if (!m) return NaN;
+  const n = parseFloat(m[1]);
+  switch (m[2]) {
+    case "m": return n * 60_000;
+    case "h": return n * 3_600_000;
+    case "d": return n * 86_400_000;
+    case "w": return n * 604_800_000;
+    default:  return NaN;
+  }
+}
+
+/**
+ * Aggregate a sorted DataPoint array into fixed-size time buckets.
+ *
+ * Each bucket starts at a multiple of `periodMs` aligned to epoch.
+ * The representative timestamp is the bucket midpoint.
+ * Empty buckets are skipped.
+ */
+export function aggregateTimeSeries(
+  data: { t: number; v: number }[],
+  periodMs: number,
+  method: "mean" | "min" | "max" | "sum" | "last",
+): { t: number; v: number }[] {
+  if (data.length === 0 || periodMs <= 0) return data;
+
+  const buckets = new Map<number, number[]>();
+  for (const { t, v } of data) {
+    const key = Math.floor(t / periodMs) * periodMs;
+    const bucket = buckets.get(key);
+    if (bucket) bucket.push(v);
+    else buckets.set(key, [v]);
+  }
+
+  const result: { t: number; v: number }[] = [];
+  for (const [key, values] of buckets) {
+    let v: number;
+    switch (method) {
+      case "mean": v = values.reduce((a, b) => a + b, 0) / values.length; break;
+      case "min":  v = Math.min(...values); break;
+      case "max":  v = Math.max(...values); break;
+      case "sum":  v = values.reduce((a, b) => a + b, 0); break;
+      case "last": v = values[values.length - 1]; break;
+    }
+    result.push({ t: key + periodMs / 2, v });
+  }
+
+  return result.sort((a, b) => a.t - b.t);
+}
+
+// ---------------------------------------------------------------------------
 // General utilities
 // ---------------------------------------------------------------------------
 

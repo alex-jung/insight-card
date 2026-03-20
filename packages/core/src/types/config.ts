@@ -68,6 +68,11 @@ export interface InsightEntityConfig {
    * @default false
    */
   invert?: boolean;
+  /**
+   * Aggregation method for this entity. Overrides the card-level `aggregate`.
+   * Applied client-side after fetching raw history data.
+   */
+  aggregate?: "mean" | "min" | "max" | "sum" | "last";
 }
 
 // ---------------------------------------------------------------------------
@@ -215,6 +220,16 @@ export interface InsightLineConfig extends InsightBaseConfig {
    * Entities with an explicit `color` are not affected.
    */
   color_thresholds?: ColorThresholdConfig[];
+  /**
+   * Client-side time-bucket aggregation method applied to all entities.
+   * Requires `aggregate_period`. Per-entity `aggregate` overrides this value.
+   */
+  aggregate?: "mean" | "min" | "max" | "sum" | "last";
+  /**
+   * Bucket size for aggregation. Examples: "30m", "1h", "6h", "1d".
+   * Required when `aggregate` is set.
+   */
+  aggregate_period?: string;
 }
 
 // ---------------------------------------------------------------------------
