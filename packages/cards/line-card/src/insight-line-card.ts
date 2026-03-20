@@ -75,20 +75,17 @@ export class InsightLineCard extends InsightBaseCard {
         height: 100%;
       }
 
-      /* Legend below the plot */
-      .u-legend {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px 12px;
-        padding: 4px 0 0;
-        font-size: 12px;
-        color: var(--secondary-text-color);
-        border-collapse: collapse;
-        width: 100%;
-      }
-      .u-legend tr { display: flex; align-items: center; gap: 4px; }
-      .u-legend td { padding: 0; border: none; }
-      .u-legend .u-marker { width: 10px; height: 10px; border-radius: 50%; }
+      /* Legend below the plot — horizontal, centered */
+      .u-legend { font-size: 12px; color: var(--secondary-text-color); margin: 4px auto 0; text-align: center; }
+      .u-inline { display: block; }
+      .u-inline * { display: inline-block; }
+      .u-inline tr { margin-right: 12px; }
+      .u-legend th { font-weight: normal; padding: 2px 0; cursor: pointer; }
+      .u-legend th > * { vertical-align: middle; }
+      .u-legend .u-marker { width: 10px; height: 10px; border-radius: 50%; margin-right: 3px; }
+      .u-legend .u-off > * { opacity: 0.4; }
+      /* uPlot legend click fires only when e.target === th — pass clicks through children */
+      .u-legend th * { pointer-events: none; }
 
       /* Cursor & selection */
       .u-select {
@@ -432,7 +429,7 @@ export class InsightLineCard extends InsightBaseCard {
         }] : []),
       ],
       legend: {
-        show: !this.isMobile,
+        show: true,
         live: false,
       },
       hooks: {
@@ -444,6 +441,7 @@ export class InsightLineCard extends InsightBaseCard {
           this._tooltipEl = document.createElement("div");
           this._tooltipEl.className = "u-tooltip";
           u.root.appendChild(this._tooltipEl);
+
         }],
         destroy: [() => {
           this._tooltipEl = undefined;

@@ -333,7 +333,7 @@ export abstract class InsightBaseCard extends LitElement {
             : html`
                 <div
                   class="chart-container breakpoint-${breakpoint}"
-                  style="height:${chartHeight}px"
+                  style="min-height:${chartHeight}px"
                 >
                   ${this.renderChart()}
                 </div>
@@ -379,7 +379,6 @@ export abstract class InsightBaseCard extends LitElement {
     .chart-container {
       position: relative;
       width: 100%;
-      overflow: hidden;
     }
 
     /* Loading */
