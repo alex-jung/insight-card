@@ -22,6 +22,8 @@ export interface InsightEntityConfig {
   y_axis?: "left" | "right";
   /** Override the card-level line_width for this entity. */
   line_width?: number;
+  /** Override the card-level fill_opacity for this entity (0–1). */
+  fill_opacity?: number;
   /** Optional value transformation */
   transform?: "none" | "diff" | "normalize" | "cumulative";
   /**

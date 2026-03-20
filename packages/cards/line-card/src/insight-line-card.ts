@@ -239,7 +239,7 @@ export class InsightLineCard extends InsightBaseCard {
 
       // Use gradient when color_thresholds is set and entity has no explicit color
       const useGradient = ct && ct.length >= 2 && !ec.color;
-      const fillOpacity = config.fill_opacity ?? 0.15;
+      const fillOpacity = ec.fill_opacity ?? config.fill_opacity ?? 0.15;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       series.push({
