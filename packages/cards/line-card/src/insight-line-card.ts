@@ -407,7 +407,7 @@ export class InsightLineCard extends InsightBaseCard {
     const yAxisSize = (u: uPlot, vals: (string | number | null)[]): number => {
       if (!vals?.length) return 40;
       u.ctx.font = "12px sans-serif";
-      const maxW = vals.reduce((m, v) => {
+      const maxW = vals.reduce<number>((m, v) => {
         if (v == null) return m;
         return Math.max(m, u.ctx.measureText(String(v)).width);
       }, 0);
