@@ -187,6 +187,18 @@ async function fetchStatistics(
 const HISTORY_THRESHOLD_HOURS = 72;
 
 /**
+ * Apply scale and/or invert to a dataset without mutating it.
+ * Returns the original reference unchanged when neither modifier is active.
+ */
+function applyValueModifiers(dataset: EntityDataSet, cfg: InsightEntityConfig): EntityDataSet {
+  const scale = cfg.scale ?? 1;
+  const invert = cfg.invert ?? false;
+  if (scale === 1 && !invert) return dataset;
+  const factor = scale * (invert ? -1 : 1);
+  return { ...dataset, data: dataset.data.map((p) => ({ t: p.t, v: p.v * factor })) };
+}
+
+/**
  * Fetch data for a single entity. Uses History API for windows ≤ 72 h,
  * Statistics API for longer windows.
  *
@@ -202,15 +214,9 @@ export async function getEntityData(
 
   const entityId = cfg.entity;
 
-  console.debug("[InsightChart] getEntityData", { entityId, scale: cfg.scale });
-
   const cached = fromCache(entityId, hours);
   if (cached) {
-    if (cfg.scale != null && cfg.scale !== 1) {
-      const s = cfg.scale;
-      return { ...cached, data: cached.data.map((p) => ({ t: p.t, v: p.v * s })) };
-    }
-    return cached;
+    return applyValueModifiers(cached, cfg);
   }
 
   const endTime = new Date();
@@ -236,12 +242,8 @@ export async function getEntityData(
   const dataset: EntityDataSet = { entityId, friendlyName, unit, data: transformedData };
   toCache(entityId, hours, dataset);
 
-  // Apply scale after caching so the cache stays unscaled and reusable
-  if (cfg.scale != null && cfg.scale !== 1) {
-    const s = cfg.scale;
-    return { ...dataset, data: transformedData.map((p) => ({ t: p.t, v: p.v * s })) };
-  }
-  return dataset;
+  // Apply scale/invert after caching so the cache stays unmodified and reusable
+  return applyValueModifiers(dataset, cfg);
 }
 
 /**

@@ -72,3 +72,28 @@ views:
             hours: 12
             style: line
             show_stats: true
+
+          # invert: true — Werte negiert (nützlich für Export-Sensoren)
+          - type: custom:insight-line-card
+            title: Power — inverted
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#6BDB6B"
+                  invert: true
+            hours: 12
+            style: line
+            show_stats: true
+
+          # Kombination: scale + invert
+          - type: custom:insight-line-card
+            title: Power — inverted kW (scale 0.001 + invert)
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#B07AFF"
+                  scale: 0.001
+                  invert: true
+            hours: 12
+            style: line
+            show_stats: true

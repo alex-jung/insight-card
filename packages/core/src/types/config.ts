@@ -33,6 +33,13 @@ export interface InsightEntityConfig {
    * @default 1
    */
   scale?: number;
+  /**
+   * Negate all values before display (multiply by -1).
+   * Useful for export/feed-in sensors that report positive values but should
+   * be shown as negative (or vice versa).
+   * @default false
+   */
+  invert?: boolean;
 }
 
 // ---------------------------------------------------------------------------
