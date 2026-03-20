@@ -69,6 +69,7 @@ views:
                   name: Power
                   color: "#FF6B4A"
                   scale: 0.001
+                  unit: "kW"
             hours: 12
             style: line
             show_stats: true

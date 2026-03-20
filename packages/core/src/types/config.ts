@@ -28,6 +28,11 @@ export interface InsightEntityConfig {
    */
   statistics?: HassStatisticsPeriod;
   /**
+   * Override the unit of measurement shown in stats and tooltips.
+   * Useful together with `scale` (e.g. scale: 0.001, unit: "kW").
+   */
+  unit?: string;
+  /**
    * Multiply every value by this factor before display.
    * Useful for unit conversions (e.g. W → kW: scale: 0.001).
    * @default 1

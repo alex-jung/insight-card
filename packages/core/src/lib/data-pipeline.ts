@@ -193,9 +193,21 @@ const HISTORY_THRESHOLD_HOURS = 72;
 function applyValueModifiers(dataset: EntityDataSet, cfg: InsightEntityConfig): EntityDataSet {
   const scale = cfg.scale ?? 1;
   const invert = cfg.invert ?? false;
-  if (scale === 1 && !invert) return dataset;
+  const unitOverride = cfg.unit;
+
+  const needsValueChange = scale !== 1 || invert;
+  const needsUnitChange = unitOverride !== undefined && unitOverride !== dataset.unit;
+
+  if (!needsValueChange && !needsUnitChange) return dataset;
+
   const factor = scale * (invert ? -1 : 1);
-  return { ...dataset, data: dataset.data.map((p) => ({ t: p.t, v: p.v * factor })) };
+  return {
+    ...dataset,
+    unit: unitOverride ?? dataset.unit,
+    data: needsValueChange
+      ? dataset.data.map((p) => ({ t: p.t, v: p.v * factor }))
+      : dataset.data,
+  };
 }
 
 /**
