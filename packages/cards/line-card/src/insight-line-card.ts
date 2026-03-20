@@ -398,6 +398,17 @@ export class InsightLineCard extends InsightBaseCard {
         v == null ? "" : formatValue(v, undefined, decimals),
       );
 
+    // Dynamic axis width: vals are already-formatted strings passed by uPlot
+    const yAxisSize = (u: uPlot, vals: (string | number | null)[]): number => {
+      if (!vals?.length) return 40;
+      u.ctx.font = "12px sans-serif";
+      const maxW = vals.reduce((m, v) => {
+        if (v == null) return m;
+        return Math.max(m, u.ctx.measureText(String(v)).width);
+      }, 0);
+      return Math.max(32, Math.ceil(maxW) + 14); // 14px for tick + gap
+    };
+
     return {
       width: chartWidth,
       height: chartHeight,
@@ -437,7 +448,7 @@ export class InsightLineCard extends InsightBaseCard {
           grid: { stroke: gridStroke, width: 1 },
           ticks: { stroke: gridStroke, width: 1 },
           font: "12px sans-serif",
-          size: 60,
+          size: yAxisSize,
           label: yUnit,
           labelSize: yUnit ? 16 : 0,
           labelFont: "11px sans-serif",
@@ -450,12 +461,22 @@ export class InsightLineCard extends InsightBaseCard {
           grid: { show: false },
           ticks: { stroke: gridStroke, width: 1 },
           font: "12px sans-serif",
-          size: 60,
+          size: yAxisSize,
           label: y2Unit,
           labelSize: y2Unit ? 16 : 0,
           labelFont: "11px sans-serif",
           values: yValFormatter,
-        }] : []),
+        }] : [{
+          // Invisible balancing axis on the right to mirror the left Y-axis width
+          show: false,
+          side: 1,
+          scale: "y",
+          size: yAxisSize,
+          gap: 0,
+          stroke: axisStroke,
+          grid: { show: false },
+          ticks: { show: false },
+        }]),
       ],
       legend: {
         show: config.show_legend !== false,
@@ -476,7 +497,7 @@ export class InsightLineCard extends InsightBaseCard {
           this._tooltipEl = undefined;
         }],
       },
-      padding: [8, 8, 0, 0],
+      padding: [8, 4, 6, 0],
     };
   }
 
