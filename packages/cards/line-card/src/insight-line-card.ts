@@ -237,6 +237,7 @@ export class InsightLineCard extends InsightBaseCard {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       series.push({
         label: ec.name ?? this._data[i]?.friendlyName ?? ec.entity,
+        scale: ec.y_axis === "right" ? "y2" : "y",
         stroke: color,
         fill: isArea ? hexToRgba(color, config.fill_opacity ?? 0.15) : undefined,
         width: config.line_width ?? 2,
@@ -316,9 +317,41 @@ export class InsightLineCard extends InsightBaseCard {
       yScaleOpts = { auto: true };
     }
 
-    // Y-axis label: use common unit from all datasets (if they share one)
-    const units = [...new Set(this._data.map((d) => d.unit).filter(Boolean))];
-    const yUnit = units.length === 1 ? units[0] : "";
+    // Detect whether any entity uses the secondary (right) axis
+    const hasSecondaryAxis = this.entityConfigs.some((ec) => ec.y_axis === "right");
+
+    // Secondary Y-axis scale
+    const y2Min = config.y_min_secondary;
+    const y2Max = config.y_max_secondary;
+    let y2ScaleOpts: uPlot.Scale;
+    if (Array.isArray(config.y_range_secondary)) {
+      y2ScaleOpts = { range: config.y_range_secondary as [number, number] };
+    } else if (y2Min !== undefined || y2Max !== undefined) {
+      y2ScaleOpts = {
+        range: (_u, dataMin, dataMax) => [
+          y2Min !== undefined ? Math.min(dataMin, y2Min) : dataMin,
+          y2Max !== undefined ? Math.max(dataMax, y2Max) : dataMax,
+        ],
+      };
+    } else {
+      y2ScaleOpts = { auto: true };
+    }
+
+    // Y-axis label: use common unit from datasets on each axis
+    const primaryUnits = [...new Set(
+      this.entityConfigs
+        .filter((ec) => ec.y_axis !== "right")
+        .map((_, i) => this._data[i]?.unit)
+        .filter(Boolean),
+    )];
+    const secondaryUnits = [...new Set(
+      this.entityConfigs
+        .filter((ec) => ec.y_axis === "right")
+        .map((ec) => this._data[this.entityConfigs.indexOf(ec)]?.unit)
+        .filter(Boolean),
+    )];
+    const yUnit = primaryUnits.length === 1 ? primaryUnits[0] : "";
+    const y2Unit = secondaryUnits.length === 1 ? secondaryUnits[0] : "";
 
     // Y-axis tick value formatter
     const decimals = config.decimals;
@@ -345,6 +378,7 @@ export class InsightLineCard extends InsightBaseCard {
       scales: {
         x: { time: true },
         y: yScaleOpts,
+        ...(hasSecondaryAxis ? { y2: y2ScaleOpts } : {}),
       },
       series: this._buildSeries(config),
       axes: [
@@ -355,6 +389,7 @@ export class InsightLineCard extends InsightBaseCard {
           font: "12px sans-serif",
         },
         {
+          scale: "y",
           stroke: axisStroke,
           grid: { stroke: gridStroke, width: 1 },
           ticks: { stroke: gridStroke, width: 1 },
@@ -365,6 +400,19 @@ export class InsightLineCard extends InsightBaseCard {
           labelFont: "11px sans-serif",
           values: yValFormatter,
         },
+        ...(hasSecondaryAxis ? [{
+          scale: "y2",
+          side: 1,           // right side
+          stroke: axisStroke,
+          grid: { show: false },
+          ticks: { stroke: gridStroke, width: 1 },
+          font: "12px sans-serif",
+          size: 60,
+          label: y2Unit,
+          labelSize: y2Unit ? 16 : 0,
+          labelFont: "11px sans-serif",
+          values: yValFormatter,
+        }] : []),
       ],
       legend: {
         show: !this.isMobile,

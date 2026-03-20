@@ -159,6 +159,12 @@ export interface InsightLineConfig extends InsightBaseConfig {
    * @default "datetime"
    */
   tooltip_format?: "time" | "date" | "datetime";
+  /** Secondary (right) Y-axis range. "auto" or fixed [min, max]. */
+  y_range_secondary?: "auto" | [number, number];
+  /** Soft minimum for the secondary Y-axis. */
+  y_min_secondary?: number;
+  /** Soft maximum for the secondary Y-axis. */
+  y_max_secondary?: number;
 }
 
 // ---------------------------------------------------------------------------

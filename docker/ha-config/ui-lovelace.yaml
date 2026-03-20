@@ -41,6 +41,22 @@ views:
             logarithmic: true
 
           - type: custom:insight-line-card
+            title: "Y-Axis: secondary (right) axis"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Temperature
+                  color: "#FF6B4A"
+                - entity: sensor.test_power
+                  name: Power (kW)
+                  color: "#4AAFFF"
+                  y_axis: right
+                  scale: 0.001
+                  unit: "kW"
+            hours: 24
+            style: line
+            show_stats: true
+
+          - type: custom:insight-line-card
             title: "Y-Axis: soft bounds y_min=0, decimals=1"
             entities:
                 - entity: sensor.test_temperature_living_room
