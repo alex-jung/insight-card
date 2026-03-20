@@ -258,6 +258,7 @@ export class InsightLineCard extends InsightBaseCard {
         dash: ec.stroke_dash != null
           ? (Array.isArray(ec.stroke_dash) ? ec.stroke_dash : [ec.stroke_dash, ec.stroke_dash])
           : undefined,
+        points: { show: config.show_points === true },
         drawStyle,
         lineInterpolation,
         spanGaps: true,

@@ -123,6 +123,19 @@ views:
                   dash: [8, 4]
 
           - type: custom:insight-line-card
+            title: "show_points: true"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom
+                  color: "#4AAFFF"
+            hours: 6
+            style: line
+            show_points: true
+
+          - type: custom:insight-line-card
             title: "Y-Axis: soft bounds y_min=0, decimals=1"
             entities:
                 - entity: sensor.test_temperature_living_room

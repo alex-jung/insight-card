@@ -217,6 +217,14 @@ export interface InsightLineConfig extends InsightBaseConfig {
    * @default true
    */
   show_legend?: boolean;
+  /**
+   * Whether to show data points on the line.
+   * - `false`   — no static dots (default)
+   * - `true`    — dots always visible on every data point
+   * - `"hover"` — dots only at the cursor position (uPlot cursor points)
+   * @default false
+   */
+  show_points?: boolean | "hover";
   /** Horizontal reference lines drawn across the chart. */
   thresholds?: ThresholdConfig[];
   /**
