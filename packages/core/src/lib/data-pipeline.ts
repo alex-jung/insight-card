@@ -50,22 +50,23 @@ interface CacheEntry {
 const CACHE_TTL_MS = 30_000;
 const cache = new Map<string, CacheEntry>();
 
-function cacheKey(entityId: string, hours: number): string {
-  return `${entityId}:${hours}`;
+function cacheKey(entityId: string, hours: number, attribute?: string): string {
+  return attribute ? `${entityId}:${hours}:${attribute}` : `${entityId}:${hours}`;
 }
 
-function fromCache(entityId: string, hours: number): EntityDataSet | null {
-  const entry = cache.get(cacheKey(entityId, hours));
+function fromCache(entityId: string, hours: number, attribute?: string): EntityDataSet | null {
+  const key = cacheKey(entityId, hours, attribute);
+  const entry = cache.get(key);
   if (!entry) return null;
   if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
-    cache.delete(cacheKey(entityId, hours));
+    cache.delete(key);
     return null;
   }
   return entry.dataset;
 }
 
-function toCache(entityId: string, hours: number, dataset: EntityDataSet): void {
-  cache.set(cacheKey(entityId, hours), { dataset, timestamp: Date.now() });
+function toCache(entityId: string, hours: number, dataset: EntityDataSet, attribute?: string): void {
+  cache.set(cacheKey(entityId, hours, attribute), { dataset, timestamp: Date.now() });
 }
 
 /** Invalidate the cache for a specific entity, or flush everything. */
@@ -90,19 +91,21 @@ async function fetchHistory(
   entityId: string,
   startTime: Date,
   endTime: Date,
+  attribute?: string,
 ): Promise<DataPoint[]> {
   // HA returns either Array[][] (old) or Record<entityId, Entry[]> (new ≥ 2022.10)
   type HistoryResponseArray = HassHistoryEntry[][];
   type HistoryResponseDict = Record<string, HassHistoryEntry[]>;
 
-  console.debug("[InsightChart] history request", { entityId, startTime, endTime });
+  console.debug("[InsightChart] history request", { entityId, startTime, endTime, attribute });
 
   const response = await hass.callWS<HistoryResponseArray | HistoryResponseDict>({
     type: "history/history_during_period",
     start_time: startTime.toISOString(),
     end_time: endTime.toISOString(),
     entity_ids: [entityId],
-    minimal_response: true,
+    // Attributes are stripped from minimal responses — disable when needed
+    minimal_response: !attribute,
     significant_changes_only: false,
   });
 
@@ -121,9 +124,16 @@ async function fetchHistory(
 
   const points: DataPoint[] = [];
   for (const entry of entries) {
-    // Support both legacy (state/last_changed) and minimal (s/lc/lu) formats
-    const stateStr = entry.s ?? entry.state ?? "";
-    const v = parseFloat(stateStr);
+    let v: number;
+    if (attribute) {
+      // Use attribute value — available in full (non-minimal) responses
+      const attrVal = (entry.a ?? entry.attributes)?.[attribute];
+      v = parseFloat(String(attrVal ?? ""));
+    } else {
+      // Support both legacy (state/last_changed) and minimal (s/lc/lu) formats
+      const stateStr = entry.s ?? entry.state ?? "";
+      v = parseFloat(stateStr);
+    }
     if (!isFinite(v)) continue;
     let t: number;
     if (entry.lc !== undefined) {
@@ -136,7 +146,7 @@ async function fetchHistory(
     if (!isFinite(t)) continue;
     points.push({ t, v });
   }
-  console.debug("[InsightChart] history parsed", { entityId, points: points.length });
+  console.debug("[InsightChart] history parsed", { entityId, attribute, points: points.length });
   return points;
 }
 
@@ -160,6 +170,8 @@ async function fetchStatistics(
 ): Promise<DataPoint[]> {
   type StatisticsResponse = Record<string, HassStatisticsEntry[]>;
 
+  console.debug("[InsightChart] statistics request", { entityId, period, startTime, endTime });
+
   const response = await hass.callWS<StatisticsResponse>({
     type: "recorder/statistics_during_period",
     start_time: startTime.toISOString(),
@@ -177,6 +189,7 @@ async function fetchStatistics(
     if (v == null || !isFinite(v)) continue;
     points.push({ t: new Date(entry.start).getTime(), v });
   }
+  console.debug("[InsightChart] statistics parsed", { entityId, period, points: points.length });
   return points;
 }
 
@@ -185,6 +198,30 @@ async function fetchStatistics(
 // ---------------------------------------------------------------------------
 
 const HISTORY_THRESHOLD_HOURS = 72;
+
+/**
+ * Apply scale and/or invert to a dataset without mutating it.
+ * Returns the original reference unchanged when neither modifier is active.
+ */
+function applyValueModifiers(dataset: EntityDataSet, cfg: InsightEntityConfig): EntityDataSet {
+  const scale = cfg.scale ?? 1;
+  const invert = cfg.invert ?? false;
+  const unitOverride = cfg.unit;
+
+  const needsValueChange = scale !== 1 || invert;
+  const needsUnitChange = unitOverride !== undefined && unitOverride !== dataset.unit;
+
+  if (!needsValueChange && !needsUnitChange) return dataset;
+
+  const factor = scale * (invert ? -1 : 1);
+  return {
+    ...dataset,
+    unit: unitOverride ?? dataset.unit,
+    data: needsValueChange
+      ? dataset.data.map((p) => ({ t: p.t, v: p.v * factor }))
+      : dataset.data,
+  };
+}
 
 /**
  * Fetch data for a single entity. Uses History API for windows ≤ 72 h,
@@ -201,9 +238,12 @@ export async function getEntityData(
     typeof entityConfig === "string" ? { entity: entityConfig } : entityConfig;
 
   const entityId = cfg.entity;
+  const attribute = cfg.attribute;
 
-  const cached = fromCache(entityId, hours);
-  if (cached) return cached;
+  const cached = fromCache(entityId, hours, attribute);
+  if (cached) {
+    return applyValueModifiers(cached, cfg);
+  }
 
   const endTime = new Date();
   const startTime = new Date(endTime.getTime() - hours * 3_600_000);
@@ -211,23 +251,29 @@ export async function getEntityData(
   const hassEntity = hass.states[entityId];
   const friendlyName =
     hassEntity?.attributes.friendly_name ?? entityId;
-  const unit = hassEntity?.attributes.unit_of_measurement ?? "";
+  // When using an attribute, HA has no unit metadata — fall back to empty string
+  const unit = attribute ? "" : (hassEntity?.attributes.unit_of_measurement ?? "");
 
   let rawPoints: DataPoint[];
 
-  if (cfg.statistics || hours > HISTORY_THRESHOLD_HOURS) {
+  const useStatistics = cfg.statistics != null || hours > HISTORY_THRESHOLD_HOURS;
+  console.debug("[InsightChart] data source", { entityId, useStatistics, hours, explicit: cfg.statistics });
+
+  if (useStatistics) {
     const period = cfg.statistics ?? choosePeriod(hours);
     rawPoints = await fetchStatistics(hass, entityId, startTime, endTime, period);
   } else {
-    rawPoints = await fetchHistory(hass, entityId, startTime, endTime);
+    rawPoints = await fetchHistory(hass, entityId, startTime, endTime, attribute);
   }
 
   // Apply optional transforms
-  const data = applyTransform(rawPoints, cfg.transform ?? "none");
+  const transformedData = applyTransform(rawPoints, cfg.transform ?? "none");
 
-  const dataset: EntityDataSet = { entityId, friendlyName, unit, data };
-  toCache(entityId, hours, dataset);
-  return dataset;
+  const dataset: EntityDataSet = { entityId, friendlyName, unit, data: transformedData };
+  toCache(entityId, hours, dataset, attribute);
+
+  // Apply scale/invert/unit after caching so the cache stays unmodified and reusable
+  return applyValueModifiers(dataset, cfg);
 }
 
 /**

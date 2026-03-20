@@ -37,6 +37,45 @@ views:
             group_by: hour
             aggregate: mean
 
+    - title: Statistics API
+      icon: mdi:database-clock
+      cards:
+          # Auto-switch: hours > 72 → Statistics API, period: "hour"
+          - type: custom:insight-line-card
+            title: Temperature — 7d (Statistics API auto)
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom
+                  color: "#4AAFFF"
+            hours: 168
+            style: area
+            show_stats: true
+
+          # Explizites statistics-Feld: erzwingt Statistics API unabhängig von hours
+          - type: custom:insight-line-card
+            title: Temperature — explicit statistics hour
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+                  statistics: "hour"
+            hours: 24
+            style: line
+            show_stats: true
+
+          # 30-Tage mit period: day
+          - type: custom:insight-bar-card
+            title: Power — 30d (Statistics API, period day)
+            entities:
+                - entity: sensor.test_power
+                  statistics: "day"
+            hours: 720
+            group_by: day
+            aggregate: mean
+
     - title: Heatmap
       icon: mdi:chart-box
       cards:
@@ -45,3 +84,79 @@ views:
             entity: sensor.test_power
             hours: 168
             color_scale: YlOrRd
+
+    - title: Scale Demo
+      icon: mdi:scale
+      cards:
+          # Rohwerte in Watt
+          - type: custom:insight-line-card
+            title: Power — raw (W)
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#4AAFFF"
+            hours: 12
+            style: line
+            show_stats: true
+
+          # Gleicher Sensor, scale: 0.001 → Kilowatt
+          # Cache-Hit: unscaled Daten werden nur einmal von HA geholt
+          - type: custom:insight-line-card
+            title: Power — scaled (kW, scale 0.001)
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#FF6B4A"
+                  scale: 0.001
+                  unit: "kW"
+            hours: 12
+            style: line
+            show_stats: true
+
+          # invert: true — Werte negiert (nützlich für Export-Sensoren)
+          - type: custom:insight-line-card
+            title: Power — inverted
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#6BDB6B"
+                  invert: true
+            hours: 12
+            style: line
+            show_stats: true
+
+          # Kombination: scale + invert
+          - type: custom:insight-line-card
+            title: Power — inverted kW (scale 0.001 + invert)
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#B07AFF"
+                  scale: 0.001
+                  invert: true
+            hours: 12
+            style: line
+            show_stats: true
+
+          # attribute: Zwei Attribute desselben Sensors in einer Card
+          - type: custom:insight-line-card
+            title: Climate — attributes as source
+            entities:
+                - entity: sensor.test_climate
+                  name: Current Temp
+                  color: "#FF6B4A"
+                  attribute: current_temperature
+                  unit: "°C"
+                - entity: sensor.test_climate
+                  name: Target Temp
+                  color: "#4AAFFF"
+                  attribute: target_temperature
+                  unit: "°C"
+                - entity: sensor.test_climate
+                  name: Humidity
+                  color: "#6BDB6B"
+                  attribute: humidity
+                  unit: "%"
+            hours: 12
+            style: line
+            show_stats: true

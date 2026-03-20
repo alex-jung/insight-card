@@ -27,6 +27,31 @@ export interface InsightEntityConfig {
    * entity, and data is aggregated at the given period resolution.
    */
   statistics?: HassStatisticsPeriod;
+  /**
+   * Use a specific entity attribute as the data source instead of the state.
+   * The attribute value must be numeric. Combine with `unit` to set the
+   * correct unit of measurement (attributes have no unit metadata).
+   * Example: attribute: "current_temperature"
+   */
+  attribute?: string;
+  /**
+   * Override the unit of measurement shown in stats and tooltips.
+   * Useful together with `scale` (e.g. scale: 0.001, unit: "kW").
+   */
+  unit?: string;
+  /**
+   * Multiply every value by this factor before display.
+   * Useful for unit conversions (e.g. W → kW: scale: 0.001).
+   * @default 1
+   */
+  scale?: number;
+  /**
+   * Negate all values before display (multiply by -1).
+   * Useful for export/feed-in sensors that report positive values but should
+   * be shown as negative (or vice versa).
+   * @default false
+   */
+  invert?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -109,6 +134,11 @@ export interface InsightLineConfig extends InsightBaseConfig {
    * @default "auto"
    */
   y_range?: "auto" | [number, number];
+  /**
+   * Timestamp format shown in the hover tooltip.
+   * @default "datetime"
+   */
+  tooltip_format?: "time" | "date" | "datetime";
 }
 
 // ---------------------------------------------------------------------------
