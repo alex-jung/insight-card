@@ -253,7 +253,7 @@ export class InsightLineCard extends InsightBaseCard {
             ? (u: uPlot) => this._buildColorGradient(u, ct!, fillOpacity)
             : hexToRgba(color, fillOpacity)
           : undefined,
-        width: config.line_width ?? 2,
+        width: ec.line_width ?? config.line_width ?? 2,
         drawStyle,
         lineInterpolation,
         spanGaps: true,

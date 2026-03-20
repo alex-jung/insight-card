@@ -20,6 +20,8 @@ export interface InsightEntityConfig {
   color?: string;
   /** Which Y-axis this series belongs to */
   y_axis?: "left" | "right";
+  /** Override the card-level line_width for this entity. */
+  line_width?: number;
   /** Optional value transformation */
   transform?: "none" | "diff" | "normalize" | "cumulative";
   /**
