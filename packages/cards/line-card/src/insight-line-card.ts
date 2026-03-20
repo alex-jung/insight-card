@@ -422,6 +422,14 @@ export class InsightLineCard extends InsightBaseCard {
           grid: { stroke: gridStroke, width: 1 },
           ticks: { stroke: gridStroke, width: 1 },
           font: "12px sans-serif",
+          ...(config.time_format && config.time_format !== "auto" ? {
+            values: (_u: uPlot, vals: number[]) => vals.map((v) => {
+              const ms = v * 1000;
+              if (config.time_format === "time") return formatTime(ms);
+              if (config.time_format === "date") return formatDate(ms);
+              return formatDateTime(ms);
+            }),
+          } : {}),
         },
         {
           scale: "y",

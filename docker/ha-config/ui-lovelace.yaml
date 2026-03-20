@@ -123,6 +123,26 @@ views:
                   dash: [8, 4]
 
           - type: custom:insight-line-card
+            title: "time_format: time (HH:MM)"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+            hours: 24
+            style: line
+            time_format: time
+
+          - type: custom:insight-line-card
+            title: "time_format: date (DD.MM)"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+            hours: 168
+            style: line
+            time_format: date
+
+          - type: custom:insight-line-card
             title: "show_points: true"
             entities:
                 - entity: sensor.test_temperature_living_room

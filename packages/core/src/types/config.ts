@@ -206,6 +206,15 @@ export interface InsightLineConfig extends InsightBaseConfig {
    * @default "datetime"
    */
   tooltip_format?: "time" | "date" | "datetime";
+  /**
+   * Format for X-axis tick labels.
+   * - `"auto"`     — uPlot smart formatting (adapts to zoom level)
+   * - `"time"`     — always HH:MM
+   * - `"date"`     — always DD.MM
+   * - `"datetime"` — always DD.MM HH:MM
+   * @default "auto"
+   */
+  time_format?: "auto" | "time" | "date" | "datetime";
   /** Secondary (right) Y-axis range. "auto" or fixed [min, max]. */
   y_range_secondary?: "auto" | [number, number];
   /** Soft minimum for the secondary Y-axis. */
