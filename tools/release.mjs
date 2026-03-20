@@ -21,13 +21,13 @@ import {
   rmSync,
   statSync,
 } from "node:fs";
+// readdirSync still used for dist summary
 import { fileURLToPath } from "node:url";
 import { dirname, resolve, join } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
 const DIST = join(ROOT, "dist");
-const CARDS_DIR = join(ROOT, "packages", "cards");
 
 // ---------------------------------------------------------------------------
 // Flags
@@ -68,47 +68,22 @@ if (!skipClean) {
 mkdirSync(DIST, { recursive: true });
 
 // ---------------------------------------------------------------------------
-// 2. Discover card packages
+// 2. Build combined bundle
 // ---------------------------------------------------------------------------
 
-const cardDirs = readdirSync(CARDS_DIR).filter((name) => {
-  const pkgJson = join(CARDS_DIR, name, "package.json");
-  return existsSync(pkgJson);
-});
-
-if (cardDirs.length === 0) {
-  log("No card packages found — nothing to build.");
-  process.exit(0);
-}
-
-log(`\nBuilding ${cardDirs.length} card(s): ${cardDirs.join(", ")}\n`);
-
-// ---------------------------------------------------------------------------
-// 3. Build each card
-// ---------------------------------------------------------------------------
+log(`\nBuilding combined bundle …\n`);
 
 const failed = [];
 
-for (const cardName of cardDirs) {
-  const cardDir = join(CARDS_DIR, cardName);
-  const rollupConfig = join(cardDir, "rollup.config.mjs");
-
-  if (!existsSync(rollupConfig)) {
-    log(`  [skip] ${cardName} — no rollup.config.mjs found`);
-    continue;
-  }
-
-  log(`Building ${cardName} …`);
-  try {
-    run(
-      `node ${JSON.stringify(join(ROOT, "node_modules", ".bin", "rollup"))} -c rollup.config.mjs`,
-      cardDir,
-    );
-    log(`  [ok] ${cardName}`);
-  } catch {
-    log(`  [FAIL] ${cardName}`);
-    failed.push(cardName);
-  }
+try {
+  run(
+    `node ${JSON.stringify(join(ROOT, "node_modules", ".bin", "rollup"))} -c rollup.config.mjs`,
+    ROOT,
+  );
+  log(`  [ok] insight-chart.js`);
+} catch {
+  log(`  [FAIL] insight-chart.js`);
+  failed.push("insight-chart");
 }
 
 // ---------------------------------------------------------------------------

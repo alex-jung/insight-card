@@ -14,6 +14,7 @@ import {
   generateColors,
   formatValue,
   getChartHeight,
+  findNumericSensor,
 } from "@insight-chart/core";
 
 // ---------------------------------------------------------------------------
@@ -102,13 +103,18 @@ export class InsightBarCard extends InsightBaseCard {
     return document.createElement("insight-bar-card-editor");
   }
 
-  static getStubConfig(): Partial<InsightBarConfig> {
+  static getStubConfig(
+    hass: unknown,
+    entities: string[],
+    entitiesFallback: string[],
+  ): Partial<InsightBarConfig> {
+    const sensor = findNumericSensor(hass, entities, entitiesFallback);
     return {
       type: InsightBarCard.cardType,
-      entities: [{ entity: "sensor.energy_consumption" }],
-      hours: 168,
-      group_by: "day",
-      aggregate: "sum",
+      entities: [{ entity: sensor }],
+      hours: 24,
+      group_by: "hour",
+      aggregate: "mean",
       layout: "grouped",
     };
   }
@@ -297,8 +303,9 @@ export class InsightBarCard extends InsightBaseCard {
 // ---------------------------------------------------------------------------
 
 window.customCards = window.customCards ?? [];
+// HA prepends "custom:" itself — register WITHOUT the prefix here.
 window.customCards.push({
-  type: InsightBarCard.cardType,
+  type: InsightBarCard.cardType.replace("custom:", ""),
   name: InsightBarCard.cardName,
   description: InsightBarCard.cardDescription,
   preview: true,

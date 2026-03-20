@@ -7,7 +7,7 @@ on:
     pull_request:
 
 env:
-    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
     build:
@@ -15,9 +15,9 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v4.2.2
+            - uses: actions/checkout@v4
 
-            - uses: actions/setup-node@v4.4.0
+            - uses: actions/setup-node@v4
               with:
                   node-version: "22"
                   cache: "npm"
@@ -32,8 +32,8 @@ jobs:
               run: npm run build
 
             - name: Upload dist
-              uses: actions/upload-artifact@v4.6.2
+              uses: actions/upload-artifact@v4
               with:
                   name: dist
-                  path: dist/*.js
+                  path: dist/insight-chart.js
                   retention-days: 7
