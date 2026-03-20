@@ -318,7 +318,7 @@ export abstract class InsightBaseCard extends LitElement {
           : ""}
 
         <div class="card-content">
-          ${this._loading
+          ${this._loading && this._data.length === 0
             ? html`<div class="loading-container" style="height:${chartHeight}px">
                 <div class="loading-spinner"></div>
               </div>`
@@ -335,7 +335,7 @@ export abstract class InsightBaseCard extends LitElement {
                 </div>
               `}
 
-          ${this._config.show_stats && !this._loading && !this._error
+          ${this._config.show_stats && this._data.length > 0 && !this._error
             ? this._renderStatsFooter()
             : ""}
         </div>

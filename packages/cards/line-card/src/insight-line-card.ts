@@ -86,7 +86,7 @@ export class InsightLineCard extends InsightBaseCard {
 
       /* Cursor & selection */
       .u-select {
-        background: rgba(0,0,0,0.07);
+        background: color-mix(in srgb, var(--primary-color, #03a9f4) 15%, transparent);
         position: absolute;
         pointer-events: none;
       }
@@ -238,12 +238,14 @@ export class InsightLineCard extends InsightBaseCard {
     const chartHeight = getChartHeight(this._cardWidth);
     const isDark = this.isDarkTheme;
 
+    // Canvas doesn't resolve CSS variables — read computed values from the host element.
+    const cs = getComputedStyle(this);
     const axisStroke = isDark
       ? "rgba(255,255,255,0.55)"
-      : "var(--secondary-text-color, rgba(0,0,0,0.55))";
+      : cs.getPropertyValue("--secondary-text-color").trim() || "rgba(0,0,0,0.55)";
     const gridStroke = isDark
       ? "rgba(255,255,255,0.08)"
-      : "var(--divider-color, rgba(0,0,0,0.08))";
+      : cs.getPropertyValue("--divider-color").trim() || "rgba(0,0,0,0.08)";
 
     // y-axis scale
     const yScaleOpts: uPlot.Scale =
