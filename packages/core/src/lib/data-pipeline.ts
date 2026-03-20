@@ -202,8 +202,16 @@ export async function getEntityData(
 
   const entityId = cfg.entity;
 
+  console.debug("[InsightChart] getEntityData", { entityId, scale: cfg.scale });
+
   const cached = fromCache(entityId, hours);
-  if (cached) return cached;
+  if (cached) {
+    if (cfg.scale != null && cfg.scale !== 1) {
+      const s = cfg.scale;
+      return { ...cached, data: cached.data.map((p) => ({ t: p.t, v: p.v * s })) };
+    }
+    return cached;
+  }
 
   const endTime = new Date();
   const startTime = new Date(endTime.getTime() - hours * 3_600_000);
@@ -223,10 +231,16 @@ export async function getEntityData(
   }
 
   // Apply optional transforms
-  const data = applyTransform(rawPoints, cfg.transform ?? "none");
+  const transformedData = applyTransform(rawPoints, cfg.transform ?? "none");
 
-  const dataset: EntityDataSet = { entityId, friendlyName, unit, data };
+  const dataset: EntityDataSet = { entityId, friendlyName, unit, data: transformedData };
   toCache(entityId, hours, dataset);
+
+  // Apply scale after caching so the cache stays unscaled and reusable
+  if (cfg.scale != null && cfg.scale !== 1) {
+    const s = cfg.scale;
+    return { ...dataset, data: transformedData.map((p) => ({ t: p.t, v: p.v * s })) };
+  }
   return dataset;
 }
 

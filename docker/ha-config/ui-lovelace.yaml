@@ -45,3 +45,30 @@ views:
             entity: sensor.test_power
             hours: 168
             color_scale: YlOrRd
+
+    - title: Scale Demo
+      icon: mdi:scale
+      cards:
+          # Rohwerte in Watt
+          - type: custom:insight-line-card
+            title: Power — raw (W)
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#4AAFFF"
+            hours: 12
+            style: line
+            show_stats: true
+
+          # Gleicher Sensor, scale: 0.001 → Kilowatt
+          # Cache-Hit: unscaled Daten werden nur einmal von HA geholt
+          - type: custom:insight-line-card
+            title: Power — scaled (kW, scale 0.001)
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#FF6B4A"
+                  scale: 0.001
+            hours: 12
+            style: line
+            show_stats: true

@@ -27,6 +27,12 @@ export interface InsightEntityConfig {
    * entity, and data is aggregated at the given period resolution.
    */
   statistics?: HassStatisticsPeriod;
+  /**
+   * Multiply every value by this factor before display.
+   * Useful for unit conversions (e.g. W → kW: scale: 0.001).
+   * @default 1
+   */
+  scale?: number;
 }
 
 // ---------------------------------------------------------------------------
