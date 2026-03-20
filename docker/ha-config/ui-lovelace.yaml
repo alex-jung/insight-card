@@ -57,6 +57,24 @@ views:
             show_stats: true
 
           - type: custom:insight-line-card
+            title: "Thresholds"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Temperature
+                  color: "#FF6B4A"
+            hours: 24
+            style: area
+            y_min: 0
+            thresholds:
+                - value: 22
+                  color: "#FF6B4A"
+                  label: "Comfort max"
+                - value: 18
+                  color: "#4AAFFF"
+                  label: "Comfort min"
+                  dash: [8, 4]
+
+          - type: custom:insight-line-card
             title: "Y-Axis: soft bounds y_min=0, decimals=1"
             entities:
                 - entity: sensor.test_temperature_living_room

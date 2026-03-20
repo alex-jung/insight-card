@@ -13,6 +13,7 @@ import {
   InsightBaseCard,
   type InsightLineConfig,
   type InsightEntityConfig,
+  type ThresholdConfig,
   hexToRgba,
   generateColors,
   formatValue,
@@ -420,6 +421,9 @@ export class InsightLineCard extends InsightBaseCard {
       },
       hooks: {
         setCursor: [(u) => this._updateTooltip(u)],
+        draw: config.thresholds?.length
+          ? [(u: uPlot) => this._drawThresholds(u, config.thresholds!)]
+          : [],
         ready: [(u) => {
           this._tooltipEl = document.createElement("div");
           this._tooltipEl.className = "u-tooltip";
@@ -431,6 +435,39 @@ export class InsightLineCard extends InsightBaseCard {
       },
       padding: [8, 8, 0, 0],
     };
+  }
+
+  /** Draw horizontal threshold lines on the canvas */
+  private _drawThresholds(u: uPlot, thresholds: ThresholdConfig[]): void {
+    const cs = getComputedStyle(this);
+    const defaultColor =
+      cs.getPropertyValue("--error-color").trim() || "#db4437";
+    const dpr = window.devicePixelRatio ?? 1;
+    const ctx = u.ctx;
+
+    ctx.save();
+    for (const t of thresholds) {
+      const y = Math.round(u.valToPos(t.value, "y", true));
+      if (y < u.bbox.top || y > u.bbox.top + u.bbox.height) continue;
+
+      ctx.beginPath();
+      ctx.strokeStyle = t.color ?? defaultColor;
+      ctx.lineWidth = dpr;
+      ctx.setLineDash((t.dash ?? [4, 3]).map((v) => v * dpr));
+      ctx.moveTo(u.bbox.left, y);
+      ctx.lineTo(u.bbox.left + u.bbox.width, y);
+      ctx.stroke();
+
+      if (t.label) {
+        ctx.setLineDash([]);
+        ctx.fillStyle = t.color ?? defaultColor;
+        ctx.font = `${11 * dpr}px sans-serif`;
+        ctx.textAlign = "right";
+        ctx.textBaseline = "bottom";
+        ctx.fillText(t.label, u.bbox.left + u.bbox.width - 4 * dpr, y - 2 * dpr);
+      }
+    }
+    ctx.restore();
   }
 
   /** Update the floating tooltip position and content on cursor move */

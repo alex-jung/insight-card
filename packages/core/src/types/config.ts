@@ -55,6 +55,21 @@ export interface InsightEntityConfig {
 }
 
 // ---------------------------------------------------------------------------
+// Threshold line
+// ---------------------------------------------------------------------------
+
+export interface ThresholdConfig {
+  /** Y value at which the horizontal line is drawn */
+  value: number;
+  /** Line color (hex). Defaults to --error-color. */
+  color?: string;
+  /** Optional label drawn next to the line */
+  label?: string;
+  /** Line dash pattern in pixels, e.g. [4, 3]. Default: solid. */
+  dash?: number[];
+}
+
+// ---------------------------------------------------------------------------
 // Color scale helper
 // ---------------------------------------------------------------------------
 
@@ -165,6 +180,8 @@ export interface InsightLineConfig extends InsightBaseConfig {
   y_min_secondary?: number;
   /** Soft maximum for the secondary Y-axis. */
   y_max_secondary?: number;
+  /** Horizontal reference lines drawn across the chart. */
+  thresholds?: ThresholdConfig[];
 }
 
 // ---------------------------------------------------------------------------
