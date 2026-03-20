@@ -16,6 +16,7 @@ import {
   hexToRgba,
   generateColors,
   getChartHeight,
+  findNumericSensor,
 } from "@insight-chart/core";
 
 // ---------------------------------------------------------------------------
@@ -132,13 +133,18 @@ export class InsightLineCard extends InsightBaseCard {
     return document.createElement("insight-line-card-editor");
   }
 
-  static getStubConfig(): Partial<InsightLineConfig> {
+  static getStubConfig(
+    hass: unknown,
+    entities: string[],
+    entitiesFallback: string[],
+  ): Partial<InsightLineConfig> {
+    const sensor = findNumericSensor(hass, entities, entitiesFallback);
     return {
       type: InsightLineCard.cardType,
-      entities: [{ entity: "sensor.example_temperature", name: "Temperature" }],
+      entities: [{ entity: sensor }],
       hours: 24,
       style: "area",
-      zoom: true,
+      zoom: false,
       line_width: 2,
       show_stats: false,
     };
@@ -365,8 +371,9 @@ export class InsightLineCard extends InsightBaseCard {
 // ---------------------------------------------------------------------------
 
 window.customCards = window.customCards ?? [];
+// HA prepends "custom:" itself — register WITHOUT the prefix here.
 window.customCards.push({
-  type: InsightLineCard.cardType,
+  type: InsightLineCard.cardType.replace("custom:", ""),
   name: InsightLineCard.cardName,
   description: InsightLineCard.cardDescription,
   preview: true,

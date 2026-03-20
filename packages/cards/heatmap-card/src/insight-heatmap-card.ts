@@ -19,6 +19,7 @@ import {
   type ColorStop,
   hexToRgba,
   getChartHeight,
+  findNumericSensor,
 } from "@insight-chart/core";
 
 // ---------------------------------------------------------------------------
@@ -215,10 +216,15 @@ export class InsightHeatmapCard extends InsightBaseCard {
     return document.createElement("insight-heatmap-card-editor");
   }
 
-  static getStubConfig(): Partial<InsightHeatmapConfig> {
+  static getStubConfig(
+    hass: unknown,
+    entities: string[],
+    entitiesFallback: string[],
+  ): Partial<InsightHeatmapConfig> {
+    const sensor = findNumericSensor(hass, entities, entitiesFallback);
     return {
       type: InsightHeatmapCard.cardType,
-      entities: [{ entity: "sensor.energy_consumption" }],
+      entities: [{ entity: sensor }],
       hours: 168,
       color_scale: "YlOrRd",
       layout: "hour_day",
@@ -363,8 +369,9 @@ export class InsightHeatmapCard extends InsightBaseCard {
 // ---------------------------------------------------------------------------
 
 window.customCards = window.customCards ?? [];
+// HA prepends "custom:" itself — register WITHOUT the prefix here.
 window.customCards.push({
-  type: InsightHeatmapCard.cardType,
+  type: InsightHeatmapCard.cardType.replace("custom:", ""),
   name: InsightHeatmapCard.cardName,
   description: InsightHeatmapCard.cardDescription,
   preview: true,

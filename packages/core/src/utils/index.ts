@@ -227,6 +227,35 @@ export function getChartHeight(width: number): number {
 }
 
 // ---------------------------------------------------------------------------
+// Card picker helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Pick the first sensor entity from the HA entity lists that has a numeric
+ * state and a unit of measurement. Falls back to the first entity found, or
+ * to `fallback` if the lists are empty.
+ *
+ * `entities` and `entitiesFallback` are the lists supplied by HA to
+ * `getStubConfig(hass, entities, entitiesFallback)`.
+ */
+export function findNumericSensor(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  hass: any,
+  entities: string[],
+  entitiesFallback: string[],
+  fallback = "sensor.example",
+): string {
+  const candidates = [...entities, ...entitiesFallback].filter((e) =>
+    e.startsWith("sensor."),
+  );
+  const numeric = candidates.find((e) => {
+    const state = hass?.states?.[e];
+    return state && !isNaN(Number(state.state)) && state.attributes?.unit_of_measurement;
+  });
+  return numeric ?? candidates[0] ?? fallback;
+}
+
+// ---------------------------------------------------------------------------
 // General utilities
 // ---------------------------------------------------------------------------
 

@@ -56,7 +56,7 @@ export abstract class InsightBaseCard extends LitElement {
   protected _data: EntityDataSet[] = [];
 
   @state()
-  protected _loading = true;
+  protected _loading = false;
 
   @state()
   protected _error?: string;

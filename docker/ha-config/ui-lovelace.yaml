@@ -35,7 +35,6 @@ views:
             entities:
                 - entity: sensor.test_power
             group_by: hour
-            hours: 24
             aggregate: mean
 
     - title: Heatmap
@@ -44,5 +43,5 @@ views:
           - type: custom:insight-heatmap-card
             title: Power Heatmap
             entity: sensor.test_power
-            hours: 24
+            hours: 168
             color_scale: YlOrRd
