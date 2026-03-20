@@ -212,6 +212,11 @@ export interface InsightLineConfig extends InsightBaseConfig {
   y_min_secondary?: number;
   /** Soft maximum for the secondary Y-axis. */
   y_max_secondary?: number;
+  /**
+   * Show the series legend below the chart.
+   * @default true
+   */
+  show_legend?: boolean;
   /** Horizontal reference lines drawn across the chart. */
   thresholds?: ThresholdConfig[];
   /**

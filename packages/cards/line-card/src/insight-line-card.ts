@@ -449,7 +449,7 @@ export class InsightLineCard extends InsightBaseCard {
         }] : []),
       ],
       legend: {
-        show: true,
+        show: config.show_legend !== false,
         live: false,
       },
       hooks: {
