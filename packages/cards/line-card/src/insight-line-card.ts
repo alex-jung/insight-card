@@ -253,6 +253,7 @@ export class InsightLineCard extends InsightBaseCard {
             ? (u: uPlot) => this._buildColorGradient(u, ct!, fillOpacity)
             : hexToRgba(color, fillOpacity)
           : undefined,
+        show: !ec.hidden,
         width: ec.line_width ?? config.line_width ?? 2,
         dash: ec.stroke_dash != null
           ? (Array.isArray(ec.stroke_dash) ? ec.stroke_dash : [ec.stroke_dash, ec.stroke_dash])
@@ -500,7 +501,7 @@ export class InsightLineCard extends InsightBaseCard {
       ctx.beginPath();
       ctx.strokeStyle = t.color ?? defaultColor;
       ctx.lineWidth = dpr;
-      ctx.setLineDash((t.dash ?? [4, 3]).map((v) => v * dpr));
+      ctx.setLineDash((t.dash ?? [4, 3]).map((v: number) => v * dpr));
       ctx.moveTo(u.bbox.left, y);
       ctx.lineTo(u.bbox.left + u.bbox.width, y);
       ctx.stroke();

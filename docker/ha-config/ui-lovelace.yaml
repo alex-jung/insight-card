@@ -57,6 +57,20 @@ views:
             show_stats: true
 
           - type: custom:insight-line-card
+            title: "Hidden entity (toggle via legend)"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom (starts hidden)
+                  color: "#4AAFFF"
+                  hidden: true
+            hours: 24
+            style: line
+            show_stats: true
+
+          - type: custom:insight-line-card
             title: "Per-entity: line_width, fill_opacity, stroke_dash"
             entities:
                 - entity: sensor.test_temperature_living_room

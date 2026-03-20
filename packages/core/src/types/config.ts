@@ -31,6 +31,11 @@ export interface InsightEntityConfig {
    * @default 0 (solid)
    */
   stroke_dash?: number | number[];
+  /**
+   * Start the series hidden. The user can toggle visibility via the legend.
+   * @default false
+   */
+  hidden?: boolean;
   /** Optional value transformation */
   transform?: "none" | "diff" | "normalize" | "cumulative";
   /**
