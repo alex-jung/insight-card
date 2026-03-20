@@ -24,6 +24,13 @@ export interface InsightEntityConfig {
   line_width?: number;
   /** Override the card-level fill_opacity for this entity (0–1). */
   fill_opacity?: number;
+  /**
+   * Dashed line pattern in pixels.
+   * A single number sets equal dash and gap (e.g. 5 → [5, 5]).
+   * An array sets dash and gap separately (e.g. [8, 4]).
+   * @default 0 (solid)
+   */
+  stroke_dash?: number | number[];
   /** Optional value transformation */
   transform?: "none" | "diff" | "normalize" | "cumulative";
   /**

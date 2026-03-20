@@ -57,6 +57,24 @@ views:
             show_stats: true
 
           - type: custom:insight-line-card
+            title: "Per-entity: line_width, fill_opacity, stroke_dash"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room (thick, full area)
+                  color: "#FF6B4A"
+                  line_width: 3
+                  fill_opacity: 0.4
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom (thin, dashed, no fill)
+                  color: "#4AAFFF"
+                  line_width: 1
+                  fill_opacity: 0
+                  stroke_dash: [8, 4]
+            hours: 24
+            style: area
+            show_stats: true
+
+          - type: custom:insight-line-card
             title: "Color Thresholds (gradient)"
             entities:
                 - entity: sensor.test_temperature_living_room

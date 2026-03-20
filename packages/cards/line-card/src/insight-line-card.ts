@@ -254,6 +254,9 @@ export class InsightLineCard extends InsightBaseCard {
             : hexToRgba(color, fillOpacity)
           : undefined,
         width: ec.line_width ?? config.line_width ?? 2,
+        dash: ec.stroke_dash != null
+          ? (Array.isArray(ec.stroke_dash) ? ec.stroke_dash : [ec.stroke_dash, ec.stroke_dash])
+          : undefined,
         drawStyle,
         lineInterpolation,
         spanGaps: true,
