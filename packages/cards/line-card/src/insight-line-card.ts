@@ -14,6 +14,7 @@ import {
   type InsightLineConfig,
   type InsightEntityConfig,
   type ThresholdConfig,
+  type ColorThresholdConfig,
   hexToRgba,
   generateColors,
   formatValue,
@@ -227,20 +228,31 @@ export class InsightLineCard extends InsightBaseCard {
 
     const colors = generateColors(this.entityConfigs.length);
 
+    const ct = config.color_thresholds;
+
     this.entityConfigs.forEach((ec: InsightEntityConfig, i: number) => {
       const color = ec.color ?? colors[i];
       const isArea = config.style === "area";
       const isStep = config.style === "step" || config.curve === "step";
+      const drawStyle: number = isStep ? 1 : 0;
+      const lineInterpolation: number = isStep ? 2 : 0;
 
-      const drawStyle: number = isStep ? 1 : 0; // 0 = line, 1 = bars/step
-      const lineInterpolation: number = isStep ? 2 : config.curve === "smooth" ? 0 : 0;
+      // Use gradient when color_thresholds is set and entity has no explicit color
+      const useGradient = ct && ct.length >= 2 && !ec.color;
+      const fillOpacity = config.fill_opacity ?? 0.15;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       series.push({
         label: ec.name ?? this._data[i]?.friendlyName ?? ec.entity,
         scale: ec.y_axis === "right" ? "y2" : "y",
-        stroke: color,
-        fill: isArea ? hexToRgba(color, config.fill_opacity ?? 0.15) : undefined,
+        stroke: useGradient
+          ? (u: uPlot) => this._buildColorGradient(u, ct!)
+          : color,
+        fill: isArea
+          ? useGradient
+            ? (u: uPlot) => this._buildColorGradient(u, ct!, fillOpacity)
+            : hexToRgba(color, fillOpacity)
+          : undefined,
         width: config.line_width ?? 2,
         drawStyle,
         lineInterpolation,
@@ -435,6 +447,38 @@ export class InsightLineCard extends InsightBaseCard {
       },
       padding: [8, 8, 0, 0],
     };
+  }
+
+  /**
+   * Build a vertical CanvasGradient from color_thresholds.
+   * Stops are mapped from data values to Y-pixel positions so the gradient
+   * transitions exactly at the configured threshold values.
+   */
+  private _buildColorGradient(
+    u: uPlot,
+    thresholds: ColorThresholdConfig[],
+    opacity = 1,
+  ): CanvasGradient | string {
+    // u.bbox is NaN during legend swatch initialization — return a fallback color
+    if (!isFinite(u.bbox.top) || !isFinite(u.bbox.height) || u.bbox.height === 0) {
+      const mid = thresholds[Math.floor(thresholds.length / 2)];
+      const c = mid?.color ?? thresholds[0]?.color ?? "#888";
+      return opacity < 1 ? hexToRgba(c, opacity) : c;
+    }
+
+    const grad = u.ctx.createLinearGradient(
+      0, u.bbox.top,
+      0, u.bbox.top + u.bbox.height,
+    );
+    // Sort highest value first (= top of chart)
+    const sorted = [...thresholds].sort((a, b) => b.value - a.value);
+    for (const t of sorted) {
+      const yPx = u.valToPos(t.value, "y", true);
+      const stop = Math.max(0, Math.min(1, (yPx - u.bbox.top) / u.bbox.height));
+      const color = opacity < 1 ? hexToRgba(t.color, opacity) : t.color;
+      grad.addColorStop(stop, color);
+    }
+    return grad;
   }
 
   /** Draw horizontal threshold lines on the canvas */

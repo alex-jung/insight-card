@@ -29,6 +29,7 @@ export type {
   InsightHeatmapConfig,
   ColorStop,
   ThresholdConfig,
+  ColorThresholdConfig,
   GridOptionsConfig,
 } from "./types/index.js";
 

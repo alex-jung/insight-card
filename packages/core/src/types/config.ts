@@ -55,6 +55,17 @@ export interface InsightEntityConfig {
 }
 
 // ---------------------------------------------------------------------------
+// Color threshold (value-based gradient coloring)
+// ---------------------------------------------------------------------------
+
+export interface ColorThresholdConfig {
+  /** Y value at which this color starts */
+  value: number;
+  /** Color at this threshold (hex) */
+  color: string;
+}
+
+// ---------------------------------------------------------------------------
 // Threshold line
 // ---------------------------------------------------------------------------
 
@@ -182,6 +193,12 @@ export interface InsightLineConfig extends InsightBaseConfig {
   y_max_secondary?: number;
   /** Horizontal reference lines drawn across the chart. */
   thresholds?: ThresholdConfig[];
+  /**
+   * Value-based gradient coloring for all series.
+   * Each stop defines the color at a specific Y value.
+   * Entities with an explicit `color` are not affected.
+   */
+  color_thresholds?: ColorThresholdConfig[];
 }
 
 // ---------------------------------------------------------------------------

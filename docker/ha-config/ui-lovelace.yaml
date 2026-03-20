@@ -57,6 +57,22 @@ views:
             show_stats: true
 
           - type: custom:insight-line-card
+            title: "Color Thresholds (gradient)"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Temperature
+            hours: 24
+            style: area
+            y_min: 0
+            color_thresholds:
+                - value: 15
+                  color: "#4AAFFF"
+                - value: 20
+                  color: "#6BDB6B"
+                - value: 25
+                  color: "#FF6B4A"
+
+          - type: custom:insight-line-card
             title: "Thresholds"
             entities:
                 - entity: sensor.test_temperature_living_room
