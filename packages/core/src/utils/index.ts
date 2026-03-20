@@ -316,6 +316,48 @@ export function aggregateTimeSeries(
 }
 
 // ---------------------------------------------------------------------------
+// Value transformation
+// ---------------------------------------------------------------------------
+
+/**
+ * Apply a named transformation to a DataPoint array.
+ *
+ * - `none`       — passthrough
+ * - `diff`       — replace each value with the delta to its predecessor
+ *                  (first point is dropped)
+ * - `normalize`  — scale values to [0, 1] based on dataset min/max
+ * - `cumulative` — replace each value with the running sum
+ */
+export function applyTransform(
+  data: { t: number; v: number }[],
+  transform: "none" | "diff" | "normalize" | "cumulative",
+): { t: number; v: number }[] {
+  if (transform === "none" || data.length === 0) return data;
+
+  switch (transform) {
+    case "diff": {
+      const result: { t: number; v: number }[] = [];
+      for (let i = 1; i < data.length; i++) {
+        result.push({ t: data[i].t, v: data[i].v - data[i - 1].v });
+      }
+      return result;
+    }
+    case "normalize": {
+      const vals = data.map((p) => p.v);
+      const min = Math.min(...vals);
+      const max = Math.max(...vals);
+      const range = max - min;
+      if (range === 0) return data.map((p) => ({ t: p.t, v: 0 }));
+      return data.map((p) => ({ t: p.t, v: (p.v - min) / range }));
+    }
+    case "cumulative": {
+      let sum = 0;
+      return data.map((p) => ({ t: p.t, v: (sum += p.v) }));
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // General utilities
 // ---------------------------------------------------------------------------
 

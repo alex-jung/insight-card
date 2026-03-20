@@ -239,6 +239,46 @@ views:
             aggregate_period: "30m"
             show_stats: true
 
+    - title: Transform Demo
+      icon: mdi:function-variant
+      cards:
+          - type: custom:insight-line-card
+            title: "diff — delta between consecutive values"
+            entities:
+                - entity: sensor.test_power
+                  name: Power Δ
+                  color: "#FF6B4A"
+                  transform: diff
+            hours: 12
+            style: line
+            show_stats: true
+
+          - type: custom:insight-line-card
+            title: "normalize — scale to 0–1"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room (norm)
+                  color: "#FF6B4A"
+                  transform: normalize
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom (norm)
+                  color: "#4AAFFF"
+                  transform: normalize
+            hours: 24
+            style: line
+            show_stats: true
+
+          - type: custom:insight-line-card
+            title: "cumulative — running sum"
+            entities:
+                - entity: sensor.test_power
+                  name: Power (cumsum)
+                  color: "#6BDB6B"
+                  transform: cumulative
+            hours: 24
+            style: area
+            show_stats: true
+
     - title: Scale Demo
       icon: mdi:scale
       cards:

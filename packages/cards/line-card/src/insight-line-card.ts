@@ -25,6 +25,7 @@ import {
   findNumericSensor,
   parsePeriod,
   aggregateTimeSeries,
+  applyTransform,
 } from "@insight-chart/core";
 
 // ---------------------------------------------------------------------------
@@ -274,13 +275,19 @@ export class InsightLineCard extends InsightBaseCard {
     const cardPeriodMs = config.aggregate_period ? parsePeriod(config.aggregate_period) : NaN;
     const cardMethod = config.aggregate;
 
-    // Apply per-entity (or card-level) aggregation to raw data before alignment
+    // Apply per-entity (or card-level) aggregation, then transformation
     const datasets = this._data.map((dataset, i) => {
       const ec = this.entityConfigs[i];
       const method = ec?.aggregate ?? cardMethod;
       const periodMs = cardPeriodMs;
-      if (!method || !isFinite(periodMs)) return dataset.data;
-      return aggregateTimeSeries(dataset.data, periodMs, method);
+      let data = dataset.data;
+      if (method && isFinite(periodMs)) {
+        data = aggregateTimeSeries(data, periodMs, method);
+      }
+      if (ec?.transform && ec.transform !== "none") {
+        data = applyTransform(data, ec.transform);
+      }
+      return data;
     });
 
     // Merge all timestamps across all entities and sort

@@ -65,6 +65,7 @@ export {
   findNumericSensor,
   parsePeriod,
   aggregateTimeSeries,
+  applyTransform,
 } from "./utils/index.js";
 
 export type { Stats } from "./utils/index.js";
