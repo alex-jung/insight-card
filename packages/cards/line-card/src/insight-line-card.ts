@@ -294,19 +294,27 @@ export class InsightLineCard extends InsightBaseCard {
       ? "rgba(255,255,255,0.08)"
       : cs.getPropertyValue("--divider-color").trim() || "rgba(0,0,0,0.08)";
 
-    // Y-axis scale — fixed range, soft bounds, or auto
+    // Y-axis scale — fixed range, soft bounds, log, or auto
     const yMin = config.y_min;
     const yMax = config.y_max;
-    const yScaleOpts: uPlot.Scale = Array.isArray(config.y_range)
-      ? { range: config.y_range as [number, number] }
-      : (yMin !== undefined || yMax !== undefined)
-      ? {
-          range: (_u, dataMin, dataMax) => [
-            yMin !== undefined ? Math.min(dataMin, yMin) : dataMin,
-            yMax !== undefined ? Math.max(dataMax, yMax) : dataMax,
-          ],
-        }
-      : { auto: true };
+    const isLog = config.logarithmic === true;
+
+    let yScaleOpts: uPlot.Scale;
+    if (isLog) {
+      // Logarithmic scale — data must be > 0
+      yScaleOpts = { distr: 3, log: 10, auto: true };
+    } else if (Array.isArray(config.y_range)) {
+      yScaleOpts = { range: config.y_range as [number, number] };
+    } else if (yMin !== undefined || yMax !== undefined) {
+      yScaleOpts = {
+        range: (_u, dataMin, dataMax) => [
+          yMin !== undefined ? Math.min(dataMin, yMin) : dataMin,
+          yMax !== undefined ? Math.max(dataMax, yMax) : dataMax,
+        ],
+      };
+    } else {
+      yScaleOpts = { auto: true };
+    }
 
     // Y-axis label: use common unit from all datasets (if they share one)
     const units = [...new Set(this._data.map((d) => d.unit).filter(Boolean))];

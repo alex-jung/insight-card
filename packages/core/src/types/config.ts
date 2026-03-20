@@ -149,6 +149,12 @@ export interface InsightLineConfig extends InsightBaseConfig {
    */
   decimals?: number;
   /**
+   * Use a logarithmic (base-10) Y-axis scale.
+   * All data values must be > 0.
+   * @default false
+   */
+  logarithmic?: boolean;
+  /**
    * Timestamp format shown in the hover tooltip.
    * @default "datetime"
    */

@@ -31,6 +31,16 @@ views:
       icon: mdi:chart-line-variant
       cards:
           - type: custom:insight-line-card
+            title: "Y-Axis: logarithmic scale"
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#6BDB6B"
+            hours: 24
+            style: line
+            logarithmic: true
+
+          - type: custom:insight-line-card
             title: "Y-Axis: soft bounds y_min=0, decimals=1"
             entities:
                 - entity: sensor.test_temperature_living_room
