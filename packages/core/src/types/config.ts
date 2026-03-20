@@ -202,6 +202,11 @@ export interface InsightLineConfig extends InsightBaseConfig {
    */
   logarithmic?: boolean;
   /**
+   * Opacity of the background grid lines (0–1).
+   * @default 1
+   */
+  grid_opacity?: number;
+  /**
    * Timestamp format shown in the hover tooltip.
    * @default "datetime"
    */

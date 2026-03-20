@@ -326,9 +326,14 @@ export class InsightLineCard extends InsightBaseCard {
     const axisStroke = isDark
       ? "rgba(255,255,255,0.55)"
       : cs.getPropertyValue("--secondary-text-color").trim() || "rgba(0,0,0,0.55)";
-    const gridStroke = isDark
-      ? "rgba(255,255,255,0.08)"
-      : cs.getPropertyValue("--divider-color").trim() || "rgba(0,0,0,0.08)";
+    const gridOpacity = config.grid_opacity ?? 1;
+    const gridStroke = gridOpacity === 1
+      ? (isDark
+          ? "rgba(255,255,255,0.08)"
+          : cs.getPropertyValue("--divider-color").trim() || "rgba(0,0,0,0.08)")
+      : (isDark
+          ? `rgba(255,255,255,${(0.08 * gridOpacity).toFixed(3)})`
+          : `rgba(0,0,0,${(0.08 * gridOpacity).toFixed(3)})`);
 
     // Y-axis scale — fixed range, soft bounds, log, or auto
     const yMin = config.y_min;
