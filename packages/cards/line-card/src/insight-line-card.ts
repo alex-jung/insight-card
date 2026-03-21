@@ -234,8 +234,12 @@ export class InsightLineCard extends InsightBaseCard {
       const color = ec.color ?? colors[i];
       const isArea = config.style === "area";
       const isStep = config.style === "step" || config.curve === "step";
-      const drawStyle: number = isStep ? 1 : 0;
-      const lineInterpolation: number = isStep ? 2 : 0;
+      const isSmooth = !isStep && config.curve === "smooth";
+      const pathBuilder = isStep
+        ? uPlot.paths.stepped!({ align: 1 })
+        : isSmooth
+        ? uPlot.paths.spline!()
+        : undefined;
 
       // Use gradient when color_thresholds is set and entity has no explicit color
       const useGradient = ct && ct.length >= 2 && !ec.color;
@@ -259,8 +263,7 @@ export class InsightLineCard extends InsightBaseCard {
           ? (Array.isArray(ec.stroke_dash) ? ec.stroke_dash : [ec.stroke_dash, ec.stroke_dash])
           : undefined,
         points: { show: config.show_points === true },
-        drawStyle,
-        lineInterpolation,
+        paths: pathBuilder,
         spanGaps: true,
       } as any);
     });

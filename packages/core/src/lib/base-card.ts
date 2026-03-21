@@ -168,16 +168,16 @@ export abstract class InsightBaseCard extends LitElement {
   }
 
   getCardSize(): number {
-    return 3;
+    return 6;
   }
 
   getGridOptions(): LovelaceGridOptions {
     const overrides = this._config?.grid_options ?? {};
     return {
       columns: overrides.columns ?? 4,
-      rows: overrides.rows ?? 3,
+      rows: overrides.rows ?? 6,
       min_columns: overrides.min_columns ?? 2,
-      min_rows: overrides.min_rows ?? 2,
+      min_rows: overrides.min_rows ?? 3,
     };
   }
 
