@@ -242,7 +242,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
     return html`
       <canvas
         class="heatmap-canvas"
-        style="width:100%;height:${getChartHeight(this._cardWidth)}px"
+        style="width:100%;height:${this.getChartHeight()}px"
       ></canvas>
     `;
   }
@@ -265,7 +265,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
 
     const dpr = window.devicePixelRatio ?? 1;
     const displayWidth = canvasEl.clientWidth || this._cardWidth - 32;
-    const displayHeight = canvasEl.clientHeight || getChartHeight(this._cardWidth);
+    const displayHeight = canvasEl.clientHeight || this.getChartHeight();
 
     canvasEl.width = displayWidth * dpr;
     canvasEl.height = displayHeight * dpr;

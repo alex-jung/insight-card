@@ -172,6 +172,13 @@ export class InsightLineCard extends InsightBaseCard {
   private _chartContainer?: HTMLDivElement;
   /** Floating tooltip element — lives inside u-wrap */
   private _tooltipEl?: HTMLDivElement;
+  /** Cached per-entity colors for tooltip — rebuilt when config changes */
+  private _tooltipColors: string[] = [];
+  /** Cached u.over offset — stable between resizes, updated in ready hook */
+  private _overLeft = 0;
+  private _overTop = 0;
+  /** RAF handle — prevents queuing multiple _syncUplot calls per frame */
+  private _syncRafId?: number;
 
   // -------------------------------------------------------------------------
   // HA editor integration
@@ -503,7 +510,13 @@ export class InsightLineCard extends InsightBaseCard {
           this._tooltipEl = document.createElement("div");
           this._tooltipEl.className = "u-tooltip";
           u.root.appendChild(this._tooltipEl);
-
+          // Cache u.over offsets — stable until next resize
+          this._overLeft = u.over.offsetLeft;
+          this._overTop = u.over.offsetTop;
+        }],
+        setSize: [(u) => {
+          this._overLeft = u.over.offsetLeft;
+          this._overTop = u.over.offsetTop;
         }],
         destroy: [() => {
           this._tooltipEl = undefined;
@@ -602,12 +615,12 @@ export class InsightLineCard extends InsightBaseCard {
       fmt === "date" ? formatDate(tsMs) :
       formatDateTime(tsMs);
 
-    const colors = generateColors(this.entityConfigs.length);
+    // Use cached colors — no allocation on mousemove
     const rows = this._data.map((dataset, i) => {
       const val = u.data[i + 1]?.[idx];
       if (val == null) return "";
       const unit = dataset.unit ? ` ${dataset.unit}` : "";
-      const color = this.entityConfigs[i]?.color ?? colors[i];
+      const color = this._tooltipColors[i] ?? "#888";
       const name = dataset.friendlyName;
       return `<div class="u-tooltip-row">
         <span class="u-tooltip-dot" style="background:${color}"></span>
@@ -619,12 +632,14 @@ export class InsightLineCard extends InsightBaseCard {
     tooltip.innerHTML = `<div class="u-tooltip-time">${timeLabel}</div>${rows}`;
     tooltip.style.display = "block";
 
-    // Position relative to u-wrap; cursor coords are relative to u-over
-    const left = u.cursor.left! + u.over.offsetLeft;
-    const top = u.cursor.top! + u.over.offsetTop;
+    // Use cached offsets — no DOM layout reads on mousemove
+    const left = u.cursor.left! + this._overLeft;
+    const top = u.cursor.top! + this._overTop;
     const flip = left > u.width / 2;
-    tooltip.style.left = flip ? `${left - tooltip.offsetWidth - 12}px` : `${left + 12}px`;
-    tooltip.style.top = `${Math.max(0, top - tooltip.offsetHeight / 2)}px`;
+    // CSS transform avoids reading offsetWidth/offsetHeight (no forced reflow)
+    tooltip.style.left = `${left + (flip ? -12 : 12)}px`;
+    tooltip.style.top = `${top}px`;
+    tooltip.style.transform = flip ? "translate(-100%, -50%)" : "translateY(-50%)";
   }
 
   // -------------------------------------------------------------------------
@@ -658,8 +673,14 @@ export class InsightLineCard extends InsightBaseCard {
   override updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
 
-    // Defer uPlot setup until after the DOM is painted
-    requestAnimationFrame(() => this._syncUplot());
+    // Defer uPlot setup until after the DOM is painted.
+    // Deduplicate: if a frame is already scheduled, don't queue another.
+    if (this._syncRafId === undefined) {
+      this._syncRafId = requestAnimationFrame(() => {
+        this._syncRafId = undefined;
+        this._syncUplot();
+      });
+    }
   }
 
   /** Create or update the uPlot instance to match current state */
@@ -673,24 +694,27 @@ export class InsightLineCard extends InsightBaseCard {
     if (!wrapper) return;
 
     const uData = this._buildUplotData();
-    const opts = this._buildOptions(config);
 
-    if (!this._uplot || this._chartContainer !== wrapper) {
-      // Destroy stale instance if container changed
+    const needsFull = this._needsRebuild || !this._uplot || this._chartContainer !== wrapper;
+
+    if (needsFull) {
+      // Cache per-entity colors (done here so tooltip has fresh values after rebuild)
+      const palette = generateColors(this.entityConfigs.length);
+      this._tooltipColors = this.entityConfigs.map((ec, i) => ec.color ?? palette[i]);
+
+      const opts = this._buildOptions(config);
       this._uplot?.destroy();
       this._uplot = undefined;
-
-      // Clear any previous content (e.g. after reconnect)
       wrapper.innerHTML = "";
       this._chartContainer = wrapper;
       this._uplot = new uPlot(opts, uData, wrapper);
+      this._needsRebuild = false;
     } else {
-      // Update data and size only
-      this._uplot.setData(uData);
-      this._uplot.setSize({
-        width: opts.width,
-        height: opts.height,
-      });
+      // Data or size change only — skip full options rebuild
+      const chartWidth = Math.max(100, wrapper.clientWidth || this._cardWidth - 32);
+      const chartHeight = this.getChartHeight();
+      this._uplot!.setData(uData);
+      this._uplot!.setSize({ width: chartWidth, height: chartHeight });
     }
   }
 
@@ -699,6 +723,10 @@ export class InsightLineCard extends InsightBaseCard {
     this._uplot?.destroy();
     this._uplot = undefined;
     this._chartContainer = undefined;
+    if (this._syncRafId !== undefined) {
+      cancelAnimationFrame(this._syncRafId);
+      this._syncRafId = undefined;
+    }
   }
 }
 

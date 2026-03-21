@@ -64,6 +64,10 @@ export abstract class InsightBaseCard extends LitElement {
   @state()
   protected _cardWidth = 400;
 
+  /** Cached chart height in px — updated after paint, never during render */
+  @state()
+  protected _chartHeight = 220;
+
   @query(".stats-footer")
   protected _stats?: HTMLDivElement;
 
@@ -79,20 +83,34 @@ export abstract class InsightBaseCard extends LitElement {
   private _lastFetchHass?: HomeAssistant;
 
   // -------------------------------------------------------------------------
+  // Chart rebuild tracking (used by subclasses)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Signals that the chart must be fully rebuilt on the next sync.
+   * Set to true on first render, config change, or theme change.
+   * Subclasses should reset to false after completing the rebuild.
+   */
+  protected _needsRebuild = true;
+  /** Last known theme — subclasses use this to detect theme changes. */
+  protected _lastTheme?: boolean;
+
+  // -------------------------------------------------------------------------
   // LitElement lifecycle
   // -------------------------------------------------------------------------
 
   connectedCallback(): void {
     super.connectedCallback();
 
-    // Observe card width changes for responsive layout
+    // Observe card size changes for responsive layout
     this._resizeObserver = new ResizeObserver(
-        debounce((entries: ResizeObserverEntry[]) => {
-          const width = entries[0]?.contentRect.width;
-
-          if (width && Math.abs(width - this._cardWidth) > 4) {
-            this._cardWidth = width;
+      debounce((entries: ResizeObserverEntry[]) => {
+        const width = entries[0]?.contentRect.width;
+        if (width && Math.abs(width - this._cardWidth) > 4) {
+          this._cardWidth = width;
         }
+        // Re-measure chart height after resize settles (post-paint read)
+        this._refreshChartHeight();
       }, 100),
     );
     this._resizeObserver.observe(this);
@@ -119,6 +137,20 @@ export abstract class InsightBaseCard extends LitElement {
 
   updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
+
+    // Config change always requires a full chart rebuild
+    if (changedProps.has("_config")) {
+      this._needsRebuild = true;
+      // Layout may change (title added/removed, stats toggled) — re-measure after paint
+      requestAnimationFrame(() => this._refreshChartHeight());
+    }
+
+    // Theme change requires a full chart rebuild (colors come from computed styles)
+    const currentTheme = this.isDarkTheme;
+    if (currentTheme !== this._lastTheme) {
+      this._needsRebuild = true;
+      this._lastTheme = currentTheme;
+    }
 
     if (changedProps.has("hass") && this.hass && this._config) {
       // Only re-fetch when hass changes if we haven't fetched yet or the
@@ -186,20 +218,33 @@ export abstract class InsightBaseCard extends LitElement {
   }
 
   /**
-   * Return the appropriate chart height in pixels.
+   * Returns the cached chart height. Safe to call during render — no DOM reads.
+   * The value is kept up to date by _refreshChartHeight().
    */
   protected getChartHeight(): number {
-    let chartHeight = this.offsetHeight;
+    return this._chartHeight;
+  }
 
-    chartHeight -= this._header?.offsetHeight as number ?? 0;
-    chartHeight -= this._config?.show_legend !== false ? 28 : 0;
-    chartHeight -= this._config?.show_stats !== false ? this._stats?.offsetHeight as number : 0;
-    chartHeight -= this._config?.padding_top ?? 0;
-    chartHeight -= this._config?.padding_bottom ?? 0;
+  /**
+   * Measures available chart height from the DOM and updates _chartHeight.
+   * Must only be called after paint (RAF or ResizeObserver callback),
+   * never during render().
+   */
+  private _refreshChartHeight(): void {
+    const total = this.offsetHeight;
+    if (total === 0) return; // not yet laid out
 
-    console.debug("[getChartHeight] chartHeight", chartHeight);
+    let h = total;
+    h -= this._header?.offsetHeight ?? 0;
+    h -= this._config?.show_legend !== false ? 28 : 0;
+    h -= this._config?.show_stats ? (this._stats?.offsetHeight ?? 0) : 0;
+    h -= this._config?.padding_top ?? 0;
+    h -= this._config?.padding_bottom ?? 0;
 
-    return chartHeight;
+    const clamped = Math.max(80, h);
+    if (clamped !== this._chartHeight) {
+      this._chartHeight = clamped;
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -330,7 +375,7 @@ export abstract class InsightBaseCard extends LitElement {
     }
 
     const breakpoint = getBreakpoint(this._cardWidth);
-      const chartHeight = this.getChartHeight();
+    const chartHeight = this._chartHeight;
 
       const styleContent = {
           paddingTop: `${this._config.padding_top ?? 0}px`,
