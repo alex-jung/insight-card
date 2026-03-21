@@ -147,9 +147,9 @@ export interface InsightBaseConfig {
    */
   update_interval?: number;
   /**
-    * Opacity of the background grid lines (0–1).
-    * @default 1
-    */
+   * Opacity of the background grid lines (0–1).
+   * @default 1
+   */
   grid_opacity?: number;
   /**
    * Show a stats footer with min / mean / max / current values.
@@ -161,11 +161,35 @@ export interface InsightBaseConfig {
    * @default true
    */
   show_legend?: boolean;
+  /**
+   * Show the X (time) axis labels and ticks.
+   * @default true
+   */
   show_x_axis?: boolean;
+  /**
+   * Show the Y axis labels and ticks.
+   * @default true
+   */
   show_y_axis?: boolean;
+  /**
+   * Inner padding on the left side of the card content area (px).
+   * @default 0
+   */
   padding_left?: number;
+  /**
+   * Inner padding on the right side of the card content area (px).
+   * @default 0
+   */
   padding_right?: number;
+  /**
+   * Inner padding on the top of the card content area (px).
+   * @default 0
+   */
   padding_top?: number;
+  /**
+   * Inner padding on the bottom of the card content area (px).
+   * @default 0
+   */
   padding_bottom?: number;
   /**
    * Force a colour theme. "auto" follows the HA theme.
