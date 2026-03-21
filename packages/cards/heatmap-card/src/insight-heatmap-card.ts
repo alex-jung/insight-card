@@ -17,8 +17,6 @@ import {
   InsightBaseCard,
   type InsightHeatmapConfig,
   type ColorStop,
-  hexToRgba,
-  getChartHeight,
   findNumericSensor,
 } from "@insight-chart/core";
 

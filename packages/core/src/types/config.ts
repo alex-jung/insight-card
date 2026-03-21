@@ -147,10 +147,26 @@ export interface InsightBaseConfig {
    */
   update_interval?: number;
   /**
+    * Opacity of the background grid lines (0–1).
+    * @default 1
+    */
+  grid_opacity?: number;
+  /**
    * Show a stats footer with min / mean / max / current values.
    * @default false
    */
   show_stats?: boolean;
+  /**
+   * Show the series legend below the chart.
+   * @default true
+   */
+  show_legend?: boolean;
+  show_x_axis?: boolean;
+  show_y_axis?: boolean;
+  padding_left?: number;
+  padding_right?: number;
+  padding_top?: number;
+  padding_bottom?: number;
   /**
    * Force a colour theme. "auto" follows the HA theme.
    * @default "auto"
@@ -202,11 +218,6 @@ export interface InsightLineConfig extends InsightBaseConfig {
    */
   logarithmic?: boolean;
   /**
-   * Opacity of the background grid lines (0–1).
-   * @default 1
-   */
-  grid_opacity?: number;
-  /**
    * Timestamp format shown in the hover tooltip.
    * @default "datetime"
    */
@@ -226,11 +237,6 @@ export interface InsightLineConfig extends InsightBaseConfig {
   y_min_secondary?: number;
   /** Soft maximum for the secondary Y-axis. */
   y_max_secondary?: number;
-  /**
-   * Show the series legend below the chart.
-   * @default true
-   */
-  show_legend?: boolean;
   /**
    * Whether to show data points on the line.
    * - `false`   — no static dots (default)

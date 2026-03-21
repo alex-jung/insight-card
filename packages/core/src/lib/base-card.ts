@@ -5,7 +5,8 @@
  */
 
 import { LitElement, html, css, type TemplateResult, type PropertyValues, type CSSResultGroup } from "lit";
-import { property, state } from "lit/decorators.js";
+import { property, query, state } from "lit/decorators.js";
+import { styleMap } from "lit/directives/style-map.js";
 
 import type {
   HomeAssistant,
@@ -19,7 +20,6 @@ import {
   formatValue,
   computeStats,
   getBreakpoint,
-  getChartHeight,
   generateColors,
   debounce,
 } from "../utils/index.js";
@@ -64,6 +64,12 @@ export abstract class InsightBaseCard extends LitElement {
   @state()
   protected _cardWidth = 400;
 
+  @query(".stats-footer")
+  protected _stats?: HTMLDivElement;
+
+  @query(".card-header")
+  protected _header?: HTMLDivElement;
+
   // -------------------------------------------------------------------------
   // Private fields
   // -------------------------------------------------------------------------
@@ -81,10 +87,11 @@ export abstract class InsightBaseCard extends LitElement {
 
     // Observe card width changes for responsive layout
     this._resizeObserver = new ResizeObserver(
-      debounce((entries: ResizeObserverEntry[]) => {
-        const width = entries[0]?.contentRect.width;
-        if (width && Math.abs(width - this._cardWidth) > 4) {
-          this._cardWidth = width;
+        debounce((entries: ResizeObserverEntry[]) => {
+          const width = entries[0]?.contentRect.width;
+
+          if (width && Math.abs(width - this._cardWidth) > 4) {
+            this._cardWidth = width;
         }
       }, 100),
     );
@@ -167,18 +174,32 @@ export abstract class InsightBaseCard extends LitElement {
     }
   }
 
-  getCardSize(): number {
-    return 6;
-  }
-
   getGridOptions(): LovelaceGridOptions {
     const overrides = this._config?.grid_options ?? {};
+
     return {
-      columns: overrides.columns ?? 4,
-      rows: overrides.rows ?? 6,
-      min_columns: overrides.min_columns ?? 2,
+      columns: overrides.columns ?? 12,
+      rows: overrides.rows ?? 3,
+      min_columns: overrides.min_columns ?? 7,
       min_rows: overrides.min_rows ?? 3,
     };
+  }
+
+  /**
+   * Return the appropriate chart height in pixels.
+   */
+  protected getChartHeight(): number {
+    let chartHeight = this.offsetHeight;
+
+    chartHeight -= this._header?.offsetHeight as number ?? 0;
+    chartHeight -= this._config?.show_legend !== false ? 28 : 0;
+    chartHeight -= this._config?.show_stats !== false ? this._stats?.offsetHeight as number : 0;
+    chartHeight -= this._config?.padding_top ?? 0;
+    chartHeight -= this._config?.padding_bottom ?? 0;
+
+    console.debug("[getChartHeight] chartHeight", chartHeight);
+
+    return chartHeight;
   }
 
   // -------------------------------------------------------------------------
@@ -309,7 +330,14 @@ export abstract class InsightBaseCard extends LitElement {
     }
 
     const breakpoint = getBreakpoint(this._cardWidth);
-    const chartHeight = getChartHeight(this._cardWidth);
+      const chartHeight = this.getChartHeight();
+
+      const styleContent = {
+          paddingTop: `${this._config.padding_top ?? 0}px`,
+          paddingBottom: `${this._config.padding_bottom ?? 0}px`,
+          paddingLeft: `${this._config.padding_left ?? 0}px`,
+          paddingRight: `${this._config.padding_right ?? 0}px`,
+      }
 
     return html`
       <ha-card>
@@ -317,7 +345,7 @@ export abstract class InsightBaseCard extends LitElement {
           ? html`<h1 class="card-header">${this._config.title}</h1>`
           : ""}
 
-        <div class="card-content">
+        <div class="card-content" style="${styleMap(styleContent)}">
           ${this._loading && this._data.length === 0
             ? html`<div class="loading-container" style="height:${chartHeight}px">
                 <div class="loading-spinner"></div>
@@ -332,8 +360,7 @@ export abstract class InsightBaseCard extends LitElement {
               </div>`
             : html`
                 <div
-                  class="chart-container breakpoint-${breakpoint}"
-                  style="min-height:${chartHeight}px"
+                  class="chart-container"
                 >
                   ${this.renderChart()}
                 </div>
@@ -354,11 +381,15 @@ export abstract class InsightBaseCard extends LitElement {
   static styles: CSSResultGroup = css`
     :host {
       display: block;
+      height: 100%;
     }
 
     ha-card {
-      height: 100%;
       overflow: hidden;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .card-header {
@@ -372,9 +403,9 @@ export abstract class InsightBaseCard extends LitElement {
       text-overflow: ellipsis;
     }
 
-    .card-content {
-      padding: 8px 16px 16px;
-    }
+    // .card-content {
+    //   padding: 0px 0px;
+    // }
 
     .chart-container {
       position: relative;

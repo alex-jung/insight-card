@@ -212,19 +212,6 @@ export function getBreakpoint(width: number): "compact" | "default" | "wide" {
   return "wide";
 }
 
-/**
- * Return the appropriate chart height in pixels for a given card width.
- *
- * - compact  → 150 px
- * - default  → 220 px
- * - wide     → 300 px
- */
-export function getChartHeight(width: number): number {
-  const bp = getBreakpoint(width);
-  if (bp === "compact") return 150;
-  if (bp === "wide") return 300;
-  return 220;
-}
 
 // ---------------------------------------------------------------------------
 // Card picker helpers

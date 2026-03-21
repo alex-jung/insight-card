@@ -21,7 +21,6 @@ import {
   formatTime,
   formatDate,
   formatDateTime,
-  getChartHeight,
   findNumericSensor,
   parsePeriod,
   aggregateTimeSeries,
@@ -194,8 +193,9 @@ export class InsightLineCard extends InsightBaseCard {
       hours: 24,
       style: "area",
       zoom: false,
-      line_width: 2,
+      line_width: 1,
       show_stats: false,
+      show_legend: false,
     };
   }
 
@@ -214,6 +214,8 @@ export class InsightLineCard extends InsightBaseCard {
       y_range: "auto",
       update_interval: 60,
       show_stats: false,
+      show_x_axis: true,
+      show_y_axis: true,
     };
   }
 
@@ -321,7 +323,7 @@ export class InsightLineCard extends InsightBaseCard {
     // Measure actual available width from the wrapper element if possible
     const wrapper = this.shadowRoot?.querySelector<HTMLDivElement>(".uplot-wrapper");
     const chartWidth = Math.max(100, wrapper?.clientWidth || this._cardWidth - 32);
-    const chartHeight = getChartHeight(this._cardWidth);
+    let chartHeight = this.getChartHeight();
     const isDark = this.isDarkTheme;
 
     // Canvas doesn't resolve CSS variables — read computed values from the host element.
@@ -437,6 +439,7 @@ export class InsightLineCard extends InsightBaseCard {
       series: this._buildSeries(config),
       axes: [
         {
+          show: config.show_x_axis !== false,
           stroke: axisStroke,
           grid: { stroke: gridStroke, width: 1 },
           ticks: { stroke: gridStroke, width: 1 },
@@ -451,6 +454,7 @@ export class InsightLineCard extends InsightBaseCard {
           } : {}),
         },
         {
+          show: config.show_y_axis !== false,
           scale: "y",
           stroke: axisStroke,
           grid: { stroke: gridStroke, width: 1 },
@@ -505,7 +509,8 @@ export class InsightLineCard extends InsightBaseCard {
           this._tooltipEl = undefined;
         }],
       },
-      padding: [8, 4, 6, 0],
+      // padding: [8, 4, 8, 4],
+      padding: [0, 0, 0, 0],
     };
   }
 

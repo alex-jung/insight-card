@@ -13,7 +13,6 @@ import {
   type InsightBarConfig,
   generateColors,
   formatValue,
-  getChartHeight,
   findNumericSensor,
 } from "@insight-chart/core";
 

@@ -60,7 +60,6 @@ export {
   formatDuration,
   computeStats,
   getBreakpoint,
-  getChartHeight,
   debounce,
   findNumericSensor,
   parsePeriod,
