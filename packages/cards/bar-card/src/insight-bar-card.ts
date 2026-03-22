@@ -137,7 +137,7 @@ export class InsightBarCard extends InsightBaseCard {
     return html`
       <canvas
         class="bar-canvas"
-        style="width:100%;height:${this.getChartHeight()}px"
+        style="width:100%;height:250px"
       ></canvas>
     `;
   }
@@ -157,7 +157,7 @@ export class InsightBarCard extends InsightBaseCard {
 
     const dpr = window.devicePixelRatio ?? 1;
     const displayWidth = canvasEl.clientWidth || this._cardWidth - 32;
-    const displayHeight = canvasEl.clientHeight || this.getChartHeight();
+    const displayHeight = canvasEl.clientHeight || 250;
 
     canvasEl.width = displayWidth * dpr;
     canvasEl.height = displayHeight * dpr;

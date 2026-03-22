@@ -157,23 +157,6 @@ export abstract class InsightBaseEditor
     `;
   }
 
-  protected renderStatsToggle(): TemplateResult {
-    return html`
-      <div class="section">
-        <div class="toggle-row">
-          <span class="toggle-label">Show statistics (min / avg / max)</span>
-          <ha-switch
-            .checked=${this._config?.show_stats ?? false}
-            @change=${(e: Event) =>
-              this._updateConfig({
-                show_stats: (e.target as HTMLInputElement).checked,
-              })}
-          ></ha-switch>
-        </div>
-      </div>
-    `;
-  }
-
   // -------------------------------------------------------------------------
   // Render
   // -------------------------------------------------------------------------
@@ -189,7 +172,6 @@ export abstract class InsightBaseEditor
         ${this.renderEntitySection()}
         ${this.renderTimeRangeSection()}
         ${this.renderCardOptions()}
-        ${this.renderStatsToggle()}
       </div>
     `;
   }
