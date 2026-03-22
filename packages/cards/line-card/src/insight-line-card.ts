@@ -240,12 +240,14 @@ export class InsightLineCard extends InsightBaseCard {
      */
     private _refreshChartHeight(): void {
         const total = this.offsetHeight;
-        console.log("total", total);
         if (total === 0) return; // not yet laid out
+
+        const legendEl = this.shadowRoot?.querySelector<HTMLElement>(".u-legend");
+        const legendHeight = legendEl?.offsetHeight ?? 0;
 
         let h = total;
         h -= this._header?.offsetHeight ?? 0;
-        h -= this._config?.show_legend ? 50:0;
+        h -= legendHeight;
         h -= this._config?.padding_top ?? 0;
         h -= this._config?.padding_bottom ?? 0;
 
