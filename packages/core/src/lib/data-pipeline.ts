@@ -311,8 +311,12 @@ function applyTransform(
   }
 
   if (transform === "normalize") {
-    const min = Math.min(...data.map((p) => p.v));
-    const max = Math.max(...data.map((p) => p.v));
+    let min = Infinity;
+    let max = -Infinity;
+    for (const p of data) {
+      if (p.v < min) min = p.v;
+      if (p.v > max) max = p.v;
+    }
     const range = max - min;
     if (range === 0) return data.map((p) => ({ ...p, v: 0 }));
     return data.map((p) => ({ t: p.t, v: (p.v - min) / range }));

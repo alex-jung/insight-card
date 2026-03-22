@@ -179,6 +179,10 @@ export class InsightLineCard extends InsightBaseCard {
   private _overTop = 0;
   /** RAF handle — prevents queuing multiple _syncUplot calls per frame */
   private _syncRafId?: number;
+  /** Last _data reference used to build uData — used to skip rebuild on size-only changes */
+  private _lastDataRef?: typeof this._data;
+  /** Cached uPlot aligned data — reused when _data reference is unchanged */
+  private _cachedUData?: uPlot.AlignedData;
 
   // -------------------------------------------------------------------------
   // HA editor integration
@@ -693,9 +697,16 @@ export class InsightLineCard extends InsightBaseCard {
     );
     if (!wrapper) return;
 
-    const uData = this._buildUplotData();
-
     const needsFull = this._needsRebuild || !this._uplot || this._chartContainer !== wrapper;
+
+    // Rebuild uData only when data actually changed or a full rebuild is required.
+    // On resize, _data reference is stable → reuse cached uData.
+    const dataChanged = this._data !== this._lastDataRef;
+    if (needsFull || dataChanged) {
+      this._cachedUData = this._buildUplotData();
+      this._lastDataRef = this._data;
+    }
+    const uData = this._cachedUData!;
 
     if (needsFull) {
       // Cache per-entity colors (done here so tooltip has fresh values after rebuild)
@@ -710,10 +721,10 @@ export class InsightLineCard extends InsightBaseCard {
       this._uplot = new uPlot(opts, uData, wrapper);
       this._needsRebuild = false;
     } else {
-      // Data or size change only — skip full options rebuild
+      // Size-only change — skip data rebuild and options rebuild
       const chartWidth = Math.max(100, wrapper.clientWidth || this._cardWidth - 32);
       const chartHeight = this.getChartHeight();
-      this._uplot!.setData(uData);
+      if (dataChanged) this._uplot!.setData(uData);
       this._uplot!.setSize({ width: chartWidth, height: chartHeight });
     }
   }
@@ -723,6 +734,8 @@ export class InsightLineCard extends InsightBaseCard {
     this._uplot?.destroy();
     this._uplot = undefined;
     this._chartContainer = undefined;
+    this._lastDataRef = undefined;
+    this._cachedUData = undefined;
     if (this._syncRafId !== undefined) {
       cancelAnimationFrame(this._syncRafId);
       this._syncRafId = undefined;

@@ -291,9 +291,12 @@ export class InsightHeatmapCard extends InsightBaseCard {
 
     const colorStops = resolveColorScale(config.color_scale);
 
-    const allValues = cells.map((c) => c.value);
-    const minVal = Math.min(...allValues);
-    const maxVal = Math.max(...allValues);
+    let minVal = Infinity;
+    let maxVal = -Infinity;
+    for (const c of cells) {
+      if (c.value < minVal) minVal = c.value;
+      if (c.value > maxVal) maxVal = c.value;
+    }
     const range = maxVal - minVal || 1;
 
     // Layout parameters

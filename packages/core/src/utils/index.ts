@@ -291,8 +291,8 @@ export function aggregateTimeSeries(
     let v: number;
     switch (method) {
       case "mean": v = values.reduce((a, b) => a + b, 0) / values.length; break;
-      case "min":  v = Math.min(...values); break;
-      case "max":  v = Math.max(...values); break;
+      case "min":  v = values.reduce((a, b) => (b < a ? b : a)); break;
+      case "max":  v = values.reduce((a, b) => (b > a ? b : a)); break;
       case "sum":  v = values.reduce((a, b) => a + b, 0); break;
       case "last": v = values[values.length - 1]; break;
     }

@@ -202,10 +202,19 @@ export class InsightBarCard extends InsightBaseCard {
     const plotW = displayWidth - padding.left - padding.right;
     const plotH = displayHeight - padding.top - padding.bottom;
 
-    const maxVal =
-      config.layout === "stacked"
-        ? Math.max(...bars.map((b) => b.values.reduce((a, v) => a + v, 0)))
-        : Math.max(...bars.flatMap((b) => b.values));
+    let maxVal = 0;
+    if (config.layout === "stacked") {
+      for (const b of bars) {
+        const sum = b.values.reduce((a, v) => a + v, 0);
+        if (sum > maxVal) maxVal = sum;
+      }
+    } else {
+      for (const b of bars) {
+        for (const v of b.values) {
+          if (v > maxVal) maxVal = v;
+        }
+      }
+    }
 
     if (maxVal <= 0) return;
 
