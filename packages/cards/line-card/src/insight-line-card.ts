@@ -528,8 +528,8 @@ export class InsightLineCard extends InsightBaseCard {
           this._tooltipEl = undefined;
         }],
       },
-      // padding: [8, 4, 8, 4],
-      padding: [0, 0, 0, 0],
+      // padding: [8, 8, 8, 8],
+      padding: [8, 16, 8, 16],
     };
   }
 
