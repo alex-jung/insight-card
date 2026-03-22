@@ -212,6 +212,10 @@ export class InsightLineCard extends InsightBaseCard {
             zoom: true,
             line_width: 1,
             show_legend: true,
+            padding_bottom: 16,
+            padding_top: 16,
+            padding_left: 4,
+            padding_right: 4,
         };
     }
 
@@ -685,7 +689,6 @@ export class InsightLineCard extends InsightBaseCard {
 
         return html`<div id="chart"></div>`;
     }
-    private _resizeRafId?: ReturnType<typeof requestAnimationFrame>;
 
     override connectedCallback(): void {
         super.connectedCallback();
@@ -700,10 +703,8 @@ export class InsightLineCard extends InsightBaseCard {
             if (width < 10 || height < 10) return;
 
             if (!this._uplot) {
-                console.warn("[resize] sync Uplot")
                 this._syncUplot();
             } else {
-                console.warn("[resize] resize Uplot", { width, height })
                 this._uplot.setSize({ width, height });
             }
         });
@@ -721,9 +722,18 @@ export class InsightLineCard extends InsightBaseCard {
         console.log("[line-card] updated, uPlot", this._uplot);
 
         if (this._uplot && this._data !== this._lastDataRef) {
+            // If uPlot was built with no data (initial render before fetch completed),
+            // do a full rebuild so axis labels, units and series names are correct.
+            const previouslyEmpty = !this._lastDataRef ||
+                this._lastDataRef.every(d => d.data.length === 0);
             this._cachedUData = this._buildUplotData();
             this._lastDataRef = this._data;
-            this._uplot.setData(this._cachedUData);
+            if (previouslyEmpty) {
+                this._needsRebuild = true;
+                this._syncUplot();
+            } else {
+                this._uplot.setData(this._cachedUData);
+            }
         }
     }
 
@@ -765,7 +775,7 @@ export class InsightLineCard extends InsightBaseCard {
             // Size-only change — skip data rebuild and options rebuild
             const chartWidth = Math.max(100, this.wrapper.clientWidth || this._cardWidth - 32);
             const chartHeight = this._chartHeight;
-            if (dataChanged) this._uplot!.setData(uData);
+            if (dataChanged) this._uplot!.setData(uData, false);
             this._uplot!.setSize({ width: chartWidth, height: chartHeight });
         }
     }
