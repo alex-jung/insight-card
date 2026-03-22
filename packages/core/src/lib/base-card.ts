@@ -100,6 +100,10 @@ export abstract class InsightBaseCard extends LitElement {
             this._fetchData();
         }
 
+        this._startRefreshTimer();
+    }
+
+    private _startRefreshTimer(): void {
         if (this._refreshTimer !== undefined) {
             clearInterval(this._refreshTimer);
         }
@@ -128,7 +132,7 @@ export abstract class InsightBaseCard extends LitElement {
         // Config change always requires a full chart rebuild
         if (changedProps.has("_config")) {
             this._needsRebuild = true;
-            // requestAnimationFrame(() => this._refreshChartHeight());
+            this._startRefreshTimer();
         }
 
         if (changedProps.has("hass") && this.hass && this._config) {
