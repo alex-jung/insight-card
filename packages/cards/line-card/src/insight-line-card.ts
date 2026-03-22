@@ -183,6 +183,7 @@ export class InsightLineCard extends InsightBaseCard {
     private _thresholdDefaultColor = "#db4437";
 
     private _resizeObserver: ResizeObserver | null = null;
+    private _resizeRafId?: ReturnType<typeof requestAnimationFrame>;
 
     /** Cached chart height in px — updated after paint, never during render */
     @state()
@@ -361,9 +362,7 @@ export class InsightLineCard extends InsightBaseCard {
     private _buildOptions(config: InsightLineConfig): uPlot.Options {
         console.debug("[line-card] build options");
 
-        // Measure actual available width from the wrapper element if possible
-        const wrapper = this.shadowRoot?.querySelector<HTMLDivElement>(".uplot-wrapper");
-        const chartWidth = Math.max(100, wrapper?.clientWidth || this._cardWidth - 32);
+        const chartWidth = Math.max(100, this.wrapper?.clientWidth || this._cardWidth - 32);
         let chartHeight = this._chartHeight;
         const isDark = this.isDarkTheme;
 
@@ -432,8 +431,7 @@ export class InsightLineCard extends InsightBaseCard {
         )];
         const secondaryUnits = [...new Set(
             this.entityConfigs
-                .filter((ec) => ec.y_axis === "right")
-                .map((ec) => this._data[this.entityConfigs.indexOf(ec)]?.unit)
+                .flatMap((ec, i) => ec.y_axis === "right" ? [this._data[i]?.unit] : [])
                 .filter(Boolean),
         )];
         const yUnit = primaryUnits.length === 1 ? primaryUnits[0] : "";
@@ -692,18 +690,22 @@ export class InsightLineCard extends InsightBaseCard {
 
         // ResizeObserver hier registrieren, nicht in firstUpdated
         this._resizeObserver = new ResizeObserver(([entry]) => {
-            this._refreshChartHeight();
-            const height = this._chartHeight;
-            const width = this.wrapper?.clientWidth ?? entry.contentRect.width;
+            if (this._resizeRafId !== undefined) cancelAnimationFrame(this._resizeRafId);
+            this._resizeRafId = requestAnimationFrame(() => {
+                this._resizeRafId = undefined;
+                this._refreshChartHeight();
+                const height = this._chartHeight;
+                const width = this.wrapper?.clientWidth ?? entry.contentRect.width;
 
-            // Guard: Preview-Container kann kurz 0-breit sein
-            if (width < 10 || height < 10) return;
+                // Guard: Preview-Container kann kurz 0-breit sein
+                if (width < 10 || height < 10) return;
 
-            if (!this._uplot) {
-                this._syncUplot();
-            } else {
-                this._uplot.setSize({ width, height });
-            }
+                if (!this._uplot) {
+                    this._syncUplot();
+                } else {
+                    this._uplot.setSize({ width, height });
+                }
+            });
         });
 
         this.updateComplete.then(() => {
@@ -769,8 +771,13 @@ export class InsightLineCard extends InsightBaseCard {
     }
 
     override disconnectedCallback(): void {
-        console.debug("[line-card] disconneted");
         super.disconnectedCallback();
+        if (this._resizeRafId !== undefined) {
+            cancelAnimationFrame(this._resizeRafId);
+            this._resizeRafId = undefined;
+        }
+        this._resizeObserver?.disconnect();
+        this._resizeObserver = null;
         this._uplot?.destroy();
         this._uplot = undefined;
         this._lastDataRef = undefined;
