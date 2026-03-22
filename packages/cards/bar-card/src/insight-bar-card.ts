@@ -97,6 +97,11 @@ export class InsightBarCard extends InsightBaseCard {
   static readonly cardDescription = "Bar chart with grouping and aggregation";
 
   private _canvas?: HTMLCanvasElement;
+  /** Cached aggregated bar data — reused when _data reference and config are unchanged */
+  private _barCache?: { bars: Bar[]; colors: string[] };
+  private _lastBarDataRef?: typeof this._data;
+  private _lastBarGroupBy?: InsightBarConfig["group_by"];
+  private _lastBarAggregate?: InsightBarConfig["aggregate"];
 
   static getConfigElement(): HTMLElement {
     return document.createElement("insight-bar-card-editor");
@@ -162,36 +167,48 @@ export class InsightBarCard extends InsightBaseCard {
 
     ctx.scale(dpr, dpr);
 
-    const colors = generateColors(this._data.length);
-
     // -----------------------------------------------------------------------
-    // Aggregate data into buckets
+    // Aggregate data into buckets — skip if data and config are unchanged
     // -----------------------------------------------------------------------
-    const bucketMap = new Map<string, Map<number, number[]>>();
+    const dataChanged = this._data !== this._lastBarDataRef;
+    const configChanged =
+      config.group_by !== this._lastBarGroupBy ||
+      config.aggregate !== this._lastBarAggregate;
 
-    this._data.forEach((dataset, seriesIdx) => {
-      for (const point of dataset.data) {
-        const key = bucketKey(point.t, config.group_by);
-        if (!bucketMap.has(key)) bucketMap.set(key, new Map());
-        const seriesMap = bucketMap.get(key)!;
-        if (!seriesMap.has(seriesIdx)) seriesMap.set(seriesIdx, []);
-        seriesMap.get(seriesIdx)!.push(point.v);
-      }
-    });
+    let bars: Bar[];
+    let colors: string[];
 
-    const sortedKeys = Array.from(bucketMap.keys()).sort();
-    const bars: Bar[] = sortedKeys.map((key) => {
-      const seriesMap = bucketMap.get(key)!;
-      const values = this._data.map((_, i) => {
-        const raw = seriesMap.get(i) ?? [];
-        return aggregateBuckets(raw, config.aggregate);
+    if (!dataChanged && !configChanged && this._barCache) {
+      ({ bars, colors } = this._barCache);
+    } else {
+      colors = generateColors(this._data.length);
+
+      const bucketMap = new Map<string, Map<number, number[]>>();
+      this._data.forEach((dataset, seriesIdx) => {
+        for (const point of dataset.data) {
+          const key = bucketKey(point.t, config.group_by);
+          if (!bucketMap.has(key)) bucketMap.set(key, new Map());
+          const seriesMap = bucketMap.get(key)!;
+          if (!seriesMap.has(seriesIdx)) seriesMap.set(seriesIdx, []);
+          seriesMap.get(seriesIdx)!.push(point.v);
+        }
       });
-      return {
-        label: bucketLabel(key, config.group_by),
-        values,
-        colors,
-      };
-    });
+
+      const sortedKeys = Array.from(bucketMap.keys()).sort();
+      bars = sortedKeys.map((key) => {
+        const seriesMap = bucketMap.get(key)!;
+        const values = this._data.map((_, i) => {
+          const raw = seriesMap.get(i) ?? [];
+          return aggregateBuckets(raw, config.aggregate);
+        });
+        return { label: bucketLabel(key, config.group_by), values, colors };
+      });
+
+      this._barCache = { bars, colors };
+      this._lastBarDataRef = this._data;
+      this._lastBarGroupBy = config.group_by;
+      this._lastBarAggregate = config.aggregate;
+    }
 
     if (bars.length === 0) return;
 

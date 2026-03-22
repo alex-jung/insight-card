@@ -81,6 +81,8 @@ export abstract class InsightBaseCard extends LitElement {
   private _resizeObserver?: ResizeObserver;
   private _refreshTimer?: ReturnType<typeof setInterval>;
   private _lastFetchHass?: HomeAssistant;
+  /** Cached entity ID list — rebuilt on setConfig, used for fast state-change detection */
+  private _entityIds: string[] = [];
 
   // -------------------------------------------------------------------------
   // Chart rebuild tracking (used by subclasses)
@@ -145,22 +147,22 @@ export abstract class InsightBaseCard extends LitElement {
       requestAnimationFrame(() => this._refreshChartHeight());
     }
 
-    // Theme change requires a full chart rebuild (colors come from computed styles)
-    const currentTheme = this.isDarkTheme;
-    if (currentTheme !== this._lastTheme) {
-      this._needsRebuild = true;
-      this._lastTheme = currentTheme;
-    }
-
     if (changedProps.has("hass") && this.hass && this._config) {
-      // Only re-fetch when hass changes if we haven't fetched yet or the
-      // states relevant to our entities have actually changed.
+      // Theme change requires a full chart rebuild (colors come from computed styles).
+      // Only checked on hass updates since that's the only time darkMode can change.
+      const currentTheme = this.isDarkTheme;
+      if (currentTheme !== this._lastTheme) {
+        this._needsRebuild = true;
+        this._lastTheme = currentTheme;
+      }
+
+      // Only re-fetch when hass changes if we haven't fetched yet or one of
+      // our entities' states actually changed. Use cached _entityIds to avoid
+      // re-normalizing the entity config array on every update.
       const shouldFetch =
         !this._lastFetchHass ||
-        this.entityConfigs.some(
-          (ec) =>
-            this.hass!.states[ec.entity] !==
-            this._lastFetchHass!.states[ec.entity],
+        this._entityIds.some(
+          (id) => this.hass!.states[id] !== this._lastFetchHass!.states[id],
         );
 
       if (shouldFetch) {
@@ -197,6 +199,11 @@ export abstract class InsightBaseCard extends LitElement {
       ...this.getDefaultConfig(),
       ...resolved,
     } as InsightBaseConfig;
+
+    // Cache entity IDs for fast state-change detection in updated()
+    this._entityIds = this._config.entities.map((e) =>
+      typeof e === "string" ? e : e.entity,
+    );
 
     console.debug("[InsightChart] setConfig", this.tagName, this._config);
 

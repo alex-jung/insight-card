@@ -183,6 +183,8 @@ export class InsightLineCard extends InsightBaseCard {
   private _lastDataRef?: typeof this._data;
   /** Cached uPlot aligned data — reused when _data reference is unchanged */
   private _cachedUData?: uPlot.AlignedData;
+  /** Cached resolved --error-color for threshold lines — avoids getComputedStyle on every draw */
+  private _thresholdDefaultColor = "#db4437";
 
   // -------------------------------------------------------------------------
   // HA editor integration
@@ -565,9 +567,7 @@ export class InsightLineCard extends InsightBaseCard {
 
   /** Draw horizontal threshold lines on the canvas */
   private _drawThresholds(u: uPlot, thresholds: ThresholdConfig[]): void {
-    const cs = getComputedStyle(this);
-    const defaultColor =
-      cs.getPropertyValue("--error-color").trim() || "#db4437";
+    const defaultColor = this._thresholdDefaultColor;
     const dpr = window.devicePixelRatio ?? 1;
     const ctx = u.ctx;
 
@@ -712,6 +712,9 @@ export class InsightLineCard extends InsightBaseCard {
       // Cache per-entity colors (done here so tooltip has fresh values after rebuild)
       const palette = generateColors(this.entityConfigs.length);
       this._tooltipColors = this.entityConfigs.map((ec, i) => ec.color ?? palette[i]);
+      // Cache threshold default color — avoids getComputedStyle on every canvas draw
+      this._thresholdDefaultColor =
+        getComputedStyle(this).getPropertyValue("--error-color").trim() || "#db4437";
 
       const opts = this._buildOptions(config);
       this._uplot?.destroy();

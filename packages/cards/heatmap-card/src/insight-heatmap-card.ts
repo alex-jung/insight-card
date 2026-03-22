@@ -209,6 +209,10 @@ export class InsightHeatmapCard extends InsightBaseCard {
     "Heatmap visualisation of a sensor over time";
 
   private _canvas?: HTMLCanvasElement;
+  /** Cached grid data — reused when dataset.data reference and layout are unchanged */
+  private _gridCache?: { cells: HeatCell[]; rowLabels: string[]; colLabels: string[] };
+  private _lastHeatDataRef?: typeof this._data[0]["data"];
+  private _lastHeatLayout?: string;
 
   static getConfigElement(): HTMLElement {
     return document.createElement("insight-heatmap-card-editor");
@@ -280,11 +284,24 @@ export class InsightHeatmapCard extends InsightBaseCard {
     let rowLabels: string[];
     let colLabels: string[];
 
-    if (layout === "weekday_hour") {
-      ({ cells, rowLabels, colLabels } = buildWeekdayHourGrid(dataset.data));
+    // Rebuild grid only when the data reference or layout changes — skip on resize
+    const rawData = dataset.data;
+    if (
+      this._gridCache &&
+      rawData === this._lastHeatDataRef &&
+      layout === this._lastHeatLayout
+    ) {
+      ({ cells, rowLabels, colLabels } = this._gridCache);
     } else {
-      // hour_day (default) — month_day falls back to this for now
-      ({ cells, rowLabels, colLabels } = buildHourDayGrid(dataset.data));
+      if (layout === "weekday_hour") {
+        ({ cells, rowLabels, colLabels } = buildWeekdayHourGrid(rawData));
+      } else {
+        // hour_day (default) — month_day falls back to this for now
+        ({ cells, rowLabels, colLabels } = buildHourDayGrid(rawData));
+      }
+      this._gridCache = { cells, rowLabels, colLabels };
+      this._lastHeatDataRef = rawData;
+      this._lastHeatLayout = layout;
     }
 
     if (cells.length === 0) return;
