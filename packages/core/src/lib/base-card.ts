@@ -334,7 +334,7 @@ export abstract class InsightBaseCard extends LitElement {
                 : nothing}
 
             <div class="card-content" style="${styleMap(styleContent)}">
-              ${this._loading ? this._renderLoading() : nothing}
+              ${this._loading && this._data.length === 0 ? this._renderLoading() : nothing}
               ${this._error ? this._renderError() : nothing}
               <div class="chart-container">
                 ${this.renderChart()}
