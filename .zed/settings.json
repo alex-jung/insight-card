@@ -1,0 +1,7 @@
+{
+    "languages": {
+        "TypeScript": {
+            "prettier": { "allowed": true }
+        }
+    }
+}

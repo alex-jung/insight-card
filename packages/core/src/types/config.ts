@@ -152,11 +152,6 @@ export interface InsightBaseConfig {
    */
   grid_opacity?: number;
   /**
-   * Show a stats footer with min / mean / max / current values.
-   * @default false
-   */
-  show_stats?: boolean;
-  /**
    * Show the series legend below the chart.
    * @default true
    */
