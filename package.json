@@ -13,7 +13,7 @@
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
     "validate": "node tools/hacs-validate.mjs",
-    "dev": "node tools/release.mjs --watch"
+    "dev": "rollup -c rollup.config.mjs --watch"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^6.0.0",

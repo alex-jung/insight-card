@@ -1,5 +1,9 @@
 title: InsightChart Dev
 
+resources:
+    - url: /local/insight-card/insight-card.js
+      type: module
+
 views:
     - title: Line Card
       icon: mdi:chart-line
@@ -415,4 +419,52 @@ views:
                   unit: "%"
             hours: 12
             style: line
+            show_stats: true
+
+    - title: Mixed Sensors
+      icon: mdi:gauge
+      cards:
+          - type: custom:insight-line-card
+            title: Environment
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Temperature
+                  color: "#FF6B4A"
+                - entity: sensor.test_humidity
+                  name: Humidity
+                  color: "#4AAFFF"
+                  y_axis: right
+            hours: 24
+            style: line
+            show_stats: true
+
+          - type: custom:insight-line-card
+            title: CO₂
+            entities:
+                - entity: sensor.test_co2
+                  name: CO₂
+                  color: "#B07AFF"
+            hours: 24
+            style: area
+            show_stats: true
+
+          - type: custom:insight-line-card
+            title: Battery
+            entities:
+                - entity: sensor.test_battery
+                  name: Battery
+                  color: "#6BDB6B"
+            hours: 24
+            style: line
+            y_min: 0
+            y_max: 100
+
+          - type: custom:insight-line-card
+            title: Energy (kWh, total_increasing)
+            entities:
+                - entity: sensor.test_energy
+                  name: Energy
+                  color: "#FFB84A"
+            hours: 24
+            style: area
             show_stats: true

@@ -10,10 +10,10 @@ const production = process.env.NODE_ENV === "production";
 
 /** @type {import("rollup").RollupOptions} */
 export default {
-  input: "src/insight-chart.ts",
+  input: "src/insight-card.ts",
 
   output: {
-    file: "dist/insight-chart.js",
+    file: "dist/insight-card.js",
     format: "es",
     sourcemap: !production,
   },

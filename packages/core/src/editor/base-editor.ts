@@ -16,6 +16,7 @@ import type {
   InsightBaseConfig,
   InsightEntityConfig,
 } from "../types/index.js";
+import { normaliseEntityConfig } from "../utils/index.js";
 
 // Time-range presets available in every editor
 const TIME_PRESETS: { label: string; hours: number }[] = [
@@ -27,10 +28,6 @@ const TIME_PRESETS: { label: string; hours: number }[] = [
   { label: "7d",  hours: 168 },
 ];
 
-/** Normalise a string | InsightEntityConfig to InsightEntityConfig */
-function normaliseEntity(e: string | InsightEntityConfig): InsightEntityConfig {
-  return typeof e === "string" ? { entity: e } : e;
-}
 
 // ---------------------------------------------------------------------------
 // Abstract base editor
@@ -86,7 +83,7 @@ export abstract class InsightBaseEditor
   protected renderEntitySection(): TemplateResult {
     const entities: InsightEntityConfig[] = (
       this._config?.entities ?? []
-    ).map(normaliseEntity);
+    ).map(normaliseEntityConfig);
 
     return html`
       <div class="section">
@@ -213,7 +210,7 @@ export abstract class InsightBaseEditor
     patch: Partial<InsightEntityConfig>,
   ): void {
     if (!this._config) return;
-    const entities = (this._config.entities ?? []).map(normaliseEntity);
+    const entities = (this._config.entities ?? []).map(normaliseEntityConfig);
     entities[index] = { ...entities[index], ...patch };
     this._updateConfig({ entities });
   }

@@ -5,6 +5,54 @@
  * breakpoints, and general-purpose utilities.
  */
 
+import type { InsightEntityConfig } from "../types/index.js";
+
+// ---------------------------------------------------------------------------
+// Entity config normalisation
+// ---------------------------------------------------------------------------
+
+/** Keys that are valid InsightEntityConfig options (not entity IDs) */
+const ENTITY_OPTION_KEYS = new Set<string>([
+  "name", "color", "y_axis", "line_width", "fill_opacity", "stroke_dash",
+  "hidden", "transform", "statistics", "attribute", "unit", "scale", "invert", "aggregate",
+]);
+
+/**
+ * Normalise any entity input to a full InsightEntityConfig object.
+ *
+ * Accepted formats:
+ *   - string shorthand:  "sensor.temperature"
+ *   - standard object:   { entity: "sensor.temperature", color: "#f00" }
+ *   - entity-as-key:     { "sensor.temperature": { color: "#f00" } }   (nested options)
+ *   - entity-as-key:     { "sensor.temperature": null, color: "#f00" } (flat options)
+ */
+export function normaliseEntityConfig(
+  e: string | InsightEntityConfig | Record<string, unknown>,
+): InsightEntityConfig {
+  if (typeof e === "string") return { entity: e };
+
+  const obj = e as Record<string, unknown>;
+
+  // Standard format: { entity: "sensor.xxx", ...options }
+  if (typeof obj["entity"] === "string") return obj as unknown as InsightEntityConfig;
+
+  // Entity-as-key format: entity ID used as a YAML key
+  // Flat:   { "sensor.xxx": null, color: "...", y_axis: "..." }
+  // Nested: { "sensor.xxx": { color: "...", y_axis: "..." } }
+  const entityKey = Object.keys(obj).find((k) => !ENTITY_OPTION_KEYS.has(k));
+  if (entityKey) {
+    const entityValue = obj[entityKey];
+    const { [entityKey]: _ignored, ...siblingOptions } = obj;
+    const nestedOptions =
+      typeof entityValue === "object" && entityValue !== null
+        ? (entityValue as Record<string, unknown>)
+        : {};
+    return { entity: entityKey, ...nestedOptions, ...siblingOptions } as InsightEntityConfig;
+  }
+
+  return e as InsightEntityConfig;
+}
+
 // ---------------------------------------------------------------------------
 // Default colour palette
 // ---------------------------------------------------------------------------
