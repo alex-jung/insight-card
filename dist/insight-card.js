@@ -6861,6 +6861,186 @@ __decorateClass$7([
   e$1(".card-header")
 ], InsightBaseCard.prototype, "_header");
 
+var editor$1 = {
+	loading: "Loading editor…",
+	section: {
+		general: "General",
+		entities: "Entities",
+		time_range: "Time range",
+		chart_style: "Chart style",
+		y_axis: "Y axis",
+		appearance: "Appearance",
+		data_aggregation: "Data aggregation",
+		overlays: "Overlays",
+		advanced: "Advanced"
+	},
+	field: {
+		title: "Title (optional)",
+		name: "Name",
+		color: "Color",
+		hex: "Hex",
+		style: "Chart style",
+		curve: "Interpolation",
+		zoom: "Drag-to-zoom",
+		show_points: "Data points",
+		line_width: "Line width",
+		fill_opacity: "Fill opacity",
+		y_min: "Soft minimum",
+		y_max: "Soft maximum",
+		decimals: "Decimal places",
+		logarithmic: "Logarithmic scale (base 10)",
+		y_min_secondary: "Secondary axis minimum",
+		y_max_secondary: "Secondary axis maximum",
+		show_legend: "Show legend",
+		show_x_axis: "Show X axis",
+		show_y_axis: "Show Y axis",
+		grid_opacity: "Grid opacity",
+		tooltip_format: "Tooltip timestamp",
+		time_format: "X-axis label format",
+		aggregate: "Aggregation method",
+		aggregate_period: "Aggregation period (e.g. 30m, 1h, 6h, 1d)",
+		update_interval: "Update interval",
+		theme: "Theme",
+		padding_top: "Padding top",
+		padding_bottom: "Padding bottom",
+		padding_left: "Padding left",
+		padding_right: "Padding right",
+		y_axis: "Y axis",
+		hidden: "Start hidden",
+		stroke_dash: "Stroke dash (e.g. 5 or 8,4)",
+		transform: "Transform",
+		statistics: "Statistics period",
+		attribute: "Attribute",
+		unit: "Unit override",
+		scale: "Scale factor",
+		invert: "Invert values",
+		value: "Value",
+		label: "Label",
+		dash: "Dash pattern (e.g. 4,3)",
+		appearance: "Appearance",
+		data: "Data"
+	},
+	action: {
+		add_entity: "+ Add entity",
+		remove_entity: "Remove entity",
+		add_threshold: "+ Add threshold",
+		add_color_threshold: "+ Add color threshold"
+	},
+	subsection: {
+		threshold_lines: "Threshold lines",
+		color_thresholds: "Color thresholds (gradient)"
+	}
+};
+var card$1 = {
+	error: {
+		no_config: "No configuration.",
+		fetch_failed: "Failed to fetch data"
+	}
+};
+var en = {
+	editor: editor$1,
+	card: card$1
+};
+
+var editor = {
+	loading: "Editor wird geladen…",
+	section: {
+		general: "Allgemein",
+		entities: "Entitäten",
+		time_range: "Zeitbereich",
+		chart_style: "Diagrammstil",
+		y_axis: "Y-Achse",
+		appearance: "Darstellung",
+		data_aggregation: "Datenaggregation",
+		overlays: "Überlagerungen",
+		advanced: "Erweitert"
+	},
+	field: {
+		title: "Titel (optional)",
+		name: "Name",
+		color: "Farbe",
+		hex: "Hex",
+		style: "Diagrammstil",
+		curve: "Interpolation",
+		zoom: "Zoom per Drag",
+		show_points: "Datenpunkte",
+		line_width: "Linienbreite",
+		fill_opacity: "Fülldeckkraft",
+		y_min: "Weiches Minimum",
+		y_max: "Weiches Maximum",
+		decimals: "Dezimalstellen",
+		logarithmic: "Logarithmische Skala (Basis 10)",
+		y_min_secondary: "Sekundärachse Minimum",
+		y_max_secondary: "Sekundärachse Maximum",
+		show_legend: "Legende anzeigen",
+		show_x_axis: "X-Achse anzeigen",
+		show_y_axis: "Y-Achse anzeigen",
+		grid_opacity: "Rasterdeckkraft",
+		tooltip_format: "Tooltip-Zeitstempel",
+		time_format: "X-Achsen-Beschriftungsformat",
+		aggregate: "Aggregationsmethode",
+		aggregate_period: "Aggregationszeitraum (z.B. 30m, 1h, 6h, 1d)",
+		update_interval: "Aktualisierungsintervall",
+		theme: "Thema",
+		padding_top: "Innenabstand oben",
+		padding_bottom: "Innenabstand unten",
+		padding_left: "Innenabstand links",
+		padding_right: "Innenabstand rechts",
+		y_axis: "Y-Achse",
+		hidden: "Ausgeblendet starten",
+		stroke_dash: "Strichmuster (z.B. 5 oder 8,4)",
+		transform: "Transformation",
+		statistics: "Statistikzeitraum",
+		attribute: "Attribut",
+		unit: "Einheit (überschreiben)",
+		scale: "Skalierungsfaktor",
+		invert: "Werte invertieren",
+		value: "Wert",
+		label: "Bezeichnung",
+		dash: "Strichmuster (z.B. 4,3)",
+		appearance: "Darstellung",
+		data: "Daten"
+	},
+	action: {
+		add_entity: "+ Entität hinzufügen",
+		remove_entity: "Entität entfernen",
+		add_threshold: "+ Schwellenwert hinzufügen",
+		add_color_threshold: "+ Farbschwellenwert hinzufügen"
+	},
+	subsection: {
+		threshold_lines: "Schwellenwertlinien",
+		color_thresholds: "Farbschwellenwerte (Gradient)"
+	}
+};
+var card = {
+	error: {
+		no_config: "Keine Konfiguration.",
+		fetch_failed: "Datenabruf fehlgeschlagen"
+	}
+};
+var de = {
+	editor: editor,
+	card: card
+};
+
+const translations = {
+  en,
+  de
+};
+function getNestedValue(obj, keyPath) {
+  return keyPath.split(".").reduce((acc, key) => acc?.[key], obj);
+}
+function localize(key, lang = "en", vars) {
+  const langKey = Object.keys(translations).includes(
+    lang
+  ) ? lang : "en";
+  const langData = translations[langKey];
+  const fallbackData = translations["en"];
+  let template = getNestedValue(langData, key) ?? getNestedValue(fallbackData, key);
+  if (typeof template !== "string") return key;
+  return template;
+}
+
 var __defProp$1 = Object.defineProperty;
 var __decorateClass$6 = (decorators, target, key, kind) => {
   var result = void 0 ;
@@ -6886,14 +7066,20 @@ class InsightBaseEditor extends i$2 {
     this._config = config;
   }
   // -------------------------------------------------------------------------
+  // Helpers
+  // -------------------------------------------------------------------------
+  get _lang() {
+    return this.hass?.locale?.language ?? "en";
+  }
+  // -------------------------------------------------------------------------
   // Shared section renderers
   // -------------------------------------------------------------------------
   renderTitleSection() {
     return b`
       <div class="section">
-        <div class="section-header">General</div>
+        <div class="section-header">${localize("editor.section.general", this._lang)}</div>
         <ha-textfield
-          label="Title (optional)"
+          label=${localize("editor.field.title", this._lang)}
           .value=${this._config?.title ?? ""}
           @change=${(e) => this._updateConfig({
       title: e.target.value || void 0
@@ -6906,7 +7092,7 @@ class InsightBaseEditor extends i$2 {
     const entities = (this._config?.entities ?? []).map(normaliseEntityConfig);
     return b`
       <div class="section">
-        <div class="section-header">Entities</div>
+        <div class="section-header">${localize("editor.section.entities", this._lang)}</div>
 
         ${entities.map(
       (ec, index) => b`
@@ -6920,7 +7106,7 @@ class InsightBaseEditor extends i$2 {
               ></ha-entity-picker>
 
               <ha-textfield
-                label="Name"
+                label=${localize("editor.field.name", this._lang)}
                 .value=${ec.name ?? ""}
                 @change=${(e) => this._updateEntity(index, {
         name: e.target.value || void 0
@@ -6929,7 +7115,7 @@ class InsightBaseEditor extends i$2 {
 
               <div class="entity-row-actions">
                 <ha-icon-button
-                  label="Remove entity"
+                  label=${localize("editor.action.remove_entity", this._lang)}
                   .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
                   @click=${() => this._removeEntity(index)}
                 ></ha-icon-button>
@@ -6942,7 +7128,7 @@ class InsightBaseEditor extends i$2 {
           class="add-entity-btn"
           @click=${this._addEntity}
         >
-          + Add entity
+          ${localize("editor.action.add_entity", this._lang)}
         </mwc-button>
       </div>
     `;
@@ -6951,7 +7137,7 @@ class InsightBaseEditor extends i$2 {
     const currentHours = this._config?.hours ?? 24;
     return b`
       <div class="section">
-        <div class="section-header">Time range</div>
+        <div class="section-header">${localize("editor.section.time_range", this._lang)}</div>
         <div class="preset-buttons">
           ${TIME_PRESETS.map(
       ({ label, hours }) => b`
@@ -6973,7 +7159,7 @@ class InsightBaseEditor extends i$2 {
   // -------------------------------------------------------------------------
   render() {
     if (!this._config) {
-      return b`<div class="editor-loading">Loading editor…</div>`;
+      return b`<div class="editor-loading">${localize("editor.loading", this._lang)}</div>`;
     }
     return b`
       <div class="editor-container">
@@ -7732,6 +7918,9 @@ window.customCards.push({
   preview: true
 });
 
+// Material Design Icons v7.4.47
+var mdiPalette = "M17.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 19,10.5A1.5,1.5 0 0,1 17.5,12M14.5,8A1.5,1.5 0 0,1 13,6.5A1.5,1.5 0 0,1 14.5,5A1.5,1.5 0 0,1 16,6.5A1.5,1.5 0 0,1 14.5,8M9.5,8A1.5,1.5 0 0,1 8,6.5A1.5,1.5 0 0,1 9.5,5A1.5,1.5 0 0,1 11,6.5A1.5,1.5 0 0,1 9.5,8M6.5,12A1.5,1.5 0 0,1 5,10.5A1.5,1.5 0 0,1 6.5,9A1.5,1.5 0 0,1 8,10.5A1.5,1.5 0 0,1 6.5,12M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A1.5,1.5 0 0,0 13.5,19.5C13.5,19.11 13.35,18.76 13.11,18.5C12.88,18.23 12.73,17.88 12.73,17.5A1.5,1.5 0 0,1 14.23,16H16A5,5 0 0,0 21,11C21,6.58 16.97,3 12,3Z";
+
 var __getOwnPropDesc$4 = Object.getOwnPropertyDescriptor;
 var __getProtoOf$2 = Object.getPrototypeOf;
 var __reflectGet$2 = Reflect.get;
@@ -8004,47 +8193,6 @@ const THRESHOLD_SCHEMA = [
 const COLOR_THRESHOLD_SCHEMA = [
   { name: "value", selector: { number: { step: 0.1, mode: "box" } } }
 ];
-const LABELS = {
-  style: "Chart style",
-  curve: "Interpolation",
-  zoom: "Drag-to-zoom",
-  show_points: "Data points",
-  line_width: "Line width",
-  fill_opacity: "Fill opacity",
-  y_min: "Soft minimum",
-  y_max: "Soft maximum",
-  decimals: "Decimal places",
-  logarithmic: "Logarithmic scale (base 10)",
-  y_min_secondary: "Secondary axis minimum",
-  y_max_secondary: "Secondary axis maximum",
-  show_legend: "Show legend",
-  show_x_axis: "Show X axis",
-  show_y_axis: "Show Y axis",
-  grid_opacity: "Grid opacity",
-  tooltip_format: "Tooltip timestamp",
-  time_format: "X-axis label format",
-  aggregate: "Aggregation method",
-  aggregate_period: "Aggregation period (e.g. 30m, 1h, 6h, 1d)",
-  update_interval: "Update interval",
-  theme: "Theme",
-  padding_top: "Padding top",
-  padding_bottom: "Padding bottom",
-  padding_left: "Padding left",
-  padding_right: "Padding right",
-  y_axis: "Y axis",
-  hidden: "Start hidden",
-  stroke_dash: "Stroke dash (e.g. 5 or 8,4)",
-  transform: "Transform",
-  statistics: "Statistics period",
-  attribute: "Attribute",
-  unit: "Unit override",
-  scale: "Scale factor",
-  invert: "Invert values",
-  value: "Value",
-  color: "Color",
-  label: "Label",
-  dash: "Dash pattern (e.g. 4,3)"
-};
 let InsightLineCardEditor = class extends InsightBaseEditor {
   constructor() {
     super(...arguments);
@@ -8053,7 +8201,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     // ---------------------------------------------------------------------------
     this._computeLabel = (schema) => {
       if ("title" in schema) return schema.title;
-      return LABELS[schema.name] ?? schema.name;
+      return localize(`editor.field.${schema.name}`, this._lang);
     };
     // ---------------------------------------------------------------------------
     // Entity helpers
@@ -8092,7 +8240,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   // ---------------------------------------------------------------------------
   render() {
     if (!this._config) {
-      return b`<div class="editor-loading">Loading editor…</div>`;
+      return b`<div class="editor-loading">${localize("editor.loading", this._lang)}</div>`;
     }
     return b`
       <div class="editor-container">
@@ -8118,7 +8266,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     const schema = buildEntitySchema(style);
     return b`
       <div class="section">
-        <div class="section-header">Entities</div>
+        <div class="section-header">${localize("editor.section.entities", this._lang)}</div>
 
         ${entities.map(
       (ec, idx) => b`
@@ -8131,7 +8279,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                   @value-changed=${(e) => this._updateEntityAt(idx, { entity: e.detail.value })}
                 ></ha-entity-picker>
                 <ha-textfield
-                  label="Name"
+                  label=${localize("editor.field.name", this._lang)}
                   .value=${ec.name ?? ""}
                   @change=${(e) => this._updateEntityAt(idx, {
         name: e.target.value || void 0
@@ -8144,7 +8292,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
               </div>
 
               <div class="entity-color-row">
-                <span class="field-label">Color</span>
+                <span class="field-label">${localize("editor.field.color", this._lang)}</span>
                 <input
                   type="color"
                   class="color-swatch"
@@ -8155,7 +8303,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                 />
                 <ha-textfield
                   class="color-text"
-                  label="Hex"
+                  label=${localize("editor.field.hex", this._lang)}
                   .value=${ec.color ?? ""}
                   placeholder="#4AAFFF"
                   @change=${(e) => {
@@ -8177,7 +8325,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     )}
 
         <mwc-button class="add-entity-btn" @click=${this._appendEntity}>
-          + Add entity
+          ${localize("editor.action.add_entity", this._lang)}
         </mwc-button>
       </div>
     `;
@@ -8237,14 +8385,16 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       fill_opacity: cfg.fill_opacity ?? 0.15
     };
     return b`
-      <div class="section">
-        <div class="section-header">Chart style</div>
-        <ha-form
-          .hass=${this.hass}
-          .schema=${buildChartStyleSchema(cfg)}
-          .data=${data}
-          .computeLabel=${this._computeLabel}
-          @value-changed=${(e) => {
+        <ha-expansion-panel outlined>
+            <ha-svg-icon slot="leading-icon" .path=${mdiPalette}></ha-svg-icon>
+            <span slot="header">${localize("editor.section.chart_style", this._lang)}</span>
+            <div style="padding: 16px 0px;">
+            <ha-form
+              .hass=${this.hass}
+              .schema=${buildChartStyleSchema(cfg)}
+              .data=${data}
+              .computeLabel=${this._computeLabel}
+              @value-changed=${(e) => {
       const v = e.detail.value;
       const showPoints = v.show_points === "true" ? true : v.show_points === "hover" ? "hover" : false;
       this._updateConfig({
@@ -8252,8 +8402,9 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
         show_points: showPoints
       });
     }}
-        ></ha-form>
-      </div>
+            ></ha-form>
+            </div>
+        </ha-expansion-panel>
     `;
   }
   // ---------------------------------------------------------------------------
@@ -8271,7 +8422,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     };
     return b`
       <div class="section">
-        <div class="section-header">Y axis</div>
+        <div class="section-header">${localize("editor.section.y_axis", this._lang)}</div>
         <ha-form
           .hass=${this.hass}
           .schema=${Y_AXIS_SCHEMA}
@@ -8299,7 +8450,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     };
     return b`
       <div class="section">
-        <div class="section-header">Appearance</div>
+        <div class="section-header">${localize("editor.section.appearance", this._lang)}</div>
         <ha-form
           .hass=${this.hass}
           .schema=${APPEARANCE_SCHEMA}
@@ -8321,7 +8472,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     };
     return b`
       <div class="section">
-        <div class="section-header">Data aggregation</div>
+        <div class="section-header">${localize("editor.section.data_aggregation", this._lang)}</div>
         <ha-form
           .hass=${this.hass}
           .schema=${buildAggregationSchema(cfg)}
@@ -8343,14 +8494,14 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     const colorThresholds = cfg.color_thresholds ?? [];
     return b`
       <div class="section">
-        <div class="section-header">Overlays</div>
+        <div class="section-header">${localize("editor.section.overlays", this._lang)}</div>
 
-        <div class="subsection-label">Threshold lines</div>
+        <div class="subsection-label">${localize("editor.subsection.threshold_lines", this._lang)}</div>
         ${thresholds.map(
       (t, idx) => b`
             <div class="overlay-row">
               <div class="overlay-color-field">
-                <span class="field-label">Color</span>
+                <span class="field-label">${localize("editor.field.color", this._lang)}</span>
                 <input
                   type="color"
                   class="color-swatch"
@@ -8375,16 +8526,16 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
             </div>
           `
     )}
-        <mwc-button @click=${this._appendThreshold}>+ Add threshold</mwc-button>
+        <mwc-button @click=${this._appendThreshold}>${localize("editor.action.add_threshold", this._lang)}</mwc-button>
 
         <div class="subsection-label" style="margin-top:12px">
-          Color thresholds (gradient)
+          ${localize("editor.subsection.color_thresholds", this._lang)}
         </div>
         ${colorThresholds.map(
       (ct, idx) => b`
             <div class="overlay-row">
               <div class="overlay-color-field">
-                <span class="field-label">Color</span>
+                <span class="field-label">${localize("editor.field.color", this._lang)}</span>
                 <input
                   type="color"
                   class="color-swatch"
@@ -8412,7 +8563,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
             </div>
           `
     )}
-        <mwc-button @click=${this._appendColorThreshold}>+ Add color threshold</mwc-button>
+        <mwc-button @click=${this._appendColorThreshold}>${localize("editor.action.add_color_threshold", this._lang)}</mwc-button>
       </div>
     `;
   }
@@ -8431,7 +8582,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     };
     return b`
       <div class="section">
-        <div class="section-header">Advanced</div>
+        <div class="section-header">${localize("editor.section.advanced", this._lang)}</div>
         <ha-form
           .hass=${this.hass}
           .schema=${ADVANCED_SCHEMA}

@@ -17,6 +17,7 @@ import type {
   InsightEntityConfig,
 } from "../types/index.js";
 import { normaliseEntityConfig } from "../utils/index.js";
+import { localize } from "../locales/localize.js";
 
 // Time-range presets available in every editor
 const TIME_PRESETS: { label: string; hours: number }[] = [
@@ -54,6 +55,14 @@ export abstract class InsightBaseEditor
   }
 
   // -------------------------------------------------------------------------
+  // Helpers
+  // -------------------------------------------------------------------------
+
+  protected get _lang(): string {
+    return this.hass?.locale?.language ?? "en";
+  }
+
+  // -------------------------------------------------------------------------
   // Abstract / overridable
   // -------------------------------------------------------------------------
 
@@ -67,9 +76,9 @@ export abstract class InsightBaseEditor
   protected renderTitleSection(): TemplateResult {
     return html`
       <div class="section">
-        <div class="section-header">General</div>
+        <div class="section-header">${localize("editor.section.general", this._lang)}</div>
         <ha-textfield
-          label="Title (optional)"
+          label=${localize("editor.field.title", this._lang)}
           .value=${this._config?.title ?? ""}
           @change=${(e: Event) =>
             this._updateConfig({
@@ -87,7 +96,7 @@ export abstract class InsightBaseEditor
 
     return html`
       <div class="section">
-        <div class="section-header">Entities</div>
+        <div class="section-header">${localize("editor.section.entities", this._lang)}</div>
 
         ${entities.map(
           (ec, index) => html`
@@ -102,7 +111,7 @@ export abstract class InsightBaseEditor
               ></ha-entity-picker>
 
               <ha-textfield
-                label="Name"
+                label=${localize("editor.field.name", this._lang)}
                 .value=${ec.name ?? ""}
                 @change=${(e: Event) =>
                   this._updateEntity(index, {
@@ -112,7 +121,7 @@ export abstract class InsightBaseEditor
 
               <div class="entity-row-actions">
                 <ha-icon-button
-                  label="Remove entity"
+                  label=${localize("editor.action.remove_entity", this._lang)}
                   .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
                   @click=${() => this._removeEntity(index)}
                 ></ha-icon-button>
@@ -125,7 +134,7 @@ export abstract class InsightBaseEditor
           class="add-entity-btn"
           @click=${this._addEntity}
         >
-          + Add entity
+          ${localize("editor.action.add_entity", this._lang)}
         </mwc-button>
       </div>
     `;
@@ -136,7 +145,7 @@ export abstract class InsightBaseEditor
 
     return html`
       <div class="section">
-        <div class="section-header">Time range</div>
+        <div class="section-header">${localize("editor.section.time_range", this._lang)}</div>
         <div class="preset-buttons">
           ${TIME_PRESETS.map(
             ({ label, hours }) => html`
@@ -160,7 +169,7 @@ export abstract class InsightBaseEditor
 
   render(): TemplateResult {
     if (!this._config) {
-      return html`<div class="editor-loading">Loading editor…</div>`;
+      return html`<div class="editor-loading">${localize("editor.loading", this._lang)}</div>`;
     }
 
     return html`

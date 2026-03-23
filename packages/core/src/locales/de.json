@@ -1,0 +1,78 @@
+{
+  "editor": {
+    "loading": "Editor wird geladen…",
+    "section": {
+      "general": "Allgemein",
+      "entities": "Entitäten",
+      "time_range": "Zeitbereich",
+      "chart_style": "Diagrammstil",
+      "y_axis": "Y-Achse",
+      "appearance": "Darstellung",
+      "data_aggregation": "Datenaggregation",
+      "overlays": "Überlagerungen",
+      "advanced": "Erweitert"
+    },
+    "field": {
+      "title": "Titel (optional)",
+      "name": "Name",
+      "color": "Farbe",
+      "hex": "Hex",
+      "style": "Diagrammstil",
+      "curve": "Interpolation",
+      "zoom": "Zoom per Drag",
+      "show_points": "Datenpunkte",
+      "line_width": "Linienbreite",
+      "fill_opacity": "Fülldeckkraft",
+      "y_min": "Weiches Minimum",
+      "y_max": "Weiches Maximum",
+      "decimals": "Dezimalstellen",
+      "logarithmic": "Logarithmische Skala (Basis 10)",
+      "y_min_secondary": "Sekundärachse Minimum",
+      "y_max_secondary": "Sekundärachse Maximum",
+      "show_legend": "Legende anzeigen",
+      "show_x_axis": "X-Achse anzeigen",
+      "show_y_axis": "Y-Achse anzeigen",
+      "grid_opacity": "Rasterdeckkraft",
+      "tooltip_format": "Tooltip-Zeitstempel",
+      "time_format": "X-Achsen-Beschriftungsformat",
+      "aggregate": "Aggregationsmethode",
+      "aggregate_period": "Aggregationszeitraum (z.B. 30m, 1h, 6h, 1d)",
+      "update_interval": "Aktualisierungsintervall",
+      "theme": "Thema",
+      "padding_top": "Innenabstand oben",
+      "padding_bottom": "Innenabstand unten",
+      "padding_left": "Innenabstand links",
+      "padding_right": "Innenabstand rechts",
+      "y_axis": "Y-Achse",
+      "hidden": "Ausgeblendet starten",
+      "stroke_dash": "Strichmuster (z.B. 5 oder 8,4)",
+      "transform": "Transformation",
+      "statistics": "Statistikzeitraum",
+      "attribute": "Attribut",
+      "unit": "Einheit (überschreiben)",
+      "scale": "Skalierungsfaktor",
+      "invert": "Werte invertieren",
+      "value": "Wert",
+      "label": "Bezeichnung",
+      "dash": "Strichmuster (z.B. 4,3)",
+      "appearance": "Darstellung",
+      "data": "Daten"
+    },
+    "action": {
+      "add_entity": "+ Entität hinzufügen",
+      "remove_entity": "Entität entfernen",
+      "add_threshold": "+ Schwellenwert hinzufügen",
+      "add_color_threshold": "+ Farbschwellenwert hinzufügen"
+    },
+    "subsection": {
+      "threshold_lines": "Schwellenwertlinien",
+      "color_thresholds": "Farbschwellenwerte (Gradient)"
+    }
+  },
+  "card": {
+    "error": {
+      "no_config": "Keine Konfiguration.",
+      "fetch_failed": "Datenabruf fehlgeschlagen"
+    }
+  }
+}

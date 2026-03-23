@@ -7,9 +7,11 @@
 
 import { html, css, nothing, type TemplateResult, type CSSResultGroup } from "lit";
 import { customElement } from "lit/decorators.js";
+import { mdiTableRow, mdiPalette, mdiFormatListBulleted, mdiAnimation } from "@mdi/js";
 
 import {
   InsightBaseEditor,
+  localize,
   normaliseEntityConfig,
   type InsightLineConfig,
   type InsightEntityConfig,
@@ -25,7 +27,7 @@ type HaSelector =
   | { boolean: Record<string, never> }
   | { number: { min?: number; max?: number; step?: number; mode?: "box" | "slider"; unit_of_measurement?: string } }
   | { text: { multiline?: boolean; type?: string } }
-  | { select: { options: string[] | Array<{ value: string; label: string }>; mode?: "dropdown" | "list" } };
+  | { select: { options: string[] | Array<{ value: string; label: string; description: string }>; mode?: "dropdown" | "list" | "box" } };
 
 interface HaFormField {
   name: string;
@@ -330,52 +332,6 @@ const COLOR_THRESHOLD_SCHEMA: HaFormField[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Label map (computeLabel for ha-form)
-// ---------------------------------------------------------------------------
-
-const LABELS: Record<string, string> = {
-  style: "Chart style",
-  curve: "Interpolation",
-  zoom: "Drag-to-zoom",
-  show_points: "Data points",
-  line_width: "Line width",
-  fill_opacity: "Fill opacity",
-  y_min: "Soft minimum",
-  y_max: "Soft maximum",
-  decimals: "Decimal places",
-  logarithmic: "Logarithmic scale (base 10)",
-  y_min_secondary: "Secondary axis minimum",
-  y_max_secondary: "Secondary axis maximum",
-  show_legend: "Show legend",
-  show_x_axis: "Show X axis",
-  show_y_axis: "Show Y axis",
-  grid_opacity: "Grid opacity",
-  tooltip_format: "Tooltip timestamp",
-  time_format: "X-axis label format",
-  aggregate: "Aggregation method",
-  aggregate_period: "Aggregation period (e.g. 30m, 1h, 6h, 1d)",
-  update_interval: "Update interval",
-  theme: "Theme",
-  padding_top: "Padding top",
-  padding_bottom: "Padding bottom",
-  padding_left: "Padding left",
-  padding_right: "Padding right",
-  y_axis: "Y axis",
-  hidden: "Start hidden",
-  stroke_dash: "Stroke dash (e.g. 5 or 8,4)",
-  transform: "Transform",
-  statistics: "Statistics period",
-  attribute: "Attribute",
-  unit: "Unit override",
-  scale: "Scale factor",
-  invert: "Invert values",
-  value: "Value",
-  color: "Color",
-  label: "Label",
-  dash: "Dash pattern (e.g. 4,3)",
-};
-
-// ---------------------------------------------------------------------------
 // Editor
 // ---------------------------------------------------------------------------
 
@@ -396,9 +352,10 @@ export class InsightLineCardEditor extends InsightBaseEditor {
 
   override render(): TemplateResult {
     if (!this._config) {
-      return html`<div class="editor-loading">Loading editor…</div>`;
+      return html`<div class="editor-loading">${localize("editor.loading", this._lang)}</div>`;
     }
-    return html`
+
+      return html`
       <div class="editor-container">
         ${this.renderTitleSection()}
         ${this.renderTimeRangeSection()}
@@ -425,7 +382,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
 
     return html`
       <div class="section">
-        <div class="section-header">Entities</div>
+        <div class="section-header">${localize("editor.section.entities", this._lang)}</div>
 
         ${entities.map(
           (ec, idx) => html`
@@ -439,7 +396,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                     this._updateEntityAt(idx, { entity: e.detail.value })}
                 ></ha-entity-picker>
                 <ha-textfield
-                  label="Name"
+                  label=${localize("editor.field.name", this._lang)}
                   .value=${ec.name ?? ""}
                   @change=${(e: Event) =>
                     this._updateEntityAt(idx, {
@@ -453,7 +410,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
               </div>
 
               <div class="entity-color-row">
-                <span class="field-label">Color</span>
+                <span class="field-label">${localize("editor.field.color", this._lang)}</span>
                 <input
                   type="color"
                   class="color-swatch"
@@ -465,7 +422,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                 />
                 <ha-textfield
                   class="color-text"
-                  label="Hex"
+                  label=${localize("editor.field.hex", this._lang)}
                   .value=${ec.color ?? ""}
                   placeholder="#4AAFFF"
                   @change=${(e: Event) => {
@@ -488,7 +445,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
         )}
 
         <mwc-button class="add-entity-btn" @click=${this._appendEntity}>
-          + Add entity
+          ${localize("editor.action.add_entity", this._lang)}
         </mwc-button>
       </div>
     `;
@@ -605,7 +562,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
 
     return html`
       <div class="section">
-        <div class="section-header">Y axis</div>
+        <div class="section-header">${localize("editor.section.y_axis", this._lang)}</div>
         <ha-form
           .hass=${this.hass}
           .schema=${Y_AXIS_SCHEMA}
@@ -637,7 +594,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
 
     return html`
       <div class="section">
-        <div class="section-header">Appearance</div>
+        <div class="section-header">${localize("editor.section.appearance", this._lang)}</div>
         <ha-form
           .hass=${this.hass}
           .schema=${APPEARANCE_SCHEMA}
@@ -663,7 +620,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
 
     return html`
       <div class="section">
-        <div class="section-header">Data aggregation</div>
+        <div class="section-header">${localize("editor.section.data_aggregation", this._lang)}</div>
         <ha-form
           .hass=${this.hass}
           .schema=${buildAggregationSchema(cfg)}
@@ -689,14 +646,14 @@ export class InsightLineCardEditor extends InsightBaseEditor {
 
     return html`
       <div class="section">
-        <div class="section-header">Overlays</div>
+        <div class="section-header">${localize("editor.section.overlays", this._lang)}</div>
 
-        <div class="subsection-label">Threshold lines</div>
+        <div class="subsection-label">${localize("editor.subsection.threshold_lines", this._lang)}</div>
         ${thresholds.map(
           (t, idx) => html`
             <div class="overlay-row">
               <div class="overlay-color-field">
-                <span class="field-label">Color</span>
+                <span class="field-label">${localize("editor.field.color", this._lang)}</span>
                 <input
                   type="color"
                   class="color-swatch"
@@ -723,16 +680,16 @@ export class InsightLineCardEditor extends InsightBaseEditor {
             </div>
           `,
         )}
-        <mwc-button @click=${this._appendThreshold}>+ Add threshold</mwc-button>
+        <mwc-button @click=${this._appendThreshold}>${localize("editor.action.add_threshold", this._lang)}</mwc-button>
 
         <div class="subsection-label" style="margin-top:12px">
-          Color thresholds (gradient)
+          ${localize("editor.subsection.color_thresholds", this._lang)}
         </div>
         ${colorThresholds.map(
           (ct, idx) => html`
             <div class="overlay-row">
               <div class="overlay-color-field">
-                <span class="field-label">Color</span>
+                <span class="field-label">${localize("editor.field.color", this._lang)}</span>
                 <input
                   type="color"
                   class="color-swatch"
@@ -762,7 +719,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
             </div>
           `,
         )}
-        <mwc-button @click=${this._appendColorThreshold}>+ Add color threshold</mwc-button>
+        <mwc-button @click=${this._appendColorThreshold}>${localize("editor.action.add_color_threshold", this._lang)}</mwc-button>
       </div>
     `;
   }
@@ -784,7 +741,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
 
     return html`
       <div class="section">
-        <div class="section-header">Advanced</div>
+        <div class="section-header">${localize("editor.section.advanced", this._lang)}</div>
         <ha-form
           .hass=${this.hass}
           .schema=${ADVANCED_SCHEMA}
@@ -803,7 +760,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
 
   private readonly _computeLabel = (schema: HaFormSchema): string => {
     if ("title" in schema) return schema.title;
-    return LABELS[schema.name] ?? schema.name;
+    return localize(`editor.field.${schema.name}`, this._lang);
   };
 
   // ---------------------------------------------------------------------------

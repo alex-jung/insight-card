@@ -69,3 +69,7 @@ export {
 } from "./utils/index.js";
 
 export type { Stats } from "./utils/index.js";
+
+// Localization
+export { localize } from "./locales/localize.js";
+export type { SupportedLanguages, Translations } from "./locales/localize.js";
