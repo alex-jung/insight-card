@@ -18,37 +18,88 @@ lovelace:
       show_in_sidebar: true
 
 
-# Dummy sensors for testing
+# Mock sensors for dev/testing — update every 30 s for dense history
 template:
     - trigger:
           - platform: time_pattern
-            minutes: "/1"
+            seconds: "/30"
       sensor:
+          # --- Temperature (diurnal pattern: cooler at night, warmer midday) ---
           - name: "Test Temperature Living Room"
             unit_of_measurement: "°C"
-            state: "{{ (range(180, 250) | random) / 10 }}"
             device_class: temperature
             state_class: measurement
+            state: >
+              {% set h = now().hour + now().minute / 60 %}
+              {% set base = 19 + 3 * ((h - 14) / 12) %}
+              {{ (base + (range(-5, 6) | random) / 10) | round(1) }}
 
           - name: "Test Temperature Bedroom"
             unit_of_measurement: "°C"
-            state: "{{ (range(160, 220) | random) / 10 }}"
             device_class: temperature
             state_class: measurement
+            state: >
+              {% set h = now().hour + now().minute / 60 %}
+              {% set base = 17 + 2.5 * ((h - 14) / 12) %}
+              {{ (base + (range(-5, 6) | random) / 10) | round(1) }}
 
+          # --- Power (high during daytime, low at night) ---
           - name: "Test Power"
             unit_of_measurement: "W"
-            state: "{{ range(100, 3000) | random }}"
             device_class: power
             state_class: measurement
+            state: >
+              {% set h = now().hour %}
+              {% set base = 200 if h < 7 or h > 22 else 1200 if 9 <= h <= 18 else 600 %}
+              {{ (base + range(-100, 101) | random) | max(50) }}
 
-          # Sensor with numeric attributes — for attribute demo
+          # --- Humidity ---
+          - name: "Test Humidity"
+            unit_of_measurement: "%"
+            device_class: humidity
+            state_class: measurement
+            state: "{{ [states('sensor.test_humidity') | float(55), 0] | max + (range(-3, 4) | random) | round(1) | max(30) | min(80) }}"
+
+          # --- CO₂ ---
+          - name: "Test CO2"
+            unit_of_measurement: "ppm"
+            device_class: carbon_dioxide
+            state_class: measurement
+            state: >
+              {% set h = now().hour %}
+              {% set base = 450 if h < 7 or h > 22 else 800 if 9 <= h <= 18 else 600 %}
+              {{ (base + range(-50, 51) | random) | max(400) }}
+
+          # --- Battery level (slow drain + occasional recharge) ---
+          - name: "Test Battery"
+            unit_of_measurement: "%"
+            device_class: battery
+            state_class: measurement
+            state: >
+              {% set prev = states('sensor.test_battery') | float(80) %}
+              {% set next = prev - 0.2 + (range(-1, 2) | random) * 0.1 %}
+              {{ [next | round(1), 5] | max | min(100) }}
+
+          # --- Sensor with numeric attributes (for attribute demo) ---
           - name: "Test Climate"
             unit_of_measurement: "°C"
-            state: "{{ (range(190, 230) | random) / 10 }}"
             device_class: temperature
             state_class: measurement
+            state: "{{ (range(190, 230) | random) / 10 }}"
             attributes:
               current_temperature: "{{ (range(190, 230) | random) / 10 }}"
               target_temperature: "{{ (range(200, 220) | random) / 10 }}"
               humidity: "{{ range(40, 70) | random }}"
+
+    # --- Energy meter (total_increasing — grows ~1 kWh per minute) ---
+    - trigger:
+          - platform: time_pattern
+            seconds: "/30"
+      sensor:
+          - name: "Test Energy"
+            unit_of_measurement: "kWh"
+            device_class: energy
+            state_class: total_increasing
+            state: >
+              {% set prev = states('sensor.test_energy') | float(0) %}
+              {{ (prev + 0.008 + (range(0, 5) | random) * 0.001) | round(3) }}

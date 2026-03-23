@@ -85,7 +85,7 @@ jobs:
             See the [README](https://github.com/${{ github.repository }}#readme)
             for configuration options.
           files: |
-            dist/insight-chart.js
+            dist/insight-card.js
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}

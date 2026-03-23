@@ -10,6 +10,7 @@ import { customElement } from "lit/decorators.js";
 
 import {
   InsightBaseEditor,
+  normaliseEntityConfig,
   type InsightLineConfig,
   type InsightEntityConfig,
   type ThresholdConfig,
@@ -44,10 +45,6 @@ type HaFormSchema = HaFormField | HaFormExpandable;
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function normalise(e: string | InsightEntityConfig): InsightEntityConfig {
-  return typeof e === "string" ? { entity: e } : e;
-}
 
 /** Remove null / undefined / "" from a ha-form value-changed payload */
 function dropEmpty<T extends Record<string, unknown>>(data: T): Partial<T> {
@@ -422,7 +419,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
 
   private _renderEntitySection(): TemplateResult {
     const cfg = this._lineConfig;
-    const entities = (cfg.entities ?? []).map(normalise);
+    const entities = (cfg.entities ?? []).map(normaliseEntityConfig);
     const style = cfg.style ?? "area";
     const schema = buildEntitySchema(style);
 
@@ -814,18 +811,18 @@ export class InsightLineCardEditor extends InsightBaseEditor {
   // ---------------------------------------------------------------------------
 
   private readonly _appendEntity = (): void => {
-    const entities = [...(this._config?.entities ?? []).map(normalise), { entity: "" }];
+    const entities = [...(this._config?.entities ?? []).map(normaliseEntityConfig), { entity: "" }];
     this._updateConfig({ entities });
   };
 
   private _removeEntityAt(index: number): void {
-    const entities = (this._config?.entities ?? []).map(normalise);
+    const entities = (this._config?.entities ?? []).map(normaliseEntityConfig);
     entities.splice(index, 1);
     this._updateConfig({ entities });
   }
 
   private _updateEntityAt(index: number, patch: Partial<InsightEntityConfig>): void {
-    const entities = (this._config?.entities ?? []).map(normalise);
+    const entities = (this._config?.entities ?? []).map(normaliseEntityConfig);
     entities[index] = { ...entities[index], ...patch };
     this._updateConfig({ entities });
   }

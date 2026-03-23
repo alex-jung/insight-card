@@ -16,6 +16,7 @@ import type {
   HassStatisticsPeriod,
   InsightEntityConfig,
 } from "../types/index.js";
+import { normaliseEntityConfig } from "../utils/index.js";
 
 // ---------------------------------------------------------------------------
 // Public data types
@@ -234,8 +235,7 @@ export async function getEntityData(
   entityConfig: InsightEntityConfig | string,
   hours: number,
 ): Promise<EntityDataSet> {
-  const cfg: InsightEntityConfig =
-    typeof entityConfig === "string" ? { entity: entityConfig } : entityConfig;
+  const cfg: InsightEntityConfig = normaliseEntityConfig(entityConfig);
 
   const entityId = cfg.entity;
   const attribute = cfg.attribute;

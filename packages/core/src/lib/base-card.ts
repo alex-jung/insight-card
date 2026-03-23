@@ -20,16 +20,13 @@ import {
     formatValue,
     computeStats,
     generateColors,
+    normaliseEntityConfig,
 } from "../utils/index.js";
 
 // ---------------------------------------------------------------------------
 // Type helpers
 // ---------------------------------------------------------------------------
 
-/** Normalise a string | InsightEntityConfig to InsightEntityConfig */
-function normaliseEntityConfig(e: string | InsightEntityConfig): InsightEntityConfig {
-    return typeof e === "string" ? { entity: e } : e;
-}
 
 // ---------------------------------------------------------------------------
 // Abstract base card
@@ -191,9 +188,7 @@ export abstract class InsightBaseCard extends LitElement {
         } as InsightBaseConfig;
 
         // Cache entity IDs for fast state-change detection in updated()
-        this._entityIds = this._config.entities.map((e) =>
-            typeof e === "string" ? e : e.entity,
-        );
+        this._entityIds = this._config.entities.map((e) => normaliseEntityConfig(e).entity);
 
         console.debug("[InsightChart] setConfig", this.tagName, this._config);
 
@@ -221,9 +216,7 @@ export abstract class InsightBaseCard extends LitElement {
     private async _fetchData(): Promise<void> {
         if (!this._config || !this.hass) return;
 
-        const entities = this._config.entities.map((e) =>
-            typeof e === "string" ? e : e.entity,
-        );
+        const entities = this._config.entities.map((e) => normaliseEntityConfig(e).entity);
         console.debug("[InsightChart] fetchData start", this.tagName, { entities, hours: this._config.hours });
 
         this._loading = true;

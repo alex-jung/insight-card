@@ -80,10 +80,10 @@ try {
     `node ${JSON.stringify(join(ROOT, "node_modules", ".bin", "rollup"))} -c rollup.config.mjs`,
     ROOT,
   );
-  log(`  [ok] insight-chart.js`);
+  log(`  [ok] insight-card.js`);
 } catch {
-  log(`  [FAIL] insight-chart.js`);
-  failed.push("insight-chart");
+  log(`  [FAIL] insight-card.js`);
+  failed.push("insight-card");
 }
 
 // ---------------------------------------------------------------------------

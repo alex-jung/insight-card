@@ -65,6 +65,7 @@ export {
   parsePeriod,
   aggregateTimeSeries,
   applyTransform,
+  normaliseEntityConfig,
 } from "./utils/index.js";
 
 export type { Stats } from "./utils/index.js";
