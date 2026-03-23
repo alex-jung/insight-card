@@ -27,7 +27,7 @@ type HaSelector =
   | { boolean: Record<string, never> }
   | { number: { min?: number; max?: number; step?: number; mode?: "box" | "slider"; unit_of_measurement?: string } }
   | { text: { multiline?: boolean; type?: string } }
-  | { select: { options: string[] | Array<{ value: string; label: string; description: string }>; mode?: "dropdown" | "list" | "box" } };
+  | { select: { options: string[] | Array<{ value: string; label: string; description?: string }>; mode?: "dropdown" | "list" | "box" } };
 
 interface HaFormField {
   name: string;
