@@ -17,8 +17,6 @@ import {
   InsightBaseCard,
   type InsightHeatmapConfig,
   type ColorStop,
-  hexToRgba,
-  getChartHeight,
   findNumericSensor,
 } from "@insight-chart/core";
 
@@ -211,6 +209,10 @@ export class InsightHeatmapCard extends InsightBaseCard {
     "Heatmap visualisation of a sensor over time";
 
   private _canvas?: HTMLCanvasElement;
+  /** Cached grid data — reused when dataset.data reference and layout are unchanged */
+  private _gridCache?: { cells: HeatCell[]; rowLabels: string[]; colLabels: string[] };
+  private _lastHeatDataRef?: typeof this._data[0]["data"];
+  private _lastHeatLayout?: string;
 
   static getConfigElement(): HTMLElement {
     return document.createElement("insight-heatmap-card-editor");
@@ -244,7 +246,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
     return html`
       <canvas
         class="heatmap-canvas"
-        style="width:100%;height:${getChartHeight(this._cardWidth)}px"
+        style="width:100%;height:250px"
       ></canvas>
     `;
   }
@@ -267,7 +269,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
 
     const dpr = window.devicePixelRatio ?? 1;
     const displayWidth = canvasEl.clientWidth || this._cardWidth - 32;
-    const displayHeight = canvasEl.clientHeight || getChartHeight(this._cardWidth);
+    const displayHeight = canvasEl.clientHeight || 250;
 
     canvasEl.width = displayWidth * dpr;
     canvasEl.height = displayHeight * dpr;
@@ -282,20 +284,36 @@ export class InsightHeatmapCard extends InsightBaseCard {
     let rowLabels: string[];
     let colLabels: string[];
 
-    if (layout === "weekday_hour") {
-      ({ cells, rowLabels, colLabels } = buildWeekdayHourGrid(dataset.data));
+    // Rebuild grid only when the data reference or layout changes — skip on resize
+    const rawData = dataset.data;
+    if (
+      this._gridCache &&
+      rawData === this._lastHeatDataRef &&
+      layout === this._lastHeatLayout
+    ) {
+      ({ cells, rowLabels, colLabels } = this._gridCache);
     } else {
-      // hour_day (default) — month_day falls back to this for now
-      ({ cells, rowLabels, colLabels } = buildHourDayGrid(dataset.data));
+      if (layout === "weekday_hour") {
+        ({ cells, rowLabels, colLabels } = buildWeekdayHourGrid(rawData));
+      } else {
+        // hour_day (default) — month_day falls back to this for now
+        ({ cells, rowLabels, colLabels } = buildHourDayGrid(rawData));
+      }
+      this._gridCache = { cells, rowLabels, colLabels };
+      this._lastHeatDataRef = rawData;
+      this._lastHeatLayout = layout;
     }
 
     if (cells.length === 0) return;
 
     const colorStops = resolveColorScale(config.color_scale);
 
-    const allValues = cells.map((c) => c.value);
-    const minVal = Math.min(...allValues);
-    const maxVal = Math.max(...allValues);
+    let minVal = Infinity;
+    let maxVal = -Infinity;
+    for (const c of cells) {
+      if (c.value < minVal) minVal = c.value;
+      if (c.value > maxVal) maxVal = c.value;
+    }
     const range = maxVal - minVal || 1;
 
     // Layout parameters

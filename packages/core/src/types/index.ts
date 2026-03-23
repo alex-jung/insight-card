@@ -21,5 +21,7 @@ export type {
   InsightBarConfig,
   InsightHeatmapConfig,
   ColorStop,
+  ThresholdConfig,
+  ColorThresholdConfig,
   GridOptionsConfig,
 } from "./config.js";

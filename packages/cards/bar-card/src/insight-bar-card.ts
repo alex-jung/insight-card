@@ -13,7 +13,6 @@ import {
   type InsightBarConfig,
   generateColors,
   formatValue,
-  getChartHeight,
   findNumericSensor,
 } from "@insight-chart/core";
 
@@ -98,6 +97,11 @@ export class InsightBarCard extends InsightBaseCard {
   static readonly cardDescription = "Bar chart with grouping and aggregation";
 
   private _canvas?: HTMLCanvasElement;
+  /** Cached aggregated bar data — reused when _data reference and config are unchanged */
+  private _barCache?: { bars: Bar[]; colors: string[] };
+  private _lastBarDataRef?: typeof this._data;
+  private _lastBarGroupBy?: InsightBarConfig["group_by"];
+  private _lastBarAggregate?: InsightBarConfig["aggregate"];
 
   static getConfigElement(): HTMLElement {
     return document.createElement("insight-bar-card-editor");
@@ -133,7 +137,7 @@ export class InsightBarCard extends InsightBaseCard {
     return html`
       <canvas
         class="bar-canvas"
-        style="width:100%;height:${getChartHeight(this._cardWidth)}px"
+        style="width:100%;height:250px"
       ></canvas>
     `;
   }
@@ -153,7 +157,7 @@ export class InsightBarCard extends InsightBaseCard {
 
     const dpr = window.devicePixelRatio ?? 1;
     const displayWidth = canvasEl.clientWidth || this._cardWidth - 32;
-    const displayHeight = canvasEl.clientHeight || getChartHeight(this._cardWidth);
+    const displayHeight = canvasEl.clientHeight || 250;
 
     canvasEl.width = displayWidth * dpr;
     canvasEl.height = displayHeight * dpr;
@@ -163,36 +167,48 @@ export class InsightBarCard extends InsightBaseCard {
 
     ctx.scale(dpr, dpr);
 
-    const colors = generateColors(this._data.length);
-
     // -----------------------------------------------------------------------
-    // Aggregate data into buckets
+    // Aggregate data into buckets — skip if data and config are unchanged
     // -----------------------------------------------------------------------
-    const bucketMap = new Map<string, Map<number, number[]>>();
+    const dataChanged = this._data !== this._lastBarDataRef;
+    const configChanged =
+      config.group_by !== this._lastBarGroupBy ||
+      config.aggregate !== this._lastBarAggregate;
 
-    this._data.forEach((dataset, seriesIdx) => {
-      for (const point of dataset.data) {
-        const key = bucketKey(point.t, config.group_by);
-        if (!bucketMap.has(key)) bucketMap.set(key, new Map());
-        const seriesMap = bucketMap.get(key)!;
-        if (!seriesMap.has(seriesIdx)) seriesMap.set(seriesIdx, []);
-        seriesMap.get(seriesIdx)!.push(point.v);
-      }
-    });
+    let bars: Bar[];
+    let colors: string[];
 
-    const sortedKeys = Array.from(bucketMap.keys()).sort();
-    const bars: Bar[] = sortedKeys.map((key) => {
-      const seriesMap = bucketMap.get(key)!;
-      const values = this._data.map((_, i) => {
-        const raw = seriesMap.get(i) ?? [];
-        return aggregateBuckets(raw, config.aggregate);
+    if (!dataChanged && !configChanged && this._barCache) {
+      ({ bars, colors } = this._barCache);
+    } else {
+      colors = generateColors(this._data.length);
+
+      const bucketMap = new Map<string, Map<number, number[]>>();
+      this._data.forEach((dataset, seriesIdx) => {
+        for (const point of dataset.data) {
+          const key = bucketKey(point.t, config.group_by);
+          if (!bucketMap.has(key)) bucketMap.set(key, new Map());
+          const seriesMap = bucketMap.get(key)!;
+          if (!seriesMap.has(seriesIdx)) seriesMap.set(seriesIdx, []);
+          seriesMap.get(seriesIdx)!.push(point.v);
+        }
       });
-      return {
-        label: bucketLabel(key, config.group_by),
-        values,
-        colors,
-      };
-    });
+
+      const sortedKeys = Array.from(bucketMap.keys()).sort();
+      bars = sortedKeys.map((key) => {
+        const seriesMap = bucketMap.get(key)!;
+        const values = this._data.map((_, i) => {
+          const raw = seriesMap.get(i) ?? [];
+          return aggregateBuckets(raw, config.aggregate);
+        });
+        return { label: bucketLabel(key, config.group_by), values, colors };
+      });
+
+      this._barCache = { bars, colors };
+      this._lastBarDataRef = this._data;
+      this._lastBarGroupBy = config.group_by;
+      this._lastBarAggregate = config.aggregate;
+    }
 
     if (bars.length === 0) return;
 
@@ -203,10 +219,19 @@ export class InsightBarCard extends InsightBaseCard {
     const plotW = displayWidth - padding.left - padding.right;
     const plotH = displayHeight - padding.top - padding.bottom;
 
-    const maxVal =
-      config.layout === "stacked"
-        ? Math.max(...bars.map((b) => b.values.reduce((a, v) => a + v, 0)))
-        : Math.max(...bars.flatMap((b) => b.values));
+    let maxVal = 0;
+    if (config.layout === "stacked") {
+      for (const b of bars) {
+        const sum = b.values.reduce((a, v) => a + v, 0);
+        if (sum > maxVal) maxVal = sum;
+      }
+    } else {
+      for (const b of bars) {
+        for (const v of b.values) {
+          if (v > maxVal) maxVal = v;
+        }
+      }
+    }
 
     if (maxVal <= 0) return;
 

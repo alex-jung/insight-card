@@ -20,6 +20,22 @@ export interface InsightEntityConfig {
   color?: string;
   /** Which Y-axis this series belongs to */
   y_axis?: "left" | "right";
+  /** Override the card-level line_width for this entity. */
+  line_width?: number;
+  /** Override the card-level fill_opacity for this entity (0–1). */
+  fill_opacity?: number;
+  /**
+   * Dashed line pattern in pixels.
+   * A single number sets equal dash and gap (e.g. 5 → [5, 5]).
+   * An array sets dash and gap separately (e.g. [8, 4]).
+   * @default 0 (solid)
+   */
+  stroke_dash?: number | number[];
+  /**
+   * Start the series hidden. The user can toggle visibility via the legend.
+   * @default false
+   */
+  hidden?: boolean;
   /** Optional value transformation */
   transform?: "none" | "diff" | "normalize" | "cumulative";
   /**
@@ -52,6 +68,37 @@ export interface InsightEntityConfig {
    * @default false
    */
   invert?: boolean;
+  /**
+   * Aggregation method for this entity. Overrides the card-level `aggregate`.
+   * Applied client-side after fetching raw history data.
+   */
+  aggregate?: "mean" | "min" | "max" | "sum" | "last";
+}
+
+// ---------------------------------------------------------------------------
+// Color threshold (value-based gradient coloring)
+// ---------------------------------------------------------------------------
+
+export interface ColorThresholdConfig {
+  /** Y value at which this color starts */
+  value: number;
+  /** Color at this threshold (hex) */
+  color: string;
+}
+
+// ---------------------------------------------------------------------------
+// Threshold line
+// ---------------------------------------------------------------------------
+
+export interface ThresholdConfig {
+  /** Y value at which the horizontal line is drawn */
+  value: number;
+  /** Line color (hex). Defaults to --error-color. */
+  color?: string;
+  /** Optional label drawn next to the line */
+  label?: string;
+  /** Line dash pattern in pixels, e.g. [4, 3]. Default: solid. */
+  dash?: number[];
 }
 
 // ---------------------------------------------------------------------------
@@ -100,10 +147,45 @@ export interface InsightBaseConfig {
    */
   update_interval?: number;
   /**
-   * Show a stats footer with min / mean / max / current values.
-   * @default false
+   * Opacity of the background grid lines (0–1).
+   * @default 1
    */
-  show_stats?: boolean;
+  grid_opacity?: number;
+  /**
+   * Show the series legend below the chart.
+   * @default true
+   */
+  show_legend?: boolean;
+  /**
+   * Show the X (time) axis labels and ticks.
+   * @default true
+   */
+  show_x_axis?: boolean;
+  /**
+   * Show the Y axis labels and ticks.
+   * @default true
+   */
+  show_y_axis?: boolean;
+  /**
+   * Inner padding on the left side of the card content area (px).
+   * @default 0
+   */
+  padding_left?: number;
+  /**
+   * Inner padding on the right side of the card content area (px).
+   * @default 0
+   */
+  padding_right?: number;
+  /**
+   * Inner padding on the top of the card content area (px).
+   * @default 0
+   */
+  padding_top?: number;
+  /**
+   * Inner padding on the bottom of the card content area (px).
+   * @default 0
+   */
+  padding_bottom?: number;
   /**
    * Force a colour theme. "auto" follows the HA theme.
    * @default "auto"
@@ -135,10 +217,71 @@ export interface InsightLineConfig extends InsightBaseConfig {
    */
   y_range?: "auto" | [number, number];
   /**
+   * Soft Y minimum — axis extends below this value only if data requires it.
+   * Useful to always show zero: y_min: 0
+   */
+  y_min?: number;
+  /**
+   * Soft Y maximum — axis extends above this value only if data requires it.
+   */
+  y_max?: number;
+  /**
+   * Fixed decimal places for Y-axis tick labels and tooltip values.
+   * Defaults to auto (0 for integers, 1 for floats).
+   */
+  decimals?: number;
+  /**
+   * Use a logarithmic (base-10) Y-axis scale.
+   * All data values must be > 0.
+   * @default false
+   */
+  logarithmic?: boolean;
+  /**
    * Timestamp format shown in the hover tooltip.
    * @default "datetime"
    */
   tooltip_format?: "time" | "date" | "datetime";
+  /**
+   * Format for X-axis tick labels.
+   * - `"auto"`     — uPlot smart formatting (adapts to zoom level)
+   * - `"time"`     — always HH:MM
+   * - `"date"`     — always DD.MM
+   * - `"datetime"` — always DD.MM HH:MM
+   * @default "auto"
+   */
+  time_format?: "auto" | "time" | "date" | "datetime";
+  /** Secondary (right) Y-axis range. "auto" or fixed [min, max]. */
+  y_range_secondary?: "auto" | [number, number];
+  /** Soft minimum for the secondary Y-axis. */
+  y_min_secondary?: number;
+  /** Soft maximum for the secondary Y-axis. */
+  y_max_secondary?: number;
+  /**
+   * Whether to show data points on the line.
+   * - `false`   — no static dots (default)
+   * - `true`    — dots always visible on every data point
+   * - `"hover"` — dots only at the cursor position (uPlot cursor points)
+   * @default false
+   */
+  show_points?: boolean | "hover";
+  /** Horizontal reference lines drawn across the chart. */
+  thresholds?: ThresholdConfig[];
+  /**
+   * Value-based gradient coloring for all series.
+   * Each stop defines the color at a specific Y value.
+   * Entities with an explicit `color` are not affected.
+   */
+  color_thresholds?: ColorThresholdConfig[];
+  /**
+   * Client-side time-bucket aggregation method applied to all entities.
+   * Requires `aggregate_period`. Per-entity `aggregate` overrides this value.
+   */
+  aggregate?: "mean" | "min" | "max" | "sum" | "last";
+  /**
+   * Bucket size for aggregation. Examples: "30m", "1h", "6h", "1d".
+   * Required when `aggregate` is set.
+   */
+  aggregate_period?: string;
 }
 
 // ---------------------------------------------------------------------------

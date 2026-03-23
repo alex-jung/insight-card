@@ -27,6 +27,178 @@ views:
             hours: 12
             style: line
 
+    - title: Line Card Features
+      icon: mdi:chart-line-variant
+      cards:
+          - type: custom:insight-line-card
+            title: "grid_opacity: 1.0 (default)"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+            hours: 24
+            style: area
+
+          - type: custom:insight-line-card
+            title: "grid_opacity: 0.3"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+            hours: 24
+            style: area
+            grid_opacity: 0.3
+
+          - type: custom:insight-line-card
+            title: "grid_opacity: 0 (no grid)"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+            hours: 24
+            style: area
+            grid_opacity: 0
+
+          - type: custom:insight-line-card
+            title: "Y-Axis: logarithmic scale"
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#6BDB6B"
+            hours: 24
+            style: line
+            logarithmic: true
+
+          - type: custom:insight-line-card
+            title: "Y-Axis: secondary (right) axis"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Temperature
+                  color: "#FF6B4A"
+                - entity: sensor.test_power
+                  name: Power (kW)
+                  color: "#4AAFFF"
+                  y_axis: right
+                  scale: 0.001
+                  unit: "kW"
+            hours: 24
+            style: line
+            show_stats: true
+
+          - type: custom:insight-line-card
+            title: "Hidden entity (toggle via legend)"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom (starts hidden)
+                  color: "#4AAFFF"
+                  hidden: true
+            hours: 24
+            style: line
+            show_stats: true
+
+          - type: custom:insight-line-card
+            title: "Per-entity: line_width, fill_opacity, stroke_dash"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room (thick, full area)
+                  color: "#FF6B4A"
+                  line_width: 3
+                  fill_opacity: 0.4
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom (thin, dashed, no fill)
+                  color: "#4AAFFF"
+                  line_width: 1
+                  fill_opacity: 0
+                  stroke_dash: [8, 4]
+            hours: 24
+            style: area
+            show_stats: true
+
+          - type: custom:insight-line-card
+            title: "Color Thresholds (gradient)"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Temperature
+            hours: 24
+            style: area
+            y_min: 0
+            color_thresholds:
+                - value: 15
+                  color: "#4AAFFF"
+                - value: 20
+                  color: "#6BDB6B"
+                - value: 25
+                  color: "#FF6B4A"
+
+          - type: custom:insight-line-card
+            title: "Thresholds"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Temperature
+                  color: "#FF6B4A"
+            hours: 24
+            style: area
+            y_min: 0
+            thresholds:
+                - value: 22
+                  color: "#FF6B4A"
+                  label: "Comfort max"
+                - value: 18
+                  color: "#4AAFFF"
+                  label: "Comfort min"
+                  dash: [8, 4]
+
+          - type: custom:insight-line-card
+            title: "time_format: time (HH:MM)"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+            hours: 24
+            style: line
+            time_format: time
+
+          - type: custom:insight-line-card
+            title: "time_format: date (DD.MM)"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+            hours: 168
+            style: line
+            time_format: date
+
+          - type: custom:insight-line-card
+            title: "show_points: true"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom
+                  color: "#4AAFFF"
+            hours: 6
+            style: line
+            show_points: true
+
+          - type: custom:insight-line-card
+            title: "Y-Axis: soft bounds y_min=0, decimals=1"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom
+                  color: "#4AAFFF"
+            hours: 24
+            style: area
+            y_min: 0
+            decimals: 1
+            show_stats: true
+
     - title: Bar Card
       icon: mdi:chart-bar
       cards:
@@ -84,6 +256,90 @@ views:
             entity: sensor.test_power
             hours: 168
             color_scale: YlOrRd
+
+    - title: Aggregation Demo
+      icon: mdi:chart-timeline-variant
+      cards:
+          # Rohwerte ohne Aggregation
+          - type: custom:insight-line-card
+            title: "Power — raw (no aggregation)"
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#4AAFFF"
+            hours: 24
+            style: line
+            show_stats: true
+
+          # Karten-Level: 1h Mittelwert
+          - type: custom:insight-line-card
+            title: "Power — 1h mean (card-level)"
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#FF6B4A"
+            hours: 24
+            style: area
+            aggregate: mean
+            aggregate_period: "1h"
+            show_stats: true
+
+          # Per-Entity Override: Living Room = mean, Bedroom = max
+          - type: custom:insight-line-card
+            title: "Temp — per-entity aggregate (30m)"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room (mean)
+                  color: "#FF6B4A"
+                  aggregate: mean
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom (max)
+                  color: "#4AAFFF"
+                  aggregate: max
+            hours: 24
+            style: line
+            aggregate_period: "30m"
+            show_stats: true
+
+    - title: Transform Demo
+      icon: mdi:function-variant
+      cards:
+          - type: custom:insight-line-card
+            title: "diff — delta between consecutive values"
+            entities:
+                - entity: sensor.test_power
+                  name: Power Δ
+                  color: "#FF6B4A"
+                  transform: diff
+            hours: 12
+            style: line
+            show_stats: true
+
+          - type: custom:insight-line-card
+            title: "normalize — scale to 0–1"
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room (norm)
+                  color: "#FF6B4A"
+                  transform: normalize
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom (norm)
+                  color: "#4AAFFF"
+                  transform: normalize
+            hours: 24
+            style: line
+            show_stats: true
+
+          - type: custom:insight-line-card
+            title: "cumulative — running sum"
+            entities:
+                - entity: sensor.test_power
+                  name: Power (cumsum)
+                  color: "#6BDB6B"
+                  transform: cumulative
+            hours: 24
+            style: area
+            show_stats: true
 
     - title: Scale Demo
       icon: mdi:scale

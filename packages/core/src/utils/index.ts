@@ -212,19 +212,6 @@ export function getBreakpoint(width: number): "compact" | "default" | "wide" {
   return "wide";
 }
 
-/**
- * Return the appropriate chart height in pixels for a given card width.
- *
- * - compact  → 150 px
- * - default  → 220 px
- * - wide     → 300 px
- */
-export function getChartHeight(width: number): number {
-  const bp = getBreakpoint(width);
-  if (bp === "compact") return 150;
-  if (bp === "wide") return 300;
-  return 220;
-}
 
 // ---------------------------------------------------------------------------
 // Card picker helpers
@@ -253,6 +240,108 @@ export function findNumericSensor(
     return state && !isNaN(Number(state.state)) && state.attributes?.unit_of_measurement;
   });
   return numeric ?? candidates[0] ?? fallback;
+}
+
+// ---------------------------------------------------------------------------
+// Time-series aggregation
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse a period string to milliseconds.
+ * Supports: "30m", "1h", "6h", "1d", "1w"
+ * Returns NaN for unknown formats.
+ */
+export function parsePeriod(s: string): number {
+  const m = s.match(/^(\d+(?:\.\d+)?)(m|h|d|w)$/);
+  if (!m) return NaN;
+  const n = parseFloat(m[1]);
+  switch (m[2]) {
+    case "m": return n * 60_000;
+    case "h": return n * 3_600_000;
+    case "d": return n * 86_400_000;
+    case "w": return n * 604_800_000;
+    default:  return NaN;
+  }
+}
+
+/**
+ * Aggregate a sorted DataPoint array into fixed-size time buckets.
+ *
+ * Each bucket starts at a multiple of `periodMs` aligned to epoch.
+ * The representative timestamp is the bucket midpoint.
+ * Empty buckets are skipped.
+ */
+export function aggregateTimeSeries(
+  data: { t: number; v: number }[],
+  periodMs: number,
+  method: "mean" | "min" | "max" | "sum" | "last",
+): { t: number; v: number }[] {
+  if (data.length === 0 || periodMs <= 0) return data;
+
+  const buckets = new Map<number, number[]>();
+  for (const { t, v } of data) {
+    const key = Math.floor(t / periodMs) * periodMs;
+    const bucket = buckets.get(key);
+    if (bucket) bucket.push(v);
+    else buckets.set(key, [v]);
+  }
+
+  const result: { t: number; v: number }[] = [];
+  for (const [key, values] of buckets) {
+    let v: number;
+    switch (method) {
+      case "mean": v = values.reduce((a, b) => a + b, 0) / values.length; break;
+      case "min":  v = values.reduce((a, b) => (b < a ? b : a)); break;
+      case "max":  v = values.reduce((a, b) => (b > a ? b : a)); break;
+      case "sum":  v = values.reduce((a, b) => a + b, 0); break;
+      case "last": v = values[values.length - 1]; break;
+    }
+    result.push({ t: key + periodMs / 2, v });
+  }
+
+  return result.sort((a, b) => a.t - b.t);
+}
+
+// ---------------------------------------------------------------------------
+// Value transformation
+// ---------------------------------------------------------------------------
+
+/**
+ * Apply a named transformation to a DataPoint array.
+ *
+ * - `none`       — passthrough
+ * - `diff`       — replace each value with the delta to its predecessor
+ *                  (first point is dropped)
+ * - `normalize`  — scale values to [0, 1] based on dataset min/max
+ * - `cumulative` — replace each value with the running sum
+ */
+export function applyTransform(
+  data: { t: number; v: number }[],
+  transform: "none" | "diff" | "normalize" | "cumulative",
+): { t: number; v: number }[] {
+  if (transform === "none" || data.length === 0) return data;
+
+  switch (transform) {
+    case "diff": {
+      const result: { t: number; v: number }[] = [];
+      for (let i = 1; i < data.length; i++) {
+        result.push({ t: data[i].t, v: data[i].v - data[i - 1].v });
+      }
+      return result;
+    }
+    case "normalize": {
+      const vals = data.map((p) => p.v);
+      const min = Math.min(...vals);
+      const max = Math.max(...vals);
+      const range = max - min;
+      if (range === 0) return data.map((p) => ({ t: p.t, v: 0 }));
+      return data.map((p) => ({ t: p.t, v: (p.v - min) / range }));
+    }
+    case "cumulative": {
+      let sum = 0;
+      return data.map((p) => ({ t: p.t, v: (sum += p.v) }));
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------

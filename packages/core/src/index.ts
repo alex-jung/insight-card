@@ -28,6 +28,8 @@ export type {
   InsightBarConfig,
   InsightHeatmapConfig,
   ColorStop,
+  ThresholdConfig,
+  ColorThresholdConfig,
   GridOptionsConfig,
 } from "./types/index.js";
 
@@ -58,9 +60,11 @@ export {
   formatDuration,
   computeStats,
   getBreakpoint,
-  getChartHeight,
   debounce,
   findNumericSensor,
+  parsePeriod,
+  aggregateTimeSeries,
+  applyTransform,
 } from "./utils/index.js";
 
 export type { Stats } from "./utils/index.js";
