@@ -42,6 +42,13 @@ import {
     type HaFormField,
     type HaFormSchema,
 } from "./insight-line-entity-schema.js";
+import {
+    IMG_CHART_LINE,
+    IMG_CHART_AREA,
+    IMG_CHART_STEP,
+    IMG_CURVE_SMOOTH,
+    IMG_CURVE_LINEAR,
+} from "./insight-line-card-images.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -130,7 +137,7 @@ function buildGeneralSchema(
                                 "editor.option.style.line_desc",
                                 lang,
                             ),
-                            image: "/local/insight-card/images/chart-line.svg",
+                            image: IMG_CHART_LINE,
                         },
                         {
                             value: "area",
@@ -139,7 +146,7 @@ function buildGeneralSchema(
                                 "editor.option.style.area_desc",
                                 lang,
                             ),
-                            image: "/local/insight-card/images/chart-area.svg",
+                            image: IMG_CHART_AREA,
                         },
                         {
                             value: "step",
@@ -148,7 +155,7 @@ function buildGeneralSchema(
                                 "editor.option.style.step_desc",
                                 lang,
                             ),
-                            image: "/local/insight-card/images/chart-step.svg",
+                            image: IMG_CHART_STEP,
                         },
                     ],
                 },
@@ -168,7 +175,7 @@ function buildGeneralSchema(
                                           "editor.option.curve.smooth",
                                           lang,
                                       ),
-                                      image: "/local/insight-card/images/curve-smooth.svg",
+                                      image: IMG_CURVE_SMOOTH,
                                   },
                                   {
                                       value: "linear",
@@ -176,7 +183,7 @@ function buildGeneralSchema(
                                           "editor.option.curve.linear",
                                           lang,
                                       ),
-                                      image: "/local/insight-card/images/curve-linear.svg",
+                                      image: IMG_CURVE_LINEAR,
                                   },
                               ],
                           },
