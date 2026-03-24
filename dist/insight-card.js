@@ -7488,7 +7488,8 @@ let InsightLineCard = class extends InsightBaseCard {
         show: !ec.hidden,
         width: ec.line_width ?? config.line_width ?? 2,
         dash: ec.stroke_dash != null ? Array.isArray(ec.stroke_dash) ? ec.stroke_dash : [ec.stroke_dash, ec.stroke_dash] : void 0,
-        points: { show: config.show_points === true },
+        // true = always show static dots; false/"hover" = no static dots
+        points: { show: config.show_points === true, size: 5 },
         paths: pathBuilder,
         spanGaps: true
       });
@@ -7621,7 +7622,15 @@ let InsightLineCard = class extends InsightBaseCard {
           y: false,
           uni: 50
         },
-        focus: { prox: 16 }
+        focus: { prox: 16 },
+        // "none": no cursor dots (return undefined → uPlot skips creation)
+        // "hover"/"always": use uPlot default (omit show → cursorPointShow)
+        ...config.show_points === false ? {
+          points: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            show: () => void 0
+          }
+        } : {}
       },
       scales: {
         x: { time: true },
@@ -8105,6 +8114,7 @@ InsightLineCard.styles = [
                 top: 0;
                 left: 0;
                 border-radius: 50%;
+                border: 0 solid;
                 pointer-events: none;
                 will-change: transform;
                 z-index: 100;

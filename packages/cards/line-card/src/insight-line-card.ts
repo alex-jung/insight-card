@@ -192,6 +192,7 @@ export class InsightLineCard extends InsightBaseCard {
                 top: 0;
                 left: 0;
                 border-radius: 50%;
+                border: 0 solid;
                 pointer-events: none;
                 will-change: transform;
                 z-index: 100;
@@ -403,7 +404,8 @@ export class InsightLineCard extends InsightBaseCard {
                             ? ec.stroke_dash
                             : [ec.stroke_dash, ec.stroke_dash]
                         : undefined,
-                points: { show: config.show_points === true },
+                // true = always show static dots; false/"hover" = no static dots
+                points: { show: config.show_points === true, size: 5 },
                 paths: pathBuilder,
                 spanGaps: true,
             } as any);
@@ -594,6 +596,16 @@ export class InsightLineCard extends InsightBaseCard {
                     uni: 50,
                 },
                 focus: { prox: 16 },
+                // "none": no cursor dots (return undefined → uPlot skips creation)
+                // "hover"/"always": use uPlot default (omit show → cursorPointShow)
+                ...(config.show_points === false
+                    ? {
+                          points: {
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                              show: () => undefined as any,
+                          },
+                      }
+                    : {}),
             },
             scales: {
                 x: { time: true },
