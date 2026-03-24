@@ -429,7 +429,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     this._updateConfig({
       entities: this._tabs
         .filter((t) => t.config.entity)
-        .map((t) => serialiseEntityConfig(t.config)),
+        .map((t) => serialiseEntityConfig(t.config)) as InsightLineConfig["entities"],
     });
   }
 
