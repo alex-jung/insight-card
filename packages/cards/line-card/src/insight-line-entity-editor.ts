@@ -84,29 +84,39 @@ export class InsightLineEntityEditor extends LitElement {
     // ---------------------------------------------------------------------------
 
     private _formData(ec: InsightEntityConfig): Record<string, unknown> {
+        const dashStr = Array.isArray(ec.stroke_dash)
+            ? ec.stroke_dash.join(",")
+            : ec.stroke_dash != null
+              ? String(ec.stroke_dash)
+              : "";
         return {
             entity: ec.entity ?? "",
             y_axis: ec.y_axis ?? "left",
             hidden: ec.hidden ?? false,
-            line_width: ec.line_width,
-            fill_opacity: ec.fill_opacity,
-            stroke_dash: Array.isArray(ec.stroke_dash)
-                ? ec.stroke_dash.join(",")
-                : ec.stroke_dash != null
-                  ? String(ec.stroke_dash)
-                  : "",
-            attribute: ec.attribute ?? "",
-            unit: ec.unit ?? "",
-            scale: ec.scale,
-            invert: ec.invert ?? false,
-            transform: ec.transform ?? "none",
-            aggregate: ec.aggregate ?? "",
-            statistics: ec.statistics ?? "",
+            // ha-form-expandable nests data under the group name key
+            appearance: {
+                line_width: ec.line_width,
+                fill_opacity: ec.fill_opacity,
+                stroke_dash: dashStr,
+            },
+            data: {
+                attribute: ec.attribute ?? "",
+                unit: ec.unit ?? "",
+                scale: ec.scale,
+                invert: ec.invert ?? false,
+                transform: ec.transform ?? "none",
+                aggregate: ec.aggregate ?? "",
+                statistics: ec.statistics ?? "",
+            },
         };
     }
 
     private _onFormChanged(raw: Record<string, unknown>): void {
-        const dashStr = raw["stroke_dash"] as string | undefined;
+        // ha-form-expandable nests values under the group name key
+        const appearance = (raw["appearance"] ?? {}) as Record<string, unknown>;
+        const data = (raw["data"] ?? {}) as Record<string, unknown>;
+
+        const dashStr = appearance["stroke_dash"] as string | undefined;
         const parsedDash: InsightEntityConfig["stroke_dash"] = dashStr
             ? dashStr.includes(",")
                 ? dashStr
@@ -123,30 +133,30 @@ export class InsightLineEntityEditor extends LitElement {
                     (raw["y_axis"] as InsightEntityConfig["y_axis"]) ??
                     undefined,
                 hidden: raw["hidden"] as boolean | undefined,
-                line_width: raw["line_width"] as number | undefined,
-                fill_opacity: raw["fill_opacity"] as number | undefined,
+                line_width: appearance["line_width"] as number | undefined,
+                fill_opacity: appearance["fill_opacity"] as number | undefined,
                 stroke_dash: parsedDash,
-                attribute: (raw["attribute"] as string) || undefined,
-                unit: (raw["unit"] as string) || undefined,
-                scale: raw["scale"] as number | undefined,
-                invert: raw["invert"] as boolean | undefined,
+                attribute: (data["attribute"] as string) || undefined,
+                unit: (data["unit"] as string) || undefined,
+                scale: data["scale"] as number | undefined,
+                invert: data["invert"] as boolean | undefined,
                 transform:
-                    (raw["transform"] as InsightEntityConfig["transform"]) ||
+                    (data["transform"] as InsightEntityConfig["transform"]) ||
                     undefined,
                 aggregate:
-                    (raw["aggregate"] as InsightEntityConfig["aggregate"]) ||
+                    (data["aggregate"] as InsightEntityConfig["aggregate"]) ||
                     undefined,
                 statistics:
-                    (raw["statistics"] as InsightEntityConfig["statistics"]) ||
+                    (data["statistics"] as InsightEntityConfig["statistics"]) ||
                     undefined,
             }).filter(([, v]) => v !== undefined),
         ) as Partial<InsightEntityConfig>;
 
-        this.dispatchEvent(
-            new CustomEvent("onChange", {
-                detail: { ...this.tab.config, ...patch },
-            }),
-        );
+        const detail: InsightEntityConfig = { ...this.tab.config, ...patch };
+        // Explicitly remove optional fields when the user clears them
+        if (!dashStr) delete detail.stroke_dash;
+
+        this.dispatchEvent(new CustomEvent("onChange", { detail }));
     }
 
     private _patch(patch: Partial<InsightEntityConfig>): void {

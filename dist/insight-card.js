@@ -8686,47 +8686,53 @@ let InsightLineEntityEditor = class extends i$2 {
   // Helpers
   // ---------------------------------------------------------------------------
   _formData(ec) {
+    const dashStr = Array.isArray(ec.stroke_dash) ? ec.stroke_dash.join(",") : ec.stroke_dash != null ? String(ec.stroke_dash) : "";
     return {
       entity: ec.entity ?? "",
       y_axis: ec.y_axis ?? "left",
       hidden: ec.hidden ?? false,
-      line_width: ec.line_width,
-      fill_opacity: ec.fill_opacity,
-      stroke_dash: Array.isArray(ec.stroke_dash) ? ec.stroke_dash.join(",") : ec.stroke_dash != null ? String(ec.stroke_dash) : "",
-      attribute: ec.attribute ?? "",
-      unit: ec.unit ?? "",
-      scale: ec.scale,
-      invert: ec.invert ?? false,
-      transform: ec.transform ?? "none",
-      aggregate: ec.aggregate ?? "",
-      statistics: ec.statistics ?? ""
+      // ha-form-expandable nests data under the group name key
+      appearance: {
+        line_width: ec.line_width,
+        fill_opacity: ec.fill_opacity,
+        stroke_dash: dashStr
+      },
+      data: {
+        attribute: ec.attribute ?? "",
+        unit: ec.unit ?? "",
+        scale: ec.scale,
+        invert: ec.invert ?? false,
+        transform: ec.transform ?? "none",
+        aggregate: ec.aggregate ?? "",
+        statistics: ec.statistics ?? ""
+      }
     };
   }
   _onFormChanged(raw) {
-    const dashStr = raw["stroke_dash"];
+    const appearance = raw["appearance"] ?? {};
+    const data = raw["data"] ?? {};
+    const dashStr = appearance["stroke_dash"];
     const parsedDash = dashStr ? dashStr.includes(",") ? dashStr.split(",").map(Number).filter((n) => !isNaN(n)) : Number(dashStr) || void 0 : void 0;
     const patch = Object.fromEntries(
       Object.entries({
         entity: raw["entity"] ?? "",
         y_axis: raw["y_axis"] ?? void 0,
         hidden: raw["hidden"],
-        line_width: raw["line_width"],
-        fill_opacity: raw["fill_opacity"],
+        line_width: appearance["line_width"],
+        fill_opacity: appearance["fill_opacity"],
         stroke_dash: parsedDash,
-        attribute: raw["attribute"] || void 0,
-        unit: raw["unit"] || void 0,
-        scale: raw["scale"],
-        invert: raw["invert"],
-        transform: raw["transform"] || void 0,
-        aggregate: raw["aggregate"] || void 0,
-        statistics: raw["statistics"] || void 0
+        attribute: data["attribute"] || void 0,
+        unit: data["unit"] || void 0,
+        scale: data["scale"],
+        invert: data["invert"],
+        transform: data["transform"] || void 0,
+        aggregate: data["aggregate"] || void 0,
+        statistics: data["statistics"] || void 0
       }).filter(([, v]) => v !== void 0)
     );
-    this.dispatchEvent(
-      new CustomEvent("onChange", {
-        detail: { ...this.tab.config, ...patch }
-      })
-    );
+    const detail = { ...this.tab.config, ...patch };
+    if (!dashStr) delete detail.stroke_dash;
+    this.dispatchEvent(new CustomEvent("onChange", { detail }));
   }
   _patch(patch) {
     const updated = { ...this.tab.config, ...patch };
