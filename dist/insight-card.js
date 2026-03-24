@@ -8337,33 +8337,37 @@ let InsightLineEntityEditor = class extends i$2 {
     const ec = this.tab.config;
     const schema = buildEntitySchema(this.chartStyle ?? "area");
     return b`
-      <div class="entity-editor-content">
-        <div class="entity-top-row">
-          <ha-icon-button
-            .path=${mdiDelete}
-            @click=${this._handleDelete}
-          ></ha-icon-button>
-        </div>
+            <div class="entity-editor-content">
+                <div class="entity-top-row">
+                    <ha-icon-button
+                        .path=${mdiDelete}
+                        @click=${this._handleDelete}
+                    ></ha-icon-button>
+                </div>
 
-        <div class="color-row">
-          <div class="color-label">${localize("editor.field.color", this._lang)}</div>
-          <input
-            type="color"
-            class="color-swatch"
-            .value=${ec.color ?? DEFAULT_COLORS[this.tab.index - 1] ?? DEFAULT_COLORS[0]}
-            @input=${(e) => this._patch({ color: e.target.value })}
-          />
-        </div>
+                <div class="color-row">
+                    <div class="color-label">
+                        ${localize("editor.field.color", this._lang)}
+                    </div>
+                    <input
+                        type="color"
+                        class="color-swatch"
+                        .value=${ec.color ?? DEFAULT_COLORS[this.tab.index - 1] ?? DEFAULT_COLORS[0]}
+                        @input=${(e) => this._patch({
+      color: e.target.value
+    })}
+                    />
+                </div>
 
-        <ha-form
-          .hass=${this.hass}
-          .schema=${schema}
-          .data=${this._formData(ec)}
-          .computeLabel=${this._computeLabel}
-          @value-changed=${(e) => this._onFormChanged(e.detail.value)}
-        ></ha-form>
-      </div>
-    `;
+                <ha-form
+                    .hass=${this.hass}
+                    .schema=${schema}
+                    .data=${this._formData(ec)}
+                    .computeLabel=${this._computeLabel}
+                    @value-changed=${(e) => this._onFormChanged(e.detail.value)}
+                ></ha-form>
+            </div>
+        `;
   }
   // ---------------------------------------------------------------------------
   // Helpers
@@ -8405,54 +8409,60 @@ let InsightLineEntityEditor = class extends i$2 {
         statistics: raw["statistics"] || void 0
       }).filter(([, v]) => v !== void 0)
     );
-    this.dispatchEvent(new CustomEvent("onChange", { detail: patch }));
+    this.dispatchEvent(
+      new CustomEvent("onChange", {
+        detail: { ...this.tab.config, ...patch }
+      })
+    );
   }
   _patch(patch) {
     const updated = { ...this.tab.config, ...patch };
     this.dispatchEvent(new CustomEvent("onChange", { detail: updated }));
   }
   _handleDelete() {
-    this.dispatchEvent(new CustomEvent("onDelete", { detail: this.tab.index }));
+    this.dispatchEvent(
+      new CustomEvent("onDelete", { detail: this.tab.index })
+    );
   }
 };
 // ---------------------------------------------------------------------------
 // Styles
 // ---------------------------------------------------------------------------
 InsightLineEntityEditor.styles = i$5`
-    :host {
-      display: block;
-    }
+        :host {
+            display: block;
+        }
 
-    .entity-editor-content {
-      border: 1px solid var(--divider-color, #e0e0e0);
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
+        .entity-editor-content {
+            border: 1px solid var(--divider-color, #e0e0e0);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
 
-    .entity-top-row {
-      display: flex;
-      justify-content: flex-end;
-    }
+        .entity-top-row {
+            display: flex;
+            justify-content: flex-end;
+        }
 
-    .color-row {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+        .color-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
-    .color-swatch {
-      width: 100%;
-      height: 36px;
-      border-radius: 4px;
-      cursor: pointer;
-      padding: 2px;
-      background: transparent;
-    }
-  `;
+        .color-swatch {
+            width: 100%;
+            height: 36px;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 2px;
+            background: transparent;
+        }
+    `;
 __decorateClass$5([
   n$1({ attribute: false })
 ], InsightLineEntityEditor.prototype, "hass", 2);
@@ -8481,7 +8491,9 @@ var __decorateClass$4 = (decorators, target, key, kind) => {
 var __superGet$2 = (cls, obj, key) => __reflectGet$2(__getProtoOf$2(cls), key, obj);
 function dropEmpty(data) {
   return Object.fromEntries(
-    Object.entries(data).filter(([, v]) => v !== null && v !== void 0 && v !== "")
+    Object.entries(data).filter(
+      ([, v]) => v !== null && v !== void 0 && v !== ""
+    )
   );
 }
 function buildChartStyleSchema(cfg) {
@@ -8503,13 +8515,26 @@ function buildChartStyleSchema(cfg) {
     {
       name: "line_width",
       selector: {
-        number: { min: 0.5, max: 10, step: 0.5, mode: "slider", unit_of_measurement: "px" }
+        number: {
+          min: 0.5,
+          max: 10,
+          step: 0.5,
+          mode: "slider",
+          unit_of_measurement: "px"
+        }
       }
     },
     ...isArea ? [
       {
         name: "fill_opacity",
-        selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
+        selector: {
+          number: {
+            min: 0,
+            max: 1,
+            step: 0.05,
+            mode: "slider"
+          }
+        }
       }
     ] : []
   ];
@@ -8531,19 +8556,28 @@ function buildGeneralSchema(lang, cfg) {
             {
               value: "line",
               label: localize("editor.option.style.line", lang),
-              description: localize("editor.option.style.line_desc", lang),
+              description: localize(
+                "editor.option.style.line_desc",
+                lang
+              ),
               image: "/local/insight-card/images/chart-line.svg"
             },
             {
               value: "area",
               label: localize("editor.option.style.area", lang),
-              description: localize("editor.option.style.area_desc", lang),
+              description: localize(
+                "editor.option.style.area_desc",
+                lang
+              ),
               image: "/local/insight-card/images/chart-area.svg"
             },
             {
               value: "step",
               label: localize("editor.option.style.step", lang),
-              description: localize("editor.option.style.step_desc", lang),
+              description: localize(
+                "editor.option.style.step_desc",
+                lang
+              ),
               image: "/local/insight-card/images/chart-step.svg"
             }
           ]
@@ -8559,12 +8593,18 @@ function buildGeneralSchema(lang, cfg) {
             options: [
               {
                 value: "smooth",
-                label: localize("editor.option.curve.smooth", lang),
+                label: localize(
+                  "editor.option.curve.smooth",
+                  lang
+                ),
                 image: "/local/insight-card/images/curve-smooth.svg"
               },
               {
                 value: "linear",
-                label: localize("editor.option.curve.linear", lang),
+                label: localize(
+                  "editor.option.curve.linear",
+                  lang
+                ),
                 image: "/local/insight-card/images/curve-linear.svg"
               }
             ]
@@ -8577,16 +8617,28 @@ function buildGeneralSchema(lang, cfg) {
 const Y_AXIS_SCHEMA = [
   { name: "y_min", selector: { number: { step: 0.1, mode: "box" } } },
   { name: "y_max", selector: { number: { step: 0.1, mode: "box" } } },
-  { name: "decimals", selector: { number: { min: 0, max: 6, step: 1, mode: "box" } } },
+  {
+    name: "decimals",
+    selector: { number: { min: 0, max: 6, step: 1, mode: "box" } }
+  },
   { name: "logarithmic", selector: { boolean: {} } },
-  { name: "y_min_secondary", selector: { number: { step: 0.1, mode: "box" } } },
-  { name: "y_max_secondary", selector: { number: { step: 0.1, mode: "box" } } }
+  {
+    name: "y_min_secondary",
+    selector: { number: { step: 0.1, mode: "box" } }
+  },
+  {
+    name: "y_max_secondary",
+    selector: { number: { step: 0.1, mode: "box" } }
+  }
 ];
 const APPEARANCE_SCHEMA = [
   { name: "show_legend", selector: { boolean: {} } },
   { name: "show_x_axis", selector: { boolean: {} } },
   { name: "show_y_axis", selector: { boolean: {} } },
-  { name: "grid_opacity", selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } } },
+  {
+    name: "grid_opacity",
+    selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
+  },
   {
     name: "tooltip_format",
     selector: {
@@ -8641,7 +8693,15 @@ function buildAggregationSchema(cfg) {
 const ADVANCED_SCHEMA = [
   {
     name: "update_interval",
-    selector: { number: { min: 10, max: 3600, step: 10, mode: "box", unit_of_measurement: "s" } }
+    selector: {
+      number: {
+        min: 10,
+        max: 3600,
+        step: 10,
+        mode: "box",
+        unit_of_measurement: "s"
+      }
+    }
   },
   {
     name: "theme",
@@ -8657,35 +8717,99 @@ const ADVANCED_SCHEMA = [
   },
   {
     name: "margin_top",
-    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
   },
   {
     name: "margin_bottom",
-    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
   },
   {
     name: "margin_left",
-    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
   },
   {
     name: "margin_right",
-    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
   },
   {
     name: "padding_top",
-    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
   },
   {
     name: "padding_bottom",
-    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
   },
   {
     name: "padding_left",
-    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
   },
   {
     name: "padding_right",
-    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
   }
 ];
 const THRESHOLD_SCHEMA = [
@@ -8760,20 +8884,20 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   // ---------------------------------------------------------------------------
   render() {
     if (!this._config) {
-      return b`<div class="editor-loading">${localize("editor.loading", this._lang)}</div>`;
+      return b`<div class="editor-loading">
+                ${localize("editor.loading", this._lang)}
+            </div>`;
     }
     return b`
-      <div class="editor-container">
-        ${this._renderGeneralSection()}
-        ${this._renderEntitySection()}
-        ${this._renderChartStyleSection()}
-        ${this._renderYAxisSection()}
-        ${this._renderAppearanceSection()}
-        ${this._renderAggregationSection()}
-        ${this._renderOverlaysSection()}
-        ${this._renderAdvancedSection()}
-      </div>
-    `;
+            <div class="editor-container">
+                ${this._renderGeneralSection()} ${this._renderEntitySection()}
+                ${this._renderChartStyleSection()} ${this._renderYAxisSection()}
+                ${this._renderAppearanceSection()}
+                ${this._renderAggregationSection()}
+                ${this._renderOverlaysSection()}
+                ${this._renderAdvancedSection()}
+            </div>
+        `;
   }
   _renderGeneralSection() {
     const cfg = this._lineConfig;
@@ -8783,24 +8907,30 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       curve: cfg.curve ?? "smooth"
     };
     return b`
-      <div class="section">
-        <ha-form
-          .hass=${this.hass}
-          .schema=${buildGeneralSchema(this._lang, cfg)}
-          .data=${data}
-          .computeLabel=${this._computeLabel}
-          @value-changed=${(e) => this._updateConfig(e.detail.value)}
-        ></ha-form>
-        <div class="control-row">
-          <span class="control-label">${localize("editor.field.hours", this._lang)}</span>
-          <ha-control-select
-            .options=${this._hoursOptions}
-            .value=${String(cfg.hours ?? 24)}
-            @value-changed=${(e) => this._updateConfig({ hours: Number(e.detail.value) })}
-          ></ha-control-select>
-        </div>
-      </div>
-    `;
+            <div class="section">
+                <ha-form
+                    .hass=${this.hass}
+                    .schema=${buildGeneralSchema(this._lang, cfg)}
+                    .data=${data}
+                    .computeLabel=${this._computeLabel}
+                    @value-changed=${(e) => this._updateConfig(
+      e.detail.value
+    )}
+                ></ha-form>
+                <div class="control-row">
+                    <span class="control-label"
+                        >${localize("editor.field.hours", this._lang)}</span
+                    >
+                    <ha-control-select
+                        .options=${this._hoursOptions}
+                        .value=${String(cfg.hours ?? 24)}
+                        @value-changed=${(e) => this._updateConfig({
+      hours: Number(e.detail.value)
+    })}
+                    ></ha-control-select>
+                </div>
+            </div>
+        `;
   }
   // ---------------------------------------------------------------------------
   // Entities (expandable + tabs)
@@ -8808,43 +8938,51 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   _renderEntitySection() {
     const currentTab = this._tabs.find((t) => t.index.toString() === this._currTab) ?? this._tabs[0];
     return b`
-      <ha-expansion-panel outlined>
-        <ha-svg-icon slot="leading-icon" .path=${mdiFormatListBulleted}></ha-svg-icon>
-        <span slot="header">${localize("editor.section.entities", this._lang)}</span>
-        <div class="entities-panel">
-          <div class="entities-toolbar">
-            <ha-tab-group @wa-tab-show=${this._handleTabChanged}>
-              ${this._tabs.map(
+            <ha-expansion-panel outlined>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiFormatListBulleted}
+                ></ha-svg-icon>
+                <span slot="header"
+                    >${localize("editor.section.entities", this._lang)}</span
+                >
+                <div class="entities-panel">
+                    <div class="entities-toolbar">
+                        <ha-tab-group @wa-tab-show=${this._handleTabChanged}>
+                            ${this._tabs.map(
       (tab) => b`
-                  <ha-tab-group-tab
-                    slot="nav"
-                    .panel=${tab.index}
-                    .active=${this._currTab === tab.index.toString()}
-                  >
-                    ${tab.index}
-                  </ha-tab-group-tab>
-                `
+                                    <ha-tab-group-tab
+                                        slot="nav"
+                                        .panel=${tab.index}
+                                        .active=${this._currTab === tab.index.toString()}
+                                    >
+                                        ${tab.index}
+                                    </ha-tab-group-tab>
+                                `
     )}
-            </ha-tab-group>
-            <ha-icon-button
-              .path=${mdiPlus}
-              .label=${localize("editor.action.add_entity", this._lang)}
-              @click=${this._addTab}
-            ></ha-icon-button>
-          </div>
+                        </ha-tab-group>
+                        <ha-icon-button
+                            .path=${mdiPlus}
+                            .label=${localize(
+      "editor.action.add_entity",
+      this._lang
+    )}
+                            @click=${this._addTab}
+                        ></ha-icon-button>
+                    </div>
 
-          ${currentTab ? b`
-                <insight-line-entity-editor
-                  .hass=${this.hass}
-                  .tab=${currentTab}
-                  .chartStyle=${this._lineConfig.style ?? "area"}
-                  @onChange=${this._handleEntityChange}
-                  @onDelete=${this._handleEntityDelete}
-                ></insight-line-entity-editor>
-              ` : A}
-        </div>
-      </ha-expansion-panel>
-    `;
+                    ${currentTab ? b`
+                              <insight-line-entity-editor
+                                  .hass=${this.hass}
+                                  .tab=${currentTab}
+                                  .chartStyle=${this._lineConfig.style ?? "area"}
+                                  @onChange=${this._handleEntityChange}
+                                  @onDelete=${this._handleEntityDelete}
+                              ></insight-line-entity-editor>
+                          ` : A}
+                </div>
+            </ha-expansion-panel>
+        `;
   }
   _handleTabChanged(e) {
     const next = e.detail.name?.toString();
@@ -8852,7 +8990,9 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   }
   _handleEntityChange(e) {
     e.stopPropagation();
-    const idx = this._tabs.findIndex((t) => t.index.toString() === this._currTab);
+    const idx = this._tabs.findIndex(
+      (t) => t.index.toString() === this._currTab
+    );
     if (idx === -1) return;
     this._tabs[idx].config = e.detail;
     this._syncEntitiesToConfig();
@@ -8867,7 +9007,9 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   }
   _syncEntitiesToConfig() {
     this._updateConfig({
-      entities: this._tabs.filter((t) => t.config.entity).map((t) => serialiseEntityConfig(t.config))
+      entities: this._tabs.filter((t) => t.config.entity).map(
+        (t) => serialiseEntityConfig(t.config)
+      )
     });
   }
   // ---------------------------------------------------------------------------
@@ -8883,16 +9025,21 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       fill_opacity: cfg.fill_opacity ?? 0.15
     };
     return b`
-      <ha-expansion-panel outlined>
-        <ha-svg-icon slot="leading-icon" .path=${mdiChartLine}></ha-svg-icon>
-        <span slot="header">${localize("editor.section.chart_style", this._lang)}</span>
-        <div class="panel-content">
-          <ha-form
-            .hass=${this.hass}
-            .schema=${buildChartStyleSchema(cfg)}
-            .data=${data}
-            .computeLabel=${this._computeLabel}
-            @value-changed=${(e) => {
+            <ha-expansion-panel outlined>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiChartLine}
+                ></ha-svg-icon>
+                <span slot="header"
+                    >${localize("editor.section.chart_style", this._lang)}</span
+                >
+                <div class="panel-content">
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${buildChartStyleSchema(cfg)}
+                        .data=${data}
+                        .computeLabel=${this._computeLabel}
+                        @value-changed=${(e) => {
       const v = e.detail.value;
       const showPoints = v.show_points === "true" ? true : v.show_points === "hover" ? "hover" : false;
       this._updateConfig({
@@ -8900,10 +9047,10 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
         show_points: showPoints
       });
     }}
-          ></ha-form>
-        </div>
-      </ha-expansion-panel>
-    `;
+                    ></ha-form>
+                </div>
+            </ha-expansion-panel>
+        `;
   }
   // ---------------------------------------------------------------------------
   // Y axis
@@ -8919,22 +9066,29 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       y_max_secondary: cfg.y_max_secondary
     };
     return b`
-      <ha-expansion-panel outlined>
-        <ha-svg-icon slot="leading-icon" .path=${mdiAxisArrow}></ha-svg-icon>
-        <span slot="header">${localize("editor.section.y_axis", this._lang)}</span>
-        <div class="panel-content">
-          <ha-form
-            .hass=${this.hass}
-            .schema=${Y_AXIS_SCHEMA}
-            .data=${data}
-            .computeLabel=${this._computeLabel}
-            @value-changed=${(e) => this._updateConfig(
-      dropEmpty(e.detail.value)
+            <ha-expansion-panel outlined>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiAxisArrow}
+                ></ha-svg-icon>
+                <span slot="header"
+                    >${localize("editor.section.y_axis", this._lang)}</span
+                >
+                <div class="panel-content">
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${Y_AXIS_SCHEMA}
+                        .data=${data}
+                        .computeLabel=${this._computeLabel}
+                        @value-changed=${(e) => this._updateConfig(
+      dropEmpty(
+        e.detail.value
+      )
     )}
-          ></ha-form>
-        </div>
-      </ha-expansion-panel>
-    `;
+                    ></ha-form>
+                </div>
+            </ha-expansion-panel>
+        `;
   }
   // ---------------------------------------------------------------------------
   // Appearance
@@ -8950,20 +9104,24 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       time_format: cfg.time_format ?? "auto"
     };
     return b`
-      <ha-expansion-panel outlined>
-        <ha-svg-icon slot="leading-icon" .path=${mdiEye}></ha-svg-icon>
-        <span slot="header">${localize("editor.section.appearance", this._lang)}</span>
-        <div class="panel-content">
-          <ha-form
-            .hass=${this.hass}
-            .schema=${APPEARANCE_SCHEMA}
-            .data=${data}
-            .computeLabel=${this._computeLabel}
-            @value-changed=${(e) => this._updateConfig(e.detail.value)}
-          ></ha-form>
-        </div>
-      </ha-expansion-panel>
-    `;
+            <ha-expansion-panel outlined>
+                <ha-svg-icon slot="leading-icon" .path=${mdiEye}></ha-svg-icon>
+                <span slot="header"
+                    >${localize("editor.section.appearance", this._lang)}</span
+                >
+                <div class="panel-content">
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${APPEARANCE_SCHEMA}
+                        .data=${data}
+                        .computeLabel=${this._computeLabel}
+                        @value-changed=${(e) => this._updateConfig(
+      e.detail.value
+    )}
+                    ></ha-form>
+                </div>
+            </ha-expansion-panel>
+        `;
   }
   // ---------------------------------------------------------------------------
   // Data aggregation
@@ -8975,22 +9133,32 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       aggregate_period: cfg.aggregate_period ?? ""
     };
     return b`
-      <ha-expansion-panel outlined>
-        <ha-svg-icon slot="leading-icon" .path=${mdiDatabaseClock}></ha-svg-icon>
-        <span slot="header">${localize("editor.section.data_aggregation", this._lang)}</span>
-        <div class="panel-content">
-          <ha-form
-            .hass=${this.hass}
-            .schema=${buildAggregationSchema(cfg)}
-            .data=${data}
-            .computeLabel=${this._computeLabel}
-            @value-changed=${(e) => this._updateConfig(
-      dropEmpty(e.detail.value)
+            <ha-expansion-panel outlined>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiDatabaseClock}
+                ></ha-svg-icon>
+                <span slot="header"
+                    >${localize(
+      "editor.section.data_aggregation",
+      this._lang
+    )}</span
+                >
+                <div class="panel-content">
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${buildAggregationSchema(cfg)}
+                        .data=${data}
+                        .computeLabel=${this._computeLabel}
+                        @value-changed=${(e) => this._updateConfig(
+      dropEmpty(
+        e.detail.value
+      )
     )}
-          ></ha-form>
-        </div>
-      </ha-expansion-panel>
-    `;
+                    ></ha-form>
+                </div>
+            </ha-expansion-panel>
+        `;
   }
   // ---------------------------------------------------------------------------
   // Overlays (threshold lines + color thresholds)
@@ -9000,81 +9168,123 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     const thresholds = cfg.thresholds ?? [];
     const colorThresholds = cfg.color_thresholds ?? [];
     return b`
-      <ha-expansion-panel outlined>
-        <ha-svg-icon slot="leading-icon" .path=${mdiLayersOutline}></ha-svg-icon>
-        <span slot="header">${localize("editor.section.overlays", this._lang)}</span>
-        <div class="panel-content">
-        <div class="subsection-label">${localize("editor.subsection.threshold_lines", this._lang)}</div>
-        ${thresholds.map(
+            <ha-expansion-panel outlined>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiLayersOutline}
+                ></ha-svg-icon>
+                <span slot="header"
+                    >${localize("editor.section.overlays", this._lang)}</span
+                >
+                <div class="panel-content">
+                    <div class="subsection-label">
+                        ${localize(
+      "editor.subsection.threshold_lines",
+      this._lang
+    )}
+                    </div>
+                    ${thresholds.map(
       (t, idx) => b`
-            <div class="overlay-row">
-              <div class="overlay-color-field">
-                <span class="field-label">${localize("editor.field.color", this._lang)}</span>
-                <input
-                  type="color"
-                  class="color-swatch"
-                  .value=${t.color ?? "#db4437"}
-                  @input=${(e) => this._updateThresholdAt(idx, {
+                            <div class="overlay-row">
+                                <div class="overlay-color-field">
+                                    <span class="field-label"
+                                        >${localize(
+        "editor.field.color",
+        this._lang
+      )}</span
+                                    >
+                                    <input
+                                        type="color"
+                                        class="color-swatch"
+                                        .value=${t.color ?? "#db4437"}
+                                        @input=${(e) => this._updateThresholdAt(idx, {
         ...t,
         color: e.target.value
       })}
-                />
-              </div>
-              <ha-form
-                .hass=${this.hass}
-                .schema=${THRESHOLD_SCHEMA}
-                .data=${{ value: t.value, label: t.label ?? "", dash: t.dash?.join(",") ?? "" }}
-                .computeLabel=${this._computeLabel}
-                @value-changed=${(e) => this._updateThresholdAt(idx, { ...t, ...this._parseThreshold(e.detail.value) })}
-              ></ha-form>
-              <ha-icon-button
-                .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
-                @click=${() => this._removeThresholdAt(idx)}
-              ></ha-icon-button>
-            </div>
-          `
+                                    />
+                                </div>
+                                <ha-form
+                                    .hass=${this.hass}
+                                    .schema=${THRESHOLD_SCHEMA}
+                                    .data=${{
+        value: t.value,
+        label: t.label ?? "",
+        dash: t.dash?.join(",") ?? ""
+      }}
+                                    .computeLabel=${this._computeLabel}
+                                    @value-changed=${(e) => this._updateThresholdAt(idx, {
+        ...t,
+        ...this._parseThreshold(
+          e.detail.value
+        )
+      })}
+                                ></ha-form>
+                                <ha-icon-button
+                                    .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
+                                    @click=${() => this._removeThresholdAt(idx)}
+                                ></ha-icon-button>
+                            </div>
+                        `
     )}
-        <mwc-button @click=${this._appendThreshold}>${localize("editor.action.add_threshold", this._lang)}</mwc-button>
+                    <mwc-button @click=${this._appendThreshold}
+                        >${localize(
+      "editor.action.add_threshold",
+      this._lang
+    )}</mwc-button
+                    >
 
-        <div class="subsection-label" style="margin-top:12px">
-          ${localize("editor.subsection.color_thresholds", this._lang)}
-        </div>
-        ${colorThresholds.map(
+                    <div class="subsection-label" style="margin-top:12px">
+                        ${localize(
+      "editor.subsection.color_thresholds",
+      this._lang
+    )}
+                    </div>
+                    ${colorThresholds.map(
       (ct, idx) => b`
-            <div class="overlay-row">
-              <div class="overlay-color-field">
-                <span class="field-label">${localize("editor.field.color", this._lang)}</span>
-                <input
-                  type="color"
-                  class="color-swatch"
-                  .value=${ct.color ?? "#03a9f4"}
-                  @input=${(e) => this._updateColorThresholdAt(idx, {
+                            <div class="overlay-row">
+                                <div class="overlay-color-field">
+                                    <span class="field-label"
+                                        >${localize(
+        "editor.field.color",
+        this._lang
+      )}</span
+                                    >
+                                    <input
+                                        type="color"
+                                        class="color-swatch"
+                                        .value=${ct.color ?? "#03a9f4"}
+                                        @input=${(e) => this._updateColorThresholdAt(idx, {
         ...ct,
         color: e.target.value
       })}
-                />
-              </div>
-              <ha-form
-                .hass=${this.hass}
-                .schema=${COLOR_THRESHOLD_SCHEMA}
-                .data=${{ value: ct.value }}
-                .computeLabel=${this._computeLabel}
-                @value-changed=${(e) => this._updateColorThresholdAt(idx, {
+                                    />
+                                </div>
+                                <ha-form
+                                    .hass=${this.hass}
+                                    .schema=${COLOR_THRESHOLD_SCHEMA}
+                                    .data=${{ value: ct.value }}
+                                    .computeLabel=${this._computeLabel}
+                                    @value-changed=${(e) => this._updateColorThresholdAt(idx, {
         ...ct,
         value: e.detail.value["value"] ?? 0
       })}
-              ></ha-form>
-              <ha-icon-button
-                .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
-                @click=${() => this._removeColorThresholdAt(idx)}
-              ></ha-icon-button>
-            </div>
-          `
+                                ></ha-form>
+                                <ha-icon-button
+                                    .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
+                                    @click=${() => this._removeColorThresholdAt(idx)}
+                                ></ha-icon-button>
+                            </div>
+                        `
     )}
-        <mwc-button @click=${this._appendColorThreshold}>${localize("editor.action.add_color_threshold", this._lang)}</mwc-button>
-        </div>
-      </ha-expansion-panel>
-    `;
+                    <mwc-button @click=${this._appendColorThreshold}
+                        >${localize(
+      "editor.action.add_color_threshold",
+      this._lang
+    )}</mwc-button
+                    >
+                </div>
+            </ha-expansion-panel>
+        `;
   }
   // ---------------------------------------------------------------------------
   // Advanced
@@ -9094,20 +9304,24 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       padding_right: cfg.padding_right ?? 16
     };
     return b`
-      <ha-expansion-panel outlined>
-        <ha-svg-icon slot="leading-icon" .path=${mdiCog}></ha-svg-icon>
-        <span slot="header">${localize("editor.section.advanced", this._lang)}</span>
-        <div class="panel-content">
-          <ha-form
-            .hass=${this.hass}
-            .schema=${ADVANCED_SCHEMA}
-            .data=${data}
-            .computeLabel=${this._computeLabel}
-            @value-changed=${(e) => this._updateConfig(e.detail.value)}
-          ></ha-form>
-        </div>
-      </ha-expansion-panel>
-    `;
+            <ha-expansion-panel outlined>
+                <ha-svg-icon slot="leading-icon" .path=${mdiCog}></ha-svg-icon>
+                <span slot="header"
+                    >${localize("editor.section.advanced", this._lang)}</span
+                >
+                <div class="panel-content">
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${ADVANCED_SCHEMA}
+                        .data=${data}
+                        .computeLabel=${this._computeLabel}
+                        @value-changed=${(e) => this._updateConfig(
+      e.detail.value
+    )}
+                    ></ha-form>
+                </div>
+            </ha-expansion-panel>
+        `;
   }
   // ---------------------------------------------------------------------------
   // Threshold helpers
@@ -9148,103 +9362,102 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
 InsightLineCardEditor.styles = [
   __superGet$2(InsightLineCardEditor, InsightLineCardEditor, "styles"),
   i$5`
-      .entities-panel {
-        padding: 8px 0;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
+            .entities-panel {
+                padding: 8px 0;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
 
-      .entities-toolbar {
-        display: flex;
-        align-items: flex-start;
-        gap: 4px;
-      }
+            .entities-toolbar {
+                display: flex;
+                align-items: flex-start;
+                gap: 4px;
+            }
 
-      ha-tab-group {
-        flex: 1;
-      }
+            ha-tab-group {
+                flex: 1;
+            }
 
-      ha-expansion-panel {
-        margin-top: 4px;
-      }
+            ha-expansion-panel {
+                margin-top: 4px;
+            }
 
-      .panel-content {
-        padding: 8px 0;
-      }
+            .panel-content {
+                padding: 8px 0;
+            }
 
-      .control-row {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
+            .control-row {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
 
-      .control-label {
-        font-size: 0.75rem;
-        font-weight: 500;
-        color: var(--secondary-text-color);
-      }
+            .control-label {
+                font-size: 0.75rem;
+                font-weight: 500;
+                color: var(--secondary-text-color);
+            }
 
-      ha-control-select {
-        width: 100%;
-      }
+            ha-control-select {
+                width: 100%;
+            }
 
+            .field-label {
+                font-size: 0.875rem;
+                color: var(--secondary-text-color);
+                white-space: nowrap;
+            }
 
-      .field-label {
-        font-size: 0.875rem;
-        color: var(--secondary-text-color);
-        white-space: nowrap;
-      }
+            .color-swatch {
+                width: 36px;
+                height: 36px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                padding: 2px;
+                background: transparent;
+                flex-shrink: 0;
+            }
 
-      .color-swatch {
-        width: 36px;
-        height: 36px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        padding: 2px;
-        background: transparent;
-        flex-shrink: 0;
-      }
+            .color-text {
+                flex: 1;
+            }
 
-      .color-text {
-        flex: 1;
-      }
+            .add-entity-btn {
+                align-self: flex-start;
+                margin-top: 4px;
+            }
 
-      .add-entity-btn {
-        align-self: flex-start;
-        margin-top: 4px;
-      }
+            .subsection-label {
+                font-size: 0.8rem;
+                font-weight: 500;
+                color: var(--secondary-text-color);
+                margin-bottom: 4px;
+            }
 
-      .subsection-label {
-        font-size: 0.8rem;
-        font-weight: 500;
-        color: var(--secondary-text-color);
-        margin-bottom: 4px;
-      }
+            .overlay-row {
+                display: flex;
+                align-items: flex-start;
+                gap: 4px;
+                border: 1px solid var(--divider-color, #e0e0e0);
+                border-radius: 6px;
+                padding: 8px;
+                margin-bottom: 6px;
+            }
 
-      .overlay-row {
-        display: flex;
-        align-items: flex-start;
-        gap: 4px;
-        border: 1px solid var(--divider-color, #e0e0e0);
-        border-radius: 6px;
-        padding: 8px;
-        margin-bottom: 6px;
-      }
+            .overlay-color-field {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                padding-top: 4px;
+            }
 
-      .overlay-color-field {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        padding-top: 4px;
-      }
-
-      .overlay-row ha-form {
-        flex: 1;
-      }
-    `
+            .overlay-row ha-form {
+                flex: 1;
+            }
+        `
 ];
 __decorateClass$4([
   r()
