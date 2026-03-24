@@ -51,14 +51,16 @@ template:
             state: >
               {% set h = now().hour %}
               {% set base = 200 if h < 7 or h > 22 else 1200 if 9 <= h <= 18 else 600 %}
-              {{ (base + range(-100, 101) | random) | max(50) }}
+              {{ [base + (range(-100, 101) | random), 50] | max }}
 
           # --- Humidity ---
           - name: "Test Humidity"
             unit_of_measurement: "%"
             device_class: humidity
             state_class: measurement
-            state: "{{ [states('sensor.test_humidity') | float(55), 0] | max + (range(-3, 4) | random) | round(1) | max(30) | min(80) }}"
+            state: >
+              {% set val = ([states('sensor.test_humidity') | float(55), 0] | max) + (range(-3, 4) | random) %}
+              {{ [[val | round(1), 30] | max, 80] | min }}
 
           # --- CO₂ ---
           - name: "Test CO2"
@@ -68,7 +70,7 @@ template:
             state: >
               {% set h = now().hour %}
               {% set base = 450 if h < 7 or h > 22 else 800 if 9 <= h <= 18 else 600 %}
-              {{ (base + range(-50, 51) | random) | max(400) }}
+              {{ [base + (range(-50, 51) | random), 400] | max }}
 
           # --- Battery level (slow drain + occasional recharge) ---
           - name: "Test Battery"
@@ -78,7 +80,7 @@ template:
             state: >
               {% set prev = states('sensor.test_battery') | float(80) %}
               {% set next = prev - 0.2 + (range(-1, 2) | random) * 0.1 %}
-              {{ [next | round(1), 5] | max | min(100) }}
+              {{ [[next | round(1), 5] | max, 100] | min }}
 
           # --- Sensor with numeric attributes (for attribute demo) ---
           - name: "Test Climate"
