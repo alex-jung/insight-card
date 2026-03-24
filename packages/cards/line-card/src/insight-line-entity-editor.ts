@@ -4,6 +4,7 @@ import { mdiDelete } from "@mdi/js";
 
 import {
   localize,
+  DEFAULT_COLORS,
   type HomeAssistant,
   type InsightEntityConfig,
   type InsightLineConfig,
@@ -48,7 +49,7 @@ export class InsightLineEntityEditor extends LitElement {
           <input
             type="color"
             class="color-swatch"
-            .value=${ec.color ?? "#4AAFFF"}
+            .value=${ec.color ?? DEFAULT_COLORS[this.tab.index - 1] ?? DEFAULT_COLORS[0]}
             @input=${(e: Event) =>
               this._patch({ color: (e.target as HTMLInputElement).value })}
           />

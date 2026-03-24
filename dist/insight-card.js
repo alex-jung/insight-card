@@ -6747,10 +6747,10 @@ class InsightBaseCard extends i$2 {
     }
     console.debug("[Base-card] render", this.offsetHeight);
     const styleContent = {
-      marginTop: `${this._config.margin_top ?? 0}px`,
-      marginBottom: `${this._config.margin_bottom ?? 0}px`,
-      marginLeft: `${this._config.margin_left ?? 0}px`,
-      marginRight: `${this._config.margin_right ?? 0}px`
+      paddingTop: `${this._config.margin_top ?? 0}px`,
+      paddingBottom: `${this._config.margin_bottom ?? 0}px`,
+      paddingLeft: `${this._config.margin_left ?? 0}px`,
+      paddingRight: `${this._config.margin_right ?? 0}px`
     };
     return b`
           <ha-card>
@@ -6915,6 +6915,10 @@ var editor$1 = {
 		margin_bottom: "Margin bottom",
 		margin_left: "Margin left",
 		margin_right: "Margin right",
+		padding_top: "Padding top",
+		padding_bottom: "Padding bottom",
+		padding_left: "Padding left",
+		padding_right: "Padding right",
 		y_axis: "Y axis",
 		hidden: "Start hidden",
 		stroke_dash: "Stroke dash (e.g. 5 or 8,4)",
@@ -7012,6 +7016,10 @@ var editor = {
 		margin_bottom: "Außenabstand unten",
 		margin_left: "Außenabstand links",
 		margin_right: "Außenabstand rechts",
+		padding_top: "Innenabstand oben",
+		padding_bottom: "Innenabstand unten",
+		padding_left: "Innenabstand links",
+		padding_right: "Innenabstand rechts",
 		y_axis: "Y-Achse",
 		hidden: "Ausgeblendet starten",
 		stroke_dash: "Strichmuster (z.B. 5 oder 8,4)",
@@ -7512,20 +7520,25 @@ let InsightLineCard = class extends InsightBaseCard {
       }
     }
     const timestamps = Array.from(allTimestamps).sort((a, b) => a - b);
-    const valueSeries = datasets.map((data) => {
-      const map = /* @__PURE__ */ new Map();
-      for (const point of data) {
-        map.set(Math.floor(point.t / 1e3), point.v);
+    const valueSeries = datasets.map(
+      (data) => {
+        const map = /* @__PURE__ */ new Map();
+        for (const point of data) {
+          map.set(Math.floor(point.t / 1e3), point.v);
+        }
+        return timestamps.map((ts) => map.get(ts) ?? null);
       }
-      return timestamps.map((ts) => map.get(ts) ?? null);
-    });
+    );
     console.log("uPlot data built", valueSeries);
     return [timestamps, ...valueSeries];
   }
   /** Build uPlot options object */
   _buildOptions(config) {
     console.debug("[line-card] build options");
-    const chartWidth = Math.max(100, this.wrapper?.clientWidth || this._cardWidth - 32);
+    const chartWidth = Math.max(
+      100,
+      this.wrapper?.clientWidth || this._cardWidth - 32
+    );
     let chartHeight = this._chartHeight;
     const isDark = this.isDarkTheme;
     const cs = getComputedStyle(this);
@@ -7550,12 +7563,16 @@ let InsightLineCard = class extends InsightBaseCard {
     } else {
       yScaleOpts = { auto: true };
     }
-    const hasSecondaryAxis = this.entityConfigs.some((ec) => ec.y_axis === "right");
+    const hasSecondaryAxis = this.entityConfigs.some(
+      (ec) => ec.y_axis === "right"
+    );
     const y2Min = config.y_min_secondary;
     const y2Max = config.y_max_secondary;
     let y2ScaleOpts;
     if (Array.isArray(config.y_range_secondary)) {
-      y2ScaleOpts = { range: config.y_range_secondary };
+      y2ScaleOpts = {
+        range: config.y_range_secondary
+      };
     } else if (y2Min !== void 0 || y2Max !== void 0) {
       y2ScaleOpts = {
         range: (_u, dataMin, dataMax) => [
@@ -7566,12 +7583,18 @@ let InsightLineCard = class extends InsightBaseCard {
     } else {
       y2ScaleOpts = { auto: true };
     }
-    const primaryUnits = [...new Set(
-      this.entityConfigs.filter((ec) => ec.y_axis !== "right").map((_, i) => this._data[i]?.unit).filter(Boolean)
-    )];
-    const secondaryUnits = [...new Set(
-      this.entityConfigs.flatMap((ec, i) => ec.y_axis === "right" ? [this._data[i]?.unit] : []).filter(Boolean)
-    )];
+    const primaryUnits = [
+      ...new Set(
+        this.entityConfigs.filter((ec) => ec.y_axis !== "right").map((_, i) => this._data[i]?.unit).filter(Boolean)
+      )
+    ];
+    const secondaryUnits = [
+      ...new Set(
+        this.entityConfigs.flatMap(
+          (ec, i) => ec.y_axis === "right" ? [this._data[i]?.unit] : []
+        ).filter(Boolean)
+      )
+    ];
     const yUnit = primaryUnits.length === 1 ? primaryUnits[0] : "";
     const y2Unit = secondaryUnits.length === 1 ? secondaryUnits[0] : "";
     const decimals = config.decimals;
@@ -7615,8 +7638,10 @@ let InsightLineCard = class extends InsightBaseCard {
           ...config.time_format && config.time_format !== "auto" ? {
             values: (_u, vals) => vals.map((v) => {
               const ms = v * 1e3;
-              if (config.time_format === "time") return formatTime(ms);
-              if (config.time_format === "date") return formatDate(ms);
+              if (config.time_format === "time")
+                return formatTime(ms);
+              if (config.time_format === "date")
+                return formatDate(ms);
               return formatDateTime(ms);
             })
           } : {}
@@ -7634,30 +7659,34 @@ let InsightLineCard = class extends InsightBaseCard {
           labelFont: "11px sans-serif",
           values: yValFormatter
         },
-        ...hasSecondaryAxis ? [{
-          scale: "y2",
-          side: 1,
-          // right side
-          stroke: axisStroke,
-          grid: { show: false },
-          ticks: { stroke: gridStroke, width: 1 },
-          font: "12px sans-serif",
-          size: yAxisSize,
-          label: y2Unit,
-          labelSize: y2Unit ? 16 : 0,
-          labelFont: "11px sans-serif",
-          values: yValFormatter
-        }] : [{
-          // Invisible balancing axis on the right to mirror the left Y-axis width
-          show: false,
-          side: 1,
-          scale: "y",
-          size: yAxisSize,
-          gap: 0,
-          stroke: axisStroke,
-          grid: { show: false },
-          ticks: { show: false }
-        }]
+        ...hasSecondaryAxis ? [
+          {
+            scale: "y2",
+            side: 1,
+            // right side
+            stroke: axisStroke,
+            grid: { show: false },
+            ticks: { stroke: gridStroke, width: 1 },
+            font: "12px sans-serif",
+            size: yAxisSize,
+            label: y2Unit,
+            labelSize: y2Unit ? 16 : 0,
+            labelFont: "11px sans-serif",
+            values: yValFormatter
+          }
+        ] : [
+          {
+            // Invisible balancing axis on the right to mirror the left Y-axis width
+            show: false,
+            side: 1,
+            scale: "y",
+            size: yAxisSize,
+            gap: 0,
+            stroke: axisStroke,
+            grid: { show: false },
+            ticks: { show: false }
+          }
+        ]
       ],
       legend: {
         show: config.show_legend !== false,
@@ -7665,24 +7694,36 @@ let InsightLineCard = class extends InsightBaseCard {
       },
       hooks: {
         setCursor: [(u) => this._updateTooltip(u)],
-        draw: config.thresholds?.length ? [(u) => this._drawThresholds(u, config.thresholds)] : [],
-        ready: [(u) => {
-          this._tooltipEl = document.createElement("div");
-          this._tooltipEl.className = "u-tooltip";
-          u.root.appendChild(this._tooltipEl);
-          this._overLeft = u.over.offsetLeft;
-          this._overTop = u.over.offsetTop;
-        }],
-        setSize: [(u) => {
-          this._overLeft = u.over.offsetLeft;
-          this._overTop = u.over.offsetTop;
-        }],
-        destroy: [() => {
-          this._tooltipEl = void 0;
-        }]
+        draw: config.thresholds?.length ? [
+          (u) => this._drawThresholds(u, config.thresholds)
+        ] : [],
+        ready: [
+          (u) => {
+            this._tooltipEl = document.createElement("div");
+            this._tooltipEl.className = "u-tooltip";
+            u.root.appendChild(this._tooltipEl);
+            this._overLeft = u.over.offsetLeft;
+            this._overTop = u.over.offsetTop;
+          }
+        ],
+        setSize: [
+          (u) => {
+            this._overLeft = u.over.offsetLeft;
+            this._overTop = u.over.offsetTop;
+          }
+        ],
+        destroy: [
+          () => {
+            this._tooltipEl = void 0;
+          }
+        ]
       },
-      // padding: [0, 0, 0, 0],
-      padding: [8, 16, 8, 16]
+      padding: [
+        config.padding_top ?? 8,
+        config.padding_right ?? 16,
+        config.padding_bottom ?? 8,
+        config.padding_left ?? 16
+      ]
     };
   }
   /**
@@ -7705,7 +7746,10 @@ let InsightLineCard = class extends InsightBaseCard {
     const sorted = [...thresholds].sort((a, b) => b.value - a.value);
     for (const t of sorted) {
       const yPx = u.valToPos(t.value, "y", true);
-      const stop = Math.max(0, Math.min(1, (yPx - u.bbox.top) / u.bbox.height));
+      const stop = Math.max(
+        0,
+        Math.min(1, (yPx - u.bbox.top) / u.bbox.height)
+      );
       const color = opacity < 1 ? hexToRgba(t.color, opacity) : t.color;
       grad.addColorStop(stop, color);
     }
@@ -7733,7 +7777,11 @@ let InsightLineCard = class extends InsightBaseCard {
         ctx.font = `${11 * dpr}px sans-serif`;
         ctx.textAlign = "right";
         ctx.textBaseline = "bottom";
-        ctx.fillText(t.label, u.bbox.left + u.bbox.width - 4 * dpr, y - 2 * dpr);
+        ctx.fillText(
+          t.label,
+          u.bbox.left + u.bbox.width - 4 * dpr,
+          y - 2 * dpr
+        );
       }
     }
     ctx.restore();
@@ -7827,7 +7875,11 @@ let InsightLineCard = class extends InsightBaseCard {
     if (!config || !this.wrapper) return;
     const needsFull = this._needsRebuild || !this._uplot;
     const dataChanged = this._data !== this._lastDataRef;
-    console.debug("[_syncUpload] needsFull, dataChanged", needsFull, dataChanged);
+    console.debug(
+      "[_syncUpload] needsFull, dataChanged",
+      needsFull,
+      dataChanged
+    );
     if (needsFull || dataChanged) {
       this._cachedUData = this._buildUplotData();
       this._lastDataRef = this._data;
@@ -7835,7 +7887,9 @@ let InsightLineCard = class extends InsightBaseCard {
     const uData = this._cachedUData;
     if (needsFull) {
       const palette = generateColors(this.entityConfigs.length);
-      this._tooltipColors = this.entityConfigs.map((ec, i) => ec.color ?? palette[i]);
+      this._tooltipColors = this.entityConfigs.map(
+        (ec, i) => ec.color ?? palette[i]
+      );
       this._thresholdDefaultColor = getComputedStyle(this).getPropertyValue("--error-color").trim() || "#db4437";
       const opts = this._buildOptions(config);
       this._uplot?.destroy();
@@ -7843,7 +7897,10 @@ let InsightLineCard = class extends InsightBaseCard {
       this._uplot = new uPlot(opts, uData, this.wrapper);
       this._needsRebuild = false;
     } else {
-      const chartWidth = Math.max(100, this.wrapper.clientWidth || this._cardWidth - 32);
+      const chartWidth = Math.max(
+        100,
+        this.wrapper.clientWidth || this._cardWidth - 32
+      );
       const chartHeight = this._chartHeight;
       if (dataChanged) this._uplot.setData(uData, false);
       this._uplot.setSize({ width: chartWidth, height: chartHeight });
@@ -7863,113 +7920,161 @@ let InsightLineCard = class extends InsightBaseCard {
 InsightLineCard.styles = [
   InsightBaseCard.styles,
   i$5`
-      #chart {
-        width: 100%;
-        display: block;
-      }
+            #chart {
+                width: 100%;
+                display: block;
+            }
 
-      /* uPlot core layout — must be in Shadow DOM since uPlot injects to document.head */
-      .u-wrap {
-        display: block;
-        position: relative;
-        user-select: none;
-        width: 100%;
-      }
-      .u-over, .u-under { position: absolute; }
-      .u-under { overflow: hidden; }
-      .u-axis { position: absolute; }
+            /* uPlot core layout — must be in Shadow DOM since uPlot injects to document.head */
+            .u-wrap {
+                display: block;
+                position: relative;
+                user-select: none;
+                width: 100%;
+            }
+            .u-over,
+            .u-under {
+                position: absolute;
+            }
+            .u-under {
+                overflow: hidden;
+            }
+            .u-axis {
+                position: absolute;
+            }
 
-      /* Canvas must be constrained to logical size — uPlot sets 2x pixel
+            /* Canvas must be constrained to logical size — uPlot sets 2x pixel
          dimensions for HiDPI but relies on injected CSS for the CSS size */
-      .u-wrap canvas {
-        display: block;
-        width: 100%;
-        height: 100%;
-      }
+            .u-wrap canvas {
+                display: block;
+                width: 100%;
+                height: 100%;
+            }
 
-      /* Legend below the plot — horizontal, centered */
-      .u-legend { font-size: 12px; color: var(--secondary-text-color); margin: 4px auto 0; text-align: center; }
-      .u-inline { display: block; }
-      .u-inline * { display: inline-block; }
-      .u-inline tr { margin-right: 12px; }
-      .u-legend th { font-weight: normal; padding: 2px 0; cursor: pointer; }
-      .u-legend th > * { vertical-align: middle; }
-      .u-legend .u-marker { width: 10px; height: 10px; border-radius: 50%; margin-right: 3px; }
-      .u-legend .u-off > * { opacity: 0.4; }
-      /* uPlot legend click fires only when e.target === th — pass clicks through children */
-      .u-legend th * { pointer-events: none; }
+            /* Legend below the plot — horizontal, centered */
+            .u-legend {
+                font-size: 12px;
+                color: var(--secondary-text-color);
+                margin: 4px auto 0;
+                text-align: center;
+            }
+            .u-inline {
+                display: block;
+            }
+            .u-inline * {
+                display: inline-block;
+            }
+            .u-inline tr {
+                margin-right: 12px;
+            }
+            .u-legend th {
+                font-weight: normal;
+                padding: 2px 0;
+                cursor: pointer;
+            }
+            .u-legend th > * {
+                vertical-align: middle;
+            }
+            .u-legend .u-marker {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                margin-right: 3px;
+            }
+            .u-legend .u-off > * {
+                opacity: 0.4;
+            }
+            /* uPlot legend click fires only when e.target === th — pass clicks through children */
+            .u-legend th * {
+                pointer-events: none;
+            }
 
-      /* Cursor & selection */
-      .u-select {
-        background: color-mix(in srgb, var(--primary-color, #03a9f4) 15%, transparent);
-        position: absolute;
-        pointer-events: none;
-      }
-      .u-cursor-x, .u-cursor-y {
-        position: absolute;
-        left: 0; top: 0;
-        pointer-events: none;
-        will-change: transform;
-        z-index: 100;
-      }
-      .u-cursor-x { height: 100%; border-right: 1px dashed #607D8B; }
-      .u-cursor-y { width: 100%; border-bottom: 1px dashed #607D8B; }
-      .u-cursor-pt {
-        position: absolute;
-        top: 0; left: 0;
-        border-radius: 50%;
-        pointer-events: none;
-        will-change: transform;
-        z-index: 100;
-        background-clip: padding-box !important;
-      }
-      .u-axis.u-off,
-      .u-select.u-off,
-      .u-cursor-x.u-off,
-      .u-cursor-y.u-off,
-      .u-cursor-pt.u-off { display: none; }
+            /* Cursor & selection */
+            .u-select {
+                background: color-mix(
+                    in srgb,
+                    var(--primary-color, #03a9f4) 15%,
+                    transparent
+                );
+                position: absolute;
+                pointer-events: none;
+            }
+            .u-cursor-x,
+            .u-cursor-y {
+                position: absolute;
+                left: 0;
+                top: 0;
+                pointer-events: none;
+                will-change: transform;
+                z-index: 100;
+            }
+            .u-cursor-x {
+                height: 100%;
+                border-right: 1px dashed #607d8b;
+            }
+            .u-cursor-y {
+                width: 100%;
+                border-bottom: 1px dashed #607d8b;
+            }
+            .u-cursor-pt {
+                position: absolute;
+                top: 0;
+                left: 0;
+                border-radius: 50%;
+                pointer-events: none;
+                will-change: transform;
+                z-index: 100;
+                background-clip: padding-box !important;
+            }
+            .u-axis.u-off,
+            .u-select.u-off,
+            .u-cursor-x.u-off,
+            .u-cursor-y.u-off,
+            .u-cursor-pt.u-off {
+                display: none;
+            }
 
-      /* Custom floating tooltip */
-      .u-tooltip {
-        position: absolute;
-        pointer-events: none;
-        z-index: 200;
-        background: var(--card-background-color, #fff);
-        border: 1px solid var(--divider-color, #e0e0e0);
-        border-radius: 6px;
-        padding: 6px 10px;
-        font-size: 0.75rem;
-        color: var(--primary-text-color);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        white-space: nowrap;
-        display: none;
-      }
-      .u-tooltip-time {
-        color: var(--secondary-text-color);
-        margin-bottom: 4px;
-        font-size: 0.7rem;
-      }
-      .u-tooltip-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 1px 0;
-      }
-      .u-tooltip-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        flex-shrink: 0;
-      }
-      .u-tooltip-name {
-        color: var(--secondary-text-color);
-        flex: 1;
-      }
-      .u-tooltip-value {
-        font-weight: 500;
-        text-align: right;
-      }
-    `
+            /* Custom floating tooltip */
+            .u-tooltip {
+                position: absolute;
+                pointer-events: none;
+                z-index: 200;
+                background: var(--card-background-color, #fff);
+                border: 1px solid var(--divider-color, #e0e0e0);
+                border-radius: 6px;
+                padding: 6px 10px;
+                font-size: 0.75rem;
+                color: var(--primary-text-color);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                white-space: nowrap;
+                display: none;
+            }
+            .u-tooltip-time {
+                color: var(--secondary-text-color);
+                margin-bottom: 4px;
+                font-size: 0.7rem;
+            }
+            .u-tooltip-row {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 1px 0;
+            }
+            .u-tooltip-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
+            .u-tooltip-name {
+                color: var(--secondary-text-color);
+                flex: 1;
+            }
+            .u-tooltip-value {
+                font-weight: 500;
+                text-align: right;
+            }
+        `
 ];
 InsightLineCard.cardType = "custom:insight-line-card";
 InsightLineCard.cardName = "InsightChart Line";
@@ -8145,7 +8250,7 @@ let InsightLineEntityEditor = class extends i$2 {
           <input
             type="color"
             class="color-swatch"
-            .value=${ec.color ?? "#4AAFFF"}
+            .value=${ec.color ?? DEFAULT_COLORS[this.tab.index - 1] ?? DEFAULT_COLORS[0]}
             @input=${(e) => this._patch({ color: e.target.value })}
           />
         </div>
@@ -8464,6 +8569,22 @@ const ADVANCED_SCHEMA = [
   },
   {
     name: "margin_right",
+    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
+  },
+  {
+    name: "padding_top",
+    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
+  },
+  {
+    name: "padding_bottom",
+    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
+  },
+  {
+    name: "padding_left",
+    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
+  },
+  {
+    name: "padding_right",
     selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
   }
 ];
@@ -8866,7 +8987,11 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       margin_top: cfg.margin_top ?? 0,
       margin_bottom: cfg.margin_bottom ?? 0,
       margin_left: cfg.margin_left ?? 0,
-      margin_right: cfg.margin_right ?? 0
+      margin_right: cfg.margin_right ?? 0,
+      padding_top: cfg.padding_top ?? 8,
+      padding_bottom: cfg.padding_bottom ?? 8,
+      padding_left: cfg.padding_left ?? 16,
+      padding_right: cfg.padding_right ?? 16
     };
     return b`
       <ha-expansion-panel outlined>

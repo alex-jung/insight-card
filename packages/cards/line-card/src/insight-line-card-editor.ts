@@ -248,6 +248,22 @@ const ADVANCED_SCHEMA: HaFormSchema[] = [
     name: "margin_right",
     selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } },
   },
+  {
+    name: "padding_top",
+    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } },
+  },
+  {
+    name: "padding_bottom",
+    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } },
+  },
+  {
+    name: "padding_left",
+    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } },
+  },
+  {
+    name: "padding_right",
+    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } },
+  },
 ];
 
 const THRESHOLD_SCHEMA: HaFormField[] = [
@@ -682,6 +698,10 @@ export class InsightLineCardEditor extends InsightBaseEditor {
       margin_bottom: cfg.margin_bottom ?? 0,
       margin_left: cfg.margin_left ?? 0,
       margin_right: cfg.margin_right ?? 0,
+      padding_top: cfg.padding_top ?? 8,
+      padding_bottom: cfg.padding_bottom ?? 8,
+      padding_left: cfg.padding_left ?? 16,
+      padding_right: cfg.padding_right ?? 16,
     };
 
     return html`
