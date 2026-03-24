@@ -314,10 +314,10 @@ export abstract class InsightBaseCard extends LitElement {
         console.debug("[Base-card] render", this.offsetHeight);
 
         const styleContent = {
-            paddingTop: `${this._config.padding_top ?? 0}px`,
-            paddingBottom: `${this._config.padding_bottom ?? 0}px`,
-            paddingLeft: `${this._config.padding_left ?? 0}px`,
-            paddingRight: `${this._config.padding_right ?? 0}px`,
+            marginTop: `${this._config.margin_top ?? 0}px`,
+            marginBottom: `${this._config.margin_bottom ?? 0}px`,
+            marginLeft: `${this._config.margin_left ?? 0}px`,
+            marginRight: `${this._config.margin_right ?? 0}px`,
         }
 
         return html`

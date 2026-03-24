@@ -233,19 +233,19 @@ const ADVANCED_SCHEMA: HaFormSchema[] = [
     },
   },
   {
-    name: "padding_top",
+    name: "margin_top",
     selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } },
   },
   {
-    name: "padding_bottom",
+    name: "margin_bottom",
     selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } },
   },
   {
-    name: "padding_left",
+    name: "margin_left",
     selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } },
   },
   {
-    name: "padding_right",
+    name: "margin_right",
     selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } },
   },
 ];
@@ -678,10 +678,10 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     const data = {
       update_interval: cfg.update_interval ?? 60,
       theme: cfg.theme ?? "auto",
-      padding_top: cfg.padding_top ?? 0,
-      padding_bottom: cfg.padding_bottom ?? 0,
-      padding_left: cfg.padding_left ?? 0,
-      padding_right: cfg.padding_right ?? 0,
+      margin_top: cfg.margin_top ?? 0,
+      margin_bottom: cfg.margin_bottom ?? 0,
+      margin_left: cfg.margin_left ?? 0,
+      margin_right: cfg.margin_right ?? 0,
     };
 
     return html`

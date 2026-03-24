@@ -6747,10 +6747,10 @@ class InsightBaseCard extends i$2 {
     }
     console.debug("[Base-card] render", this.offsetHeight);
     const styleContent = {
-      paddingTop: `${this._config.padding_top ?? 0}px`,
-      paddingBottom: `${this._config.padding_bottom ?? 0}px`,
-      paddingLeft: `${this._config.padding_left ?? 0}px`,
-      paddingRight: `${this._config.padding_right ?? 0}px`
+      marginTop: `${this._config.margin_top ?? 0}px`,
+      marginBottom: `${this._config.margin_bottom ?? 0}px`,
+      marginLeft: `${this._config.margin_left ?? 0}px`,
+      marginRight: `${this._config.margin_right ?? 0}px`
     };
     return b`
           <ha-card>
@@ -6911,10 +6911,10 @@ var editor$1 = {
 		aggregate_period: "Aggregation period (e.g. 30m, 1h, 6h, 1d)",
 		update_interval: "Update interval",
 		theme: "Theme",
-		padding_top: "Padding top",
-		padding_bottom: "Padding bottom",
-		padding_left: "Padding left",
-		padding_right: "Padding right",
+		margin_top: "Margin top",
+		margin_bottom: "Margin bottom",
+		margin_left: "Margin left",
+		margin_right: "Margin right",
 		y_axis: "Y axis",
 		hidden: "Start hidden",
 		stroke_dash: "Stroke dash (e.g. 5 or 8,4)",
@@ -7008,10 +7008,10 @@ var editor = {
 		aggregate_period: "Aggregationszeitraum (z.B. 30m, 1h, 6h, 1d)",
 		update_interval: "Aktualisierungsintervall",
 		theme: "Thema",
-		padding_top: "Innenabstand oben",
-		padding_bottom: "Innenabstand unten",
-		padding_left: "Innenabstand links",
-		padding_right: "Innenabstand rechts",
+		margin_top: "Außenabstand oben",
+		margin_bottom: "Außenabstand unten",
+		margin_left: "Außenabstand links",
+		margin_right: "Außenabstand rechts",
 		y_axis: "Y-Achse",
 		hidden: "Ausgeblendet starten",
 		stroke_dash: "Strichmuster (z.B. 5 oder 8,4)",
@@ -7413,10 +7413,10 @@ let InsightLineCard = class extends InsightBaseCard {
       zoom: true,
       line_width: 1,
       show_legend: true,
-      padding_bottom: 16,
-      padding_top: 16,
-      padding_left: 4,
-      padding_right: 4
+      margin_bottom: 16,
+      margin_top: 16,
+      margin_left: 4,
+      margin_right: 4
     };
   }
   // -------------------------------------------------------------------------
@@ -7448,8 +7448,8 @@ let InsightLineCard = class extends InsightBaseCard {
     let h = total;
     h -= this._header?.offsetHeight ?? 0;
     h -= legendHeight;
-    h -= this._config?.padding_top ?? 0;
-    h -= this._config?.padding_bottom ?? 0;
+    h -= this._config?.margin_top ?? 0;
+    h -= this._config?.margin_bottom ?? 0;
     const clamped = Math.max(80, h);
     if (clamped !== this._chartHeight) {
       this._chartHeight = clamped;
@@ -8451,19 +8451,19 @@ const ADVANCED_SCHEMA = [
     }
   },
   {
-    name: "padding_top",
+    name: "margin_top",
     selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
   },
   {
-    name: "padding_bottom",
+    name: "margin_bottom",
     selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
   },
   {
-    name: "padding_left",
+    name: "margin_left",
     selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
   },
   {
-    name: "padding_right",
+    name: "margin_right",
     selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
   }
 ];
@@ -8863,10 +8863,10 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     const data = {
       update_interval: cfg.update_interval ?? 60,
       theme: cfg.theme ?? "auto",
-      padding_top: cfg.padding_top ?? 0,
-      padding_bottom: cfg.padding_bottom ?? 0,
-      padding_left: cfg.padding_left ?? 0,
-      padding_right: cfg.padding_right ?? 0
+      margin_top: cfg.margin_top ?? 0,
+      margin_bottom: cfg.margin_bottom ?? 0,
+      margin_left: cfg.margin_left ?? 0,
+      margin_right: cfg.margin_right ?? 0
     };
     return b`
       <ha-expansion-panel outlined>

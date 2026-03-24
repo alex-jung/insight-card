@@ -212,10 +212,10 @@ export class InsightLineCard extends InsightBaseCard {
             zoom: true,
             line_width: 1,
             show_legend: true,
-            padding_bottom: 16,
-            padding_top: 16,
-            padding_left: 4,
-            padding_right: 4,
+            margin_bottom: 16,
+            margin_top: 16,
+            margin_left: 4,
+            margin_right: 4,
         };
     }
 
@@ -252,8 +252,8 @@ export class InsightLineCard extends InsightBaseCard {
         let h = total;
         h -= this._header?.offsetHeight ?? 0;
         h -= legendHeight;
-        h -= this._config?.padding_top ?? 0;
-        h -= this._config?.padding_bottom ?? 0;
+        h -= this._config?.margin_top ?? 0;
+        h -= this._config?.margin_bottom ?? 0;
 
         const clamped = Math.max(80, h);
         if (clamped !== this._chartHeight) {
