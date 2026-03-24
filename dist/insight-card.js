@@ -8476,6 +8476,12 @@ InsightLineEntityEditor = __decorateClass$5([
   t$1("insight-line-entity-editor")
 ], InsightLineEntityEditor);
 
+const IMG_CHART_LINE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIExpbmUgLS0+CiAgPHBvbHlsaW5lCiAgICBwb2ludHM9IjE1LDY1IDM3LDQzIDU5LDU2IDgxLDI5IDEwMyw0MSAxMjUsMzEgMTQ1LDM2IgogICAgZmlsbD0ibm9uZSIKICAgIHN0cm9rZT0iIzRBQUZGRiIKICAgIHN0cm9rZS13aWR0aD0iMi41IgogICAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogICAgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K";
+const IMG_CHART_AREA = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIEZpbGwgYXJlYSAtLT4KICA8cG9seWdvbgogICAgcG9pbnRzPSIxNSw2NSAzNyw0MyA1OSw1NiA4MSwyOSAxMDMsNDEgMTI1LDMxIDE0NSwzNiAxNDUsNzUgMTUsNzUiCiAgICBmaWxsPSJyZ2JhKDc0LDE3NSwyNTUsMC4xOCkiLz4KCiAgPCEtLSBMaW5lIG9uIHRvcCAtLT4KICA8cG9seWxpbmUKICAgIHBvaW50cz0iMTUsNjUgMzcsNDMgNTksNTYgODEsMjkgMTAzLDQxIDEyNSwzMSAxNDUsMzYiCiAgICBmaWxsPSJub25lIgogICAgc3Ryb2tlPSIjNEFBRkZGIgogICAgc3Ryb2tlLXdpZHRoPSIyLjUiCiAgICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgICBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo=";
+const IMG_CHART_STEP = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIFN0ZXAgbGluZSAoaG9yaXpvbnRhbC1maXJzdCkgLS0+CiAgPHBvbHlsaW5lCiAgICBwb2ludHM9IjE1LDY1IDM3LDY1IDM3LDQzIDU5LDQzIDU5LDU2IDgxLDU2IDgxLDI5IDEwMywyOSAxMDMsNDEgMTI1LDQxIDEyNSwzMSAxNDUsMzEiCiAgICBmaWxsPSJub25lIgogICAgc3Ryb2tlPSIjNEFBRkZGIgogICAgc3Ryb2tlLXdpZHRoPSIyLjUiCiAgICBzdHJva2UtbGluZWNhcD0ic3F1YXJlIgogICAgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIvPgo8L3N2Zz4K";
+const IMG_CURVE_SMOOTH = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIFNtb290aCBjdXJ2ZSB2aWEgY3ViaWMgYmV6aWVyIC0tPgogIDxwYXRoCiAgICBkPSJNMTUsNjUgQzI2LDU1IDMyLDM2IDQ1LDM1IEM1OCwzNCA2NCw1MiA3NSw0OCBDODYsNDQgOTIsMjIgMTA1LDIyIEMxMTgsMjIgMTI1LDM1IDE0NSwzMiIKICAgIGZpbGw9Im5vbmUiCiAgICBzdHJva2U9IiM0QUFGRkYiCiAgICBzdHJva2Utd2lkdGg9IjIuNSIKICAgIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIKICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==";
+const IMG_CURVE_LINEAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIExpbmVhciAoc3RyYWlnaHQgc2VnbWVudHMpIC0tPgogIDxwb2x5bGluZQogICAgcG9pbnRzPSIxNSw2NSA0NSwzNSA3NSw0OCAxMDUsMjIgMTQ1LDMyIgogICAgZmlsbD0ibm9uZSIKICAgIHN0cm9rZT0iIzRBQUZGRiIKICAgIHN0cm9rZS13aWR0aD0iMi41IgogICAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogICAgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K";
+
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc$4 = Object.getOwnPropertyDescriptor;
 var __getProtoOf$2 = Object.getPrototypeOf;
@@ -8560,7 +8566,7 @@ function buildGeneralSchema(lang, cfg) {
                 "editor.option.style.line_desc",
                 lang
               ),
-              image: "/local/insight-card/images/chart-line.svg"
+              image: IMG_CHART_LINE
             },
             {
               value: "area",
@@ -8569,7 +8575,7 @@ function buildGeneralSchema(lang, cfg) {
                 "editor.option.style.area_desc",
                 lang
               ),
-              image: "/local/insight-card/images/chart-area.svg"
+              image: IMG_CHART_AREA
             },
             {
               value: "step",
@@ -8578,7 +8584,7 @@ function buildGeneralSchema(lang, cfg) {
                 "editor.option.style.step_desc",
                 lang
               ),
-              image: "/local/insight-card/images/chart-step.svg"
+              image: IMG_CHART_STEP
             }
           ]
         }
@@ -8597,7 +8603,7 @@ function buildGeneralSchema(lang, cfg) {
                   "editor.option.curve.smooth",
                   lang
                 ),
-                image: "/local/insight-card/images/curve-smooth.svg"
+                image: IMG_CURVE_SMOOTH
               },
               {
                 value: "linear",
@@ -8605,7 +8611,7 @@ function buildGeneralSchema(lang, cfg) {
                   "editor.option.curve.linear",
                   lang
                 ),
-                image: "/local/insight-card/images/curve-linear.svg"
+                image: IMG_CURVE_LINEAR
               }
             ]
           }
