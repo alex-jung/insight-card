@@ -6557,13 +6557,13 @@ const t={ATTRIBUTE:1},e=t=>(...e)=>({_$litDirective$:t,values:e});let i$1 = clas
  * SPDX-License-Identifier: BSD-3-Clause
  */const n="important",i=" !"+n,o=e(class extends i$1{constructor(t$1){if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||t$1.strings?.length>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.includes("-")?r:r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`},"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.ft)return this.ft=new Set(Object.keys(r)),this.render(r);for(const t of this.ft)null==r[t]&&(this.ft.delete(t),t.includes("-")?s.removeProperty(t):s[t]=null);for(const t in r){const e=r[t];if(null!=e){this.ft.add(t);const r="string"==typeof e&&e.endsWith(i);t.includes("-")||r?s.setProperty(t,r?e.slice(0,-11):e,r?n:""):s[t]=e;}}return E}});
 
-var __defProp$4 = Object.defineProperty;
-var __decorateClass$8 = (decorators, target, key, kind) => {
+var __defProp$5 = Object.defineProperty;
+var __decorateClass$9 = (decorators, target, key, kind) => {
   var result = void 0 ;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (decorator(target, key, result) ) || result;
-  if (result) __defProp$4(target, key, result);
+  if (result) __defProp$5(target, key, result);
   return result;
 };
 class InsightBaseCard extends i$2 {
@@ -6847,25 +6847,25 @@ InsightBaseCard.styles = i$5`
         font-size: 0.875rem;
       }
       `;
-__decorateClass$8([
+__decorateClass$9([
   n$1({ attribute: false })
 ], InsightBaseCard.prototype, "hass");
-__decorateClass$8([
+__decorateClass$9([
   r()
 ], InsightBaseCard.prototype, "_config");
-__decorateClass$8([
+__decorateClass$9([
   r()
 ], InsightBaseCard.prototype, "_data");
-__decorateClass$8([
+__decorateClass$9([
   r()
 ], InsightBaseCard.prototype, "_loading");
-__decorateClass$8([
+__decorateClass$9([
   r()
 ], InsightBaseCard.prototype, "_error");
-__decorateClass$8([
+__decorateClass$9([
   r()
 ], InsightBaseCard.prototype, "_cardWidth");
-__decorateClass$8([
+__decorateClass$9([
   e$1(".card-header")
 ], InsightBaseCard.prototype, "_header");
 
@@ -7089,13 +7089,13 @@ function localize(key, lang = "en", vars) {
   return template;
 }
 
-var __defProp$3 = Object.defineProperty;
-var __decorateClass$7 = (decorators, target, key, kind) => {
+var __defProp$4 = Object.defineProperty;
+var __decorateClass$8 = (decorators, target, key, kind) => {
   var result = void 0 ;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (decorator(target, key, result) ) || result;
-  if (result) __defProp$3(target, key, result);
+  if (result) __defProp$4(target, key, result);
   return result;
 };
 i$5`
@@ -7374,12 +7374,177 @@ InsightBaseEditor.styles = i$5`
       text-align: center;
     }
   `;
-__decorateClass$7([
+__decorateClass$8([
   n$1({ attribute: false })
 ], InsightBaseEditor.prototype, "hass");
-__decorateClass$7([
+__decorateClass$8([
   r()
 ], InsightBaseEditor.prototype, "_config");
+
+var __defProp$3 = Object.defineProperty;
+var __getOwnPropDesc$7 = Object.getOwnPropertyDescriptor;
+var __decorateClass$7 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$7(target, key) : target;
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result) __defProp$3(target, key, result);
+  return result;
+};
+let InsightToggleButton = class extends i$2 {
+  constructor() {
+    super(...arguments);
+    this.svg = "";
+    this.label = "";
+    this.active = false;
+    this.width = 80;
+    this.height = 80;
+  }
+  render() {
+    return b`
+            <button
+                class="toggle-btn ${this.active ? "active" : ""}"
+                style="width:${this.width}px;height:${this.height}px;"
+                aria-pressed=${this.active}
+                @click=${this._handleClick}
+            >
+                <span class="icon" .innerHTML=${this.svg}></span>
+                <span class="label">${this.label}</span>
+            </button>
+        `;
+  }
+  _handleClick() {
+    this.dispatchEvent(
+      new CustomEvent("toggle", {
+        detail: { active: !this.active },
+        bubbles: true,
+        composed: true
+      })
+    );
+  }
+};
+InsightToggleButton.styles = i$5`
+        :host {
+            display: inline-block;
+        }
+
+        .toggle-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: 2px solid var(--divider-color, #e0e0e0);
+            border-radius: 8px;
+            background: var(--card-background-color, #fff);
+            cursor: pointer;
+            transition:
+                border-color 0.15s ease,
+                background 0.15s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .toggle-btn:hover {
+            border-color: var(--primary-color, #03a9f4);
+        }
+
+        .toggle-btn.active {
+            border-color: var(--primary-color, #03a9f4);
+            background: color-mix(
+                in srgb,
+                var(--primary-color, #03a9f4) 12%,
+                transparent
+            );
+        }
+
+        .icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .icon svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            color: var(--secondary-text-color, #727272);
+            text-align: center;
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
+
+        .toggle-btn.active .label {
+            color: var(--primary-color, #03a9f4);
+            font-weight: 600;
+        }
+    `;
+__decorateClass$7([
+  n$1()
+], InsightToggleButton.prototype, "svg", 2);
+__decorateClass$7([
+  n$1()
+], InsightToggleButton.prototype, "label", 2);
+__decorateClass$7([
+  n$1({ type: Boolean, reflect: true })
+], InsightToggleButton.prototype, "active", 2);
+__decorateClass$7([
+  n$1({ type: Number })
+], InsightToggleButton.prototype, "width", 2);
+__decorateClass$7([
+  n$1({ type: Number })
+], InsightToggleButton.prototype, "height", 2);
+InsightToggleButton = __decorateClass$7([
+  t$1("insight-toggle-button")
+], InsightToggleButton);
+
+const SVG_ZOOM_DRAG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <line x1="2" y1="20" x2="22" y2="20" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+  <line x1="2" y1="4"  x2="2"  y2="20" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+  <polyline points="2,17 6,12 10,14 14,8 18,10 22,7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+  <rect x="8" y="6" width="10" height="10" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 1.5" rx="1"/>
+  <circle cx="8" cy="6" r="1.2" fill="currentColor"/>
+  <circle cx="18" cy="16" r="1.2" fill="currentColor"/>
+  <line x1="5" y1="3" x2="7.5" y2="5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <polyline points="5,5.5 5,3 7.5,3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="19" y1="21" x2="16.5" y2="18.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <polyline points="19,18.5 19,21 16.5,21" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+const SVG_SHOW_LEGEND = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <line x1="2" y1="2"  x2="2"  y2="16" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+  <line x1="2" y1="16" x2="22" y2="16" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+  <polyline points="2,13 6,9 10,11 15,5 22,8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+  <rect x="2" y="18" width="20" height="5" rx="1" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-width="0.8"/>
+  <line x1="4" y1="20.5" x2="8" y2="20.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="6" cy="20.5" r="1" fill="currentColor"/>
+  <line x1="10" y1="20.5" x2="14" y2="20.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1.5 1"/>
+  <circle cx="12" cy="20.5" r="1" fill="currentColor"/>
+  <line x1="16" y1="20.5" x2="20" y2="20.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+</svg>`;
+const SVG_SHOW_X_AXIS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <line x1="4" y1="3" x2="4" y2="18" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+  <polyline points="4,15 8,10 12,12 17,6 22,9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+  <line x1="2" y1="18" x2="22" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <line x1="7"  y1="18" x2="7"  y2="20" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="12" y1="18" x2="12" y2="20" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="17" y1="18" x2="17" y2="20" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="22" y1="18" x2="22" y2="20" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+</svg>`;
+const SVG_SHOW_Y_AXIS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <line x1="4" y1="18" x2="22" y2="18" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+  <polyline points="4,15 8,10 12,12 17,6 22,9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+  <line x1="4" y1="2" x2="4" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <line x1="2" y1="6"  x2="4" y2="6"  stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="2" y1="10" x2="4" y2="10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="2" y1="14" x2="4" y2="14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="2" y1="18" x2="4" y2="18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+</svg>`;
 
 var __defProp$2 = Object.defineProperty;
 var __getOwnPropDesc$6 = Object.getOwnPropertyDescriptor;
@@ -8505,7 +8670,6 @@ function dropEmpty(data) {
 function buildChartStyleSchema(cfg) {
   const isArea = (cfg.style ?? "area") === "area";
   return [
-    { name: "zoom", selector: { boolean: {} } },
     {
       name: "show_points",
       selector: {
@@ -8638,9 +8802,6 @@ const Y_AXIS_SCHEMA = [
   }
 ];
 const APPEARANCE_SCHEMA = [
-  { name: "show_legend", selector: { boolean: {} } },
-  { name: "show_x_axis", selector: { boolean: {} } },
-  { name: "show_y_axis", selector: { boolean: {} } },
   {
     name: "grid_opacity",
     selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
@@ -9025,7 +9186,6 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     const cfg = this._lineConfig;
     const showPointsStr = cfg.show_points === true ? "true" : cfg.show_points === "hover" ? "hover" : "false";
     const data = {
-      zoom: cfg.zoom !== false,
       show_points: showPointsStr,
       line_width: cfg.line_width ?? 2,
       fill_opacity: cfg.fill_opacity ?? 0.15
@@ -9040,6 +9200,57 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                     >${localize("editor.section.chart_style", this._lang)}</span
                 >
                 <div class="panel-content">
+                    <div class="toggle-row">
+                        <insight-toggle-button
+                            .svg=${SVG_ZOOM_DRAG}
+                            .label=${localize("editor.field.zoom", this._lang)}
+                            .width=${110}
+                            .height=${120}
+                            ?active=${cfg.zoom !== false}
+                            @toggle=${() => this._updateConfig({
+      zoom: cfg.zoom === false
+    })}
+                        ></insight-toggle-button>
+                        <insight-toggle-button
+                            .svg=${SVG_SHOW_LEGEND}
+                            .label=${localize(
+      "editor.field.show_legend",
+      this._lang
+    )}
+                            .width=${110}
+                            .height=${120}
+                            ?active=${cfg.show_legend !== false}
+                            @toggle=${() => this._updateConfig({
+      show_legend: cfg.show_legend === false
+    })}
+                        ></insight-toggle-button>
+                        <insight-toggle-button
+                            .svg=${SVG_SHOW_X_AXIS}
+                            .label=${localize(
+      "editor.field.show_x_axis",
+      this._lang
+    )}
+                            .width=${110}
+                            .height=${120}
+                            ?active=${cfg.show_x_axis !== false}
+                            @toggle=${() => this._updateConfig({
+      show_x_axis: cfg.show_x_axis === false
+    })}
+                        ></insight-toggle-button>
+                        <insight-toggle-button
+                            .svg=${SVG_SHOW_Y_AXIS}
+                            .label=${localize(
+      "editor.field.show_y_axis",
+      this._lang
+    )}
+                            .width=${110}
+                            .height=${120}
+                            ?active=${cfg.show_y_axis !== false}
+                            @toggle=${() => this._updateConfig({
+      show_y_axis: cfg.show_y_axis === false
+    })}
+                        ></insight-toggle-button>
+                    </div>
                     <ha-form
                         .hass=${this.hass}
                         .schema=${buildChartStyleSchema(cfg)}
@@ -9102,9 +9313,6 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   _renderAppearanceSection() {
     const cfg = this._lineConfig;
     const data = {
-      show_legend: cfg.show_legend !== false,
-      show_x_axis: cfg.show_x_axis !== false,
-      show_y_axis: cfg.show_y_axis !== false,
       grid_opacity: cfg.grid_opacity ?? 1,
       tooltip_format: cfg.tooltip_format ?? "datetime",
       time_format: cfg.time_format ?? "auto"
@@ -9391,6 +9599,18 @@ InsightLineCardEditor.styles = [
 
             .panel-content {
                 padding: 8px 0;
+            }
+
+            .toggle-row {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-evenly;
+                gap: 8px;
+                padding-bottom: 8px;
+            }
+
+            .toggle-row insight-toggle-button {
+                flex: 0 0 auto;
             }
 
             .control-row {

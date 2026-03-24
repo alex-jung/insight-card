@@ -60,12 +60,16 @@ function formatBytes(bytes) {
 // ---------------------------------------------------------------------------
 
 if (!skipClean) {
-  if (existsSync(DIST)) {
-    log(`\nCleaning ${DIST} …`);
-    rmSync(DIST, { recursive: true, force: true });
+  log(`\nCleaning ${DIST} …`);
+  mkdirSync(DIST, { recursive: true });
+  // Remove only the contents, not the directory itself.
+  // Deleting the directory would break Docker bind-mounts (inode changes).
+  for (const entry of readdirSync(DIST)) {
+    rmSync(join(DIST, entry), { recursive: true, force: true });
   }
+} else {
+  mkdirSync(DIST, { recursive: true });
 }
-mkdirSync(DIST, { recursive: true });
 
 // ---------------------------------------------------------------------------
 // 2. Build combined bundle

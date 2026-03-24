@@ -71,6 +71,15 @@ export {
 
 export type { Stats } from "./utils/index.js";
 
+// Components
+export { InsightToggleButton } from "./components/insight-toggle-button.js";
+export {
+    SVG_ZOOM_DRAG,
+    SVG_SHOW_LEGEND,
+    SVG_SHOW_X_AXIS,
+    SVG_SHOW_Y_AXIS,
+} from "./components/svg-icons.js";
+
 // Localization
 export { localize } from "./locales/localize.js";
 export type { SupportedLanguages, Translations } from "./locales/localize.js";

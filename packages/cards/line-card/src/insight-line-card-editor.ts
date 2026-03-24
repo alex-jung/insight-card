@@ -27,6 +27,11 @@ import {
 
 import {
     InsightBaseEditor,
+    InsightToggleButton,
+    SVG_ZOOM_DRAG,
+    SVG_SHOW_LEGEND,
+    SVG_SHOW_X_AXIS,
+    SVG_SHOW_Y_AXIS,
     localize,
     serialiseEntityConfig,
     type InsightLineConfig,
@@ -35,6 +40,9 @@ import {
     type ColorThresholdConfig,
     type LovelaceCardConfig,
 } from "@insight-chart/core";
+
+// Ensure custom element is registered
+InsightToggleButton;
 
 import { InsightEntityTab } from "./insight-line-entity-tab.js";
 import "./insight-line-entity-editor.js";
@@ -70,7 +78,6 @@ function dropEmpty<T extends Record<string, unknown>>(data: T): Partial<T> {
 function buildChartStyleSchema(cfg: InsightLineConfig): HaFormSchema[] {
     const isArea = (cfg.style ?? "area") === "area";
     return [
-        { name: "zoom", selector: { boolean: {} as Record<string, never> } },
         {
             name: "show_points",
             selector: {
@@ -213,9 +220,6 @@ const Y_AXIS_SCHEMA: HaFormSchema[] = [
 ];
 
 const APPEARANCE_SCHEMA: HaFormSchema[] = [
-    { name: "show_legend", selector: { boolean: {} as Record<string, never> } },
-    { name: "show_x_axis", selector: { boolean: {} as Record<string, never> } },
-    { name: "show_y_axis", selector: { boolean: {} as Record<string, never> } },
     {
         name: "grid_opacity",
         selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } },
@@ -627,7 +631,6 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                   ? "hover"
                   : "false";
         const data = {
-            zoom: cfg.zoom !== false,
             show_points: showPointsStr,
             line_width: cfg.line_width ?? 2,
             fill_opacity: cfg.fill_opacity ?? 0.15,
@@ -643,6 +646,61 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                     >${localize("editor.section.chart_style", this._lang)}</span
                 >
                 <div class="panel-content">
+                    <div class="toggle-row">
+                        <insight-toggle-button
+                            .svg=${SVG_ZOOM_DRAG}
+                            .label=${localize("editor.field.zoom", this._lang)}
+                            .width=${110}
+                            .height=${120}
+                            ?active=${cfg.zoom !== false}
+                            @toggle=${() =>
+                                this._updateConfig({
+                                    zoom: cfg.zoom === false,
+                                })}
+                        ></insight-toggle-button>
+                        <insight-toggle-button
+                            .svg=${SVG_SHOW_LEGEND}
+                            .label=${localize(
+                                "editor.field.show_legend",
+                                this._lang,
+                            )}
+                            .width=${110}
+                            .height=${120}
+                            ?active=${cfg.show_legend !== false}
+                            @toggle=${() =>
+                                this._updateConfig({
+                                    show_legend: cfg.show_legend === false,
+                                })}
+                        ></insight-toggle-button>
+                        <insight-toggle-button
+                            .svg=${SVG_SHOW_X_AXIS}
+                            .label=${localize(
+                                "editor.field.show_x_axis",
+                                this._lang,
+                            )}
+                            .width=${110}
+                            .height=${120}
+                            ?active=${cfg.show_x_axis !== false}
+                            @toggle=${() =>
+                                this._updateConfig({
+                                    show_x_axis: cfg.show_x_axis === false,
+                                })}
+                        ></insight-toggle-button>
+                        <insight-toggle-button
+                            .svg=${SVG_SHOW_Y_AXIS}
+                            .label=${localize(
+                                "editor.field.show_y_axis",
+                                this._lang,
+                            )}
+                            .width=${110}
+                            .height=${120}
+                            ?active=${cfg.show_y_axis !== false}
+                            @toggle=${() =>
+                                this._updateConfig({
+                                    show_y_axis: cfg.show_y_axis === false,
+                                })}
+                        ></insight-toggle-button>
+                    </div>
                     <ha-form
                         .hass=${this.hass}
                         .schema=${buildChartStyleSchema(cfg)}
@@ -723,9 +781,6 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     private _renderAppearanceSection(): TemplateResult {
         const cfg = this._lineConfig;
         const data = {
-            show_legend: cfg.show_legend !== false,
-            show_x_axis: cfg.show_x_axis !== false,
-            show_y_axis: cfg.show_y_axis !== false,
             grid_opacity: cfg.grid_opacity ?? 1,
             tooltip_format: cfg.tooltip_format ?? "datetime",
             time_format: cfg.time_format ?? "auto",
@@ -1097,6 +1152,18 @@ export class InsightLineCardEditor extends InsightBaseEditor {
 
             .panel-content {
                 padding: 8px 0;
+            }
+
+            .toggle-row {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-evenly;
+                gap: 8px;
+                padding-bottom: 8px;
+            }
+
+            .toggle-row insight-toggle-button {
+                flex: 0 0 auto;
             }
 
             .control-row {
