@@ -272,6 +272,15 @@ export class InsightLineCard extends InsightBaseCard {
     private _zoomedRange?: [number, number];
     /** Whether the chart is currently zoomed — controls reset-button visibility */
     @state() private _isZoomed = false;
+    /** Pinch gesture state — snapshot taken on touchstart with 2 fingers */
+    private _pinch?: { dist: number; scaleMin: number; scaleMax: number };
+    /** Bound touch handlers — stored so they can be removed on destroy */
+    private _touchHandlers?: {
+        start: (e: TouchEvent) => void;
+        move: (e: TouchEvent) => void;
+        end: (e: TouchEvent) => void;
+        target: HTMLElement;
+    };
 
     private _resizeObserver: ResizeObserver | null = null;
 
@@ -711,6 +720,8 @@ export class InsightLineCard extends InsightBaseCard {
                         // Cache u.over offsets — stable until next resize
                         this._overLeft = u.over.offsetLeft;
                         this._overTop = u.over.offsetTop;
+                        // Attach pinch-to-zoom touch handlers
+                        this._attachPinchHandlers(u);
                     },
                 ],
                 setSize: [
@@ -722,6 +733,8 @@ export class InsightLineCard extends InsightBaseCard {
                 destroy: [
                     () => {
                         this._tooltipEl = undefined;
+                        this._detachPinchHandlers();
+                        this._pinch = undefined;
                     },
                 ],
             },
@@ -868,6 +881,92 @@ export class InsightLineCard extends InsightBaseCard {
         tooltip.style.transform = flip
             ? "translate(-100%, -50%)"
             : "translateY(-50%)";
+    }
+
+    // -------------------------------------------------------------------------
+    // Pinch-to-zoom (mobile)
+    // -------------------------------------------------------------------------
+
+    private _attachPinchHandlers(u: uPlot): void {
+        const over = u.over as HTMLElement;
+
+        const onStart = (e: TouchEvent) => {
+            if (e.touches.length !== 2) return;
+            const t0 = e.touches[0];
+            const t1 = e.touches[1];
+            const dist = Math.hypot(
+                t1.clientX - t0.clientX,
+                t1.clientY - t0.clientY,
+            );
+            this._pinch = {
+                dist,
+                scaleMin: u.scales.x?.min ?? (u.data[0][0] as number),
+                scaleMax:
+                    u.scales.x?.max ??
+                    (u.data[0][u.data[0].length - 1] as number),
+            };
+        };
+
+        const onMove = (e: TouchEvent) => {
+            if (e.touches.length !== 2 || !this._pinch) return;
+            e.preventDefault(); // prevent page scroll during pinch
+
+            const t0 = e.touches[0];
+            const t1 = e.touches[1];
+            const newDist = Math.hypot(
+                t1.clientX - t0.clientX,
+                t1.clientY - t0.clientY,
+            );
+
+            const { dist: initDist, scaleMin, scaleMax } = this._pinch;
+            const initRange = scaleMax - scaleMin;
+            const factor = initDist / newDist; // >1 = zoom in, <1 = zoom out
+            const newRange = initRange * factor;
+
+            // Pinch midpoint → time value to keep centered
+            const rect = over.getBoundingClientRect();
+            const centerPx = (t0.clientX + t1.clientX) / 2 - rect.left;
+            const centerTime = u.posToVal(centerPx, "x");
+
+            let newMin = centerTime - newRange / 2;
+            let newMax = centerTime + newRange / 2;
+
+            // Clamp to full data extent
+            const xs = u.data[0] as number[];
+            const dataMin = xs[0];
+            const dataMax = xs[xs.length - 1];
+            if (newMin < dataMin) {
+                newMin = dataMin;
+                newMax = Math.min(dataMax, dataMin + newRange);
+            }
+            if (newMax > dataMax) {
+                newMax = dataMax;
+                newMin = Math.max(dataMin, dataMax - newRange);
+            }
+            // Prevent over-zoom (minimum 60 s window)
+            if (newMax - newMin < 60) return;
+
+            u.setScale("x", { min: newMin, max: newMax });
+        };
+
+        const onEnd = (e: TouchEvent) => {
+            if (e.touches.length < 2) this._pinch = undefined;
+        };
+
+        over.addEventListener("touchstart", onStart, { passive: true });
+        over.addEventListener("touchmove", onMove, { passive: false });
+        over.addEventListener("touchend", onEnd, { passive: true });
+
+        this._touchHandlers = { start: onStart, move: onMove, end: onEnd, target: over };
+    }
+
+    private _detachPinchHandlers(): void {
+        if (!this._touchHandlers) return;
+        const { start, move, end, target } = this._touchHandlers;
+        target.removeEventListener("touchstart", start);
+        target.removeEventListener("touchmove", move);
+        target.removeEventListener("touchend", end);
+        this._touchHandlers = undefined;
     }
 
     // -------------------------------------------------------------------------

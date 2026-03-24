@@ -7972,6 +7972,7 @@ let InsightLineCard = class extends InsightBaseCard {
             u.root.appendChild(this._tooltipEl);
             this._overLeft = u.over.offsetLeft;
             this._overTop = u.over.offsetTop;
+            this._attachPinchHandlers(u);
           }
         ],
         setSize: [
@@ -7983,6 +7984,8 @@ let InsightLineCard = class extends InsightBaseCard {
         destroy: [
           () => {
             this._tooltipEl = void 0;
+            this._detachPinchHandlers();
+            this._pinch = void 0;
           }
         ]
       },
@@ -8092,6 +8095,73 @@ let InsightLineCard = class extends InsightBaseCard {
     tooltip.style.left = `${left + (flip ? -12 : 12)}px`;
     tooltip.style.top = `${top}px`;
     tooltip.style.transform = flip ? "translate(-100%, -50%)" : "translateY(-50%)";
+  }
+  // -------------------------------------------------------------------------
+  // Pinch-to-zoom (mobile)
+  // -------------------------------------------------------------------------
+  _attachPinchHandlers(u) {
+    const over = u.over;
+    const onStart = (e) => {
+      if (e.touches.length !== 2) return;
+      const t0 = e.touches[0];
+      const t1 = e.touches[1];
+      const dist = Math.hypot(
+        t1.clientX - t0.clientX,
+        t1.clientY - t0.clientY
+      );
+      this._pinch = {
+        dist,
+        scaleMin: u.scales.x?.min ?? u.data[0][0],
+        scaleMax: u.scales.x?.max ?? u.data[0][u.data[0].length - 1]
+      };
+    };
+    const onMove = (e) => {
+      if (e.touches.length !== 2 || !this._pinch) return;
+      e.preventDefault();
+      const t0 = e.touches[0];
+      const t1 = e.touches[1];
+      const newDist = Math.hypot(
+        t1.clientX - t0.clientX,
+        t1.clientY - t0.clientY
+      );
+      const { dist: initDist, scaleMin, scaleMax } = this._pinch;
+      const initRange = scaleMax - scaleMin;
+      const factor = initDist / newDist;
+      const newRange = initRange * factor;
+      const rect = over.getBoundingClientRect();
+      const centerPx = (t0.clientX + t1.clientX) / 2 - rect.left;
+      const centerTime = u.posToVal(centerPx, "x");
+      let newMin = centerTime - newRange / 2;
+      let newMax = centerTime + newRange / 2;
+      const xs = u.data[0];
+      const dataMin = xs[0];
+      const dataMax = xs[xs.length - 1];
+      if (newMin < dataMin) {
+        newMin = dataMin;
+        newMax = Math.min(dataMax, dataMin + newRange);
+      }
+      if (newMax > dataMax) {
+        newMax = dataMax;
+        newMin = Math.max(dataMin, dataMax - newRange);
+      }
+      if (newMax - newMin < 60) return;
+      u.setScale("x", { min: newMin, max: newMax });
+    };
+    const onEnd = (e) => {
+      if (e.touches.length < 2) this._pinch = void 0;
+    };
+    over.addEventListener("touchstart", onStart, { passive: true });
+    over.addEventListener("touchmove", onMove, { passive: false });
+    over.addEventListener("touchend", onEnd, { passive: true });
+    this._touchHandlers = { start: onStart, move: onMove, end: onEnd, target: over };
+  }
+  _detachPinchHandlers() {
+    if (!this._touchHandlers) return;
+    const { start, move, end, target } = this._touchHandlers;
+    target.removeEventListener("touchstart", start);
+    target.removeEventListener("touchmove", move);
+    target.removeEventListener("touchend", end);
+    this._touchHandlers = void 0;
   }
   // -------------------------------------------------------------------------
   // Chart render
