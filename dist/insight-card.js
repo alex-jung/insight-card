@@ -7401,6 +7401,7 @@ let InsightLineCard = class extends InsightBaseCard {
     this._overTop = 0;
     /** Cached resolved --error-color for threshold lines — avoids getComputedStyle on every draw */
     this._thresholdDefaultColor = "#db4437";
+    this._isZoomed = false;
     this._resizeObserver = null;
     /** Cached chart height in px — updated by ResizeObserver, read by _syncUplot/_buildOptions */
     this._chartHeight = 220;
@@ -7693,6 +7694,20 @@ let InsightLineCard = class extends InsightBaseCard {
         live: false
       },
       hooks: {
+        setScale: [
+          (u, key) => {
+            if (key !== "x") return;
+            const xs = u.data[0];
+            if (!xs?.length) return;
+            const fullMin = xs[0];
+            const fullMax = xs[xs.length - 1];
+            const curMin = u.scales.x?.min ?? fullMin;
+            const curMax = u.scales.x?.max ?? fullMax;
+            const zoomed = curMin > fullMin || curMax < fullMax;
+            this._zoomedRange = zoomed ? [curMin, curMax] : void 0;
+            this._isZoomed = zoomed;
+          }
+        ],
         setCursor: [(u) => this._updateTooltip(u)],
         draw: config.thresholds?.length ? [
           (u) => this._drawThresholds(u, config.thresholds)
@@ -7832,7 +7847,22 @@ let InsightLineCard = class extends InsightBaseCard {
     console.debug("[line-card] render chart", this._config);
     const config = this._config;
     if (!config) return b``;
-    return b`<div id="chart"></div>`;
+    return b`
+            <div class="chart-wrapper">
+                <div id="chart"></div>
+                ${this._isZoomed ? b`<button class="zoom-reset-btn" @click=${this._resetZoom} title="Reset zoom">
+                          <ha-svg-icon .path=${"M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"}></ha-svg-icon>
+                      </button>` : ""}
+            </div>
+        `;
+  }
+  _resetZoom() {
+    if (!this._uplot) return;
+    const xs = this._uplot.data[0];
+    if (!xs?.length) return;
+    this._zoomedRange = void 0;
+    this._isZoomed = false;
+    this._uplot.setScale("x", { min: xs[0], max: xs[xs.length - 1] });
   }
   connectedCallback() {
     super.connectedCallback();
@@ -7864,7 +7894,13 @@ let InsightLineCard = class extends InsightBaseCard {
         this._needsRebuild = true;
         this._syncUplot();
       } else {
-        this._uplot.setData(this._cachedUData);
+        this._uplot.setData(this._cachedUData, false);
+        if (this._zoomedRange) {
+          this._uplot.setScale("x", {
+            min: this._zoomedRange[0],
+            max: this._zoomedRange[1]
+          });
+        }
       }
     }
   }
@@ -7896,13 +7932,27 @@ let InsightLineCard = class extends InsightBaseCard {
       this._uplot = void 0;
       this._uplot = new uPlot(opts, uData, this.wrapper);
       this._needsRebuild = false;
+      if (this._zoomedRange) {
+        this._uplot.setScale("x", {
+          min: this._zoomedRange[0],
+          max: this._zoomedRange[1]
+        });
+      }
     } else {
       const chartWidth = Math.max(
         100,
         this.wrapper.clientWidth || this._cardWidth - 32
       );
       const chartHeight = this._chartHeight;
-      if (dataChanged) this._uplot.setData(uData, false);
+      if (dataChanged) {
+        this._uplot.setData(uData, false);
+        if (this._zoomedRange) {
+          this._uplot.setScale("x", {
+            min: this._zoomedRange[0],
+            max: this._zoomedRange[1]
+          });
+        }
+      }
       this._uplot.setSize({ width: chartWidth, height: chartHeight });
     }
   }
@@ -7913,6 +7963,8 @@ let InsightLineCard = class extends InsightBaseCard {
     this._uplot = void 0;
     this._lastDataRef = void 0;
     this._cachedUData = void 0;
+    this._zoomedRange = void 0;
+    this._isZoomed = false;
   }
 };
 // uPlot injects CSS into document.head which doesn't reach Shadow DOM —
@@ -7920,9 +7972,41 @@ let InsightLineCard = class extends InsightBaseCard {
 InsightLineCard.styles = [
   InsightBaseCard.styles,
   i$5`
+            .chart-wrapper {
+                position: relative;
+                width: 100%;
+                display: block;
+            }
+
             #chart {
                 width: 100%;
                 display: block;
+            }
+
+            .zoom-reset-btn {
+                position: absolute;
+                top: 6px;
+                right: 6px;
+                z-index: 10;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 28px;
+                height: 28px;
+                border: none;
+                border-radius: 6px;
+                background: var(--card-background-color, #fff);
+                color: var(--primary-text-color);
+                box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+                cursor: pointer;
+                opacity: 0.85;
+                transition: opacity 0.15s;
+            }
+            .zoom-reset-btn:hover {
+                opacity: 1;
+            }
+            .zoom-reset-btn ha-svg-icon {
+                --mdc-icon-size: 16px;
             }
 
             /* uPlot core layout — must be in Shadow DOM since uPlot injects to document.head */
@@ -8080,8 +8164,14 @@ InsightLineCard.cardType = "custom:insight-line-card";
 InsightLineCard.cardName = "InsightChart Line";
 InsightLineCard.cardDescription = "Interactive time-series line & area chart with zoom";
 __decorateClass$6([
+  r()
+], InsightLineCard.prototype, "_isZoomed", 2);
+__decorateClass$6([
   e$1("#chart")
 ], InsightLineCard.prototype, "wrapper", 2);
+__decorateClass$6([
+  e$1(".chart-wrapper")
+], InsightLineCard.prototype, "_chartWrapper", 2);
 InsightLineCard = __decorateClass$6([
   t$1("insight-line-card")
 ], InsightLineCard);
