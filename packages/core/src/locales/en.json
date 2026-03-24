@@ -1,0 +1,98 @@
+{
+  "editor": {
+    "loading": "Loading editor…",
+    "section": {
+      "general": "General",
+      "entities": "Entities",
+      "time_range": "Time range",
+      "chart_style": "Chart style",
+      "y_axis": "Y axis",
+      "appearance": "Appearance",
+      "data_aggregation": "Data aggregation",
+      "overlays": "Overlays",
+      "advanced": "Advanced"
+    },
+    "field": {
+      "title": "Title (optional)",
+      "hours": "Time range",
+      "name": "Name",
+      "entity": "Entity",
+      "color": "Color",
+      "hex": "Hex",
+      "style": "Chart style",
+      "curve": "Interpolation",
+      "zoom": "Drag-to-zoom",
+      "show_points": "Data points",
+      "line_width": "Line width",
+      "fill_opacity": "Fill opacity",
+      "y_min": "Soft minimum",
+      "y_max": "Soft maximum",
+      "decimals": "Decimal places",
+      "logarithmic": "Logarithmic scale (base 10)",
+      "y_min_secondary": "Secondary axis minimum",
+      "y_max_secondary": "Secondary axis maximum",
+      "show_legend": "Show legend",
+      "show_x_axis": "Show X axis",
+      "show_y_axis": "Show Y axis",
+      "grid_opacity": "Grid opacity",
+      "tooltip_format": "Tooltip timestamp",
+      "time_format": "X-axis label format",
+      "aggregate": "Aggregation method",
+      "aggregate_period": "Aggregation period (e.g. 30m, 1h, 6h, 1d)",
+      "update_interval": "Update interval",
+      "theme": "Theme",
+      "margin_top": "Margin top",
+      "margin_bottom": "Margin bottom",
+      "margin_left": "Margin left",
+      "margin_right": "Margin right",
+      "padding_top": "Padding top",
+      "padding_bottom": "Padding bottom",
+      "padding_left": "Padding left",
+      "padding_right": "Padding right",
+      "y_axis": "Y axis",
+      "hidden": "Start hidden",
+      "stroke_dash": "Stroke dash (e.g. 5 or 8,4)",
+      "transform": "Transform",
+      "statistics": "Statistics period",
+      "attribute": "Attribute",
+      "unit": "Unit override",
+      "scale": "Scale factor",
+      "invert": "Invert values",
+      "value": "Value",
+      "label": "Label",
+      "dash": "Dash pattern (e.g. 4,3)",
+      "appearance": "Appearance",
+      "data": "Data"
+    },
+    "action": {
+      "add_entity": "+ Add entity",
+      "remove_entity": "Remove entity",
+      "add_threshold": "+ Add threshold",
+      "add_color_threshold": "+ Add color threshold"
+    },
+    "option": {
+      "style": {
+        "line": "Line",
+        "line_desc": "Classic line chart without fill",
+        "area": "Area",
+        "area_desc": "Line chart with filled area below",
+        "step": "Step",
+        "step_desc": "Staircase chart, ideal for state changes"
+      },
+      "curve": {
+        "smooth": "Smooth",
+        "linear": "Linear"
+      }
+    },
+    "subsection": {
+      "threshold_lines": "Threshold lines",
+      "color_thresholds": "Color thresholds (gradient)"
+    }
+  },
+  "card": {
+    "error": {
+      "no_config": "No configuration.",
+      "fetch_failed": "Failed to fetch data"
+    }
+  }
+}

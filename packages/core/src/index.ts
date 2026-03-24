@@ -46,7 +46,7 @@ export {
 export { InsightBaseCard } from "./lib/base-card.js";
 
 // Base editor
-export { InsightBaseEditor } from "./editor/base-editor.js";
+export { InsightBaseEditor, renderEntityPickerRow, entityPickerRowStyles } from "./editor/base-editor.js";
 
 // Utilities
 export {
@@ -66,6 +66,11 @@ export {
   aggregateTimeSeries,
   applyTransform,
   normaliseEntityConfig,
+  serialiseEntityConfig,
 } from "./utils/index.js";
 
 export type { Stats } from "./utils/index.js";
+
+// Localization
+export { localize } from "./locales/localize.js";
+export type { SupportedLanguages, Translations } from "./locales/localize.js";

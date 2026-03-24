@@ -167,25 +167,25 @@ export interface InsightBaseConfig {
    */
   show_y_axis?: boolean;
   /**
-   * Inner padding on the left side of the card content area (px).
+   * Outer margin on the left side of the chart area (px).
    * @default 0
    */
-  padding_left?: number;
+  margin_left?: number;
   /**
-   * Inner padding on the right side of the card content area (px).
+   * Outer margin on the right side of the chart area (px).
    * @default 0
    */
-  padding_right?: number;
+  margin_right?: number;
   /**
-   * Inner padding on the top of the card content area (px).
+   * Outer margin on the top of the chart area (px).
    * @default 0
    */
-  padding_top?: number;
+  margin_top?: number;
   /**
-   * Inner padding on the bottom of the card content area (px).
+   * Outer margin on the bottom of the chart area (px).
    * @default 0
    */
-  padding_bottom?: number;
+  margin_bottom?: number;
   /**
    * Force a colour theme. "auto" follows the HA theme.
    * @default "auto"
@@ -282,6 +282,26 @@ export interface InsightLineConfig extends InsightBaseConfig {
    * Required when `aggregate` is set.
    */
   aggregate_period?: string;
+  /**
+   * Inner padding on the top of the chart canvas (px).
+   * @default 8
+   */
+  padding_top?: number;
+  /**
+   * Inner padding on the right of the chart canvas (px).
+   * @default 16
+   */
+  padding_right?: number;
+  /**
+   * Inner padding on the bottom of the chart canvas (px).
+   * @default 8
+   */
+  padding_bottom?: number;
+  /**
+   * Inner padding on the left of the chart canvas (px).
+   * @default 16
+   */
+  padding_left?: number;
 }
 
 // ---------------------------------------------------------------------------

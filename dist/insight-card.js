@@ -6224,6 +6224,14 @@ function normaliseEntityConfig(e) {
   }
   return e;
 }
+function serialiseEntityConfig(ec) {
+  const { entity, ...options } = ec;
+  const cleanOptions = Object.fromEntries(
+    Object.entries(options).filter(([, v]) => v !== void 0 && v !== null)
+  );
+  if (Object.keys(cleanOptions).length === 0) return entity;
+  return { [entity]: cleanOptions };
+}
 const DEFAULT_COLORS = [
   "#FF6B4A",
   "#4AAFFF",
@@ -6549,13 +6557,13 @@ const t={ATTRIBUTE:1},e=t=>(...e)=>({_$litDirective$:t,values:e});let i$1 = clas
  * SPDX-License-Identifier: BSD-3-Clause
  */const n="important",i=" !"+n,o=e(class extends i$1{constructor(t$1){if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||t$1.strings?.length>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.includes("-")?r:r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`},"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.ft)return this.ft=new Set(Object.keys(r)),this.render(r);for(const t of this.ft)null==r[t]&&(this.ft.delete(t),t.includes("-")?s.removeProperty(t):s[t]=null);for(const t in r){const e=r[t];if(null!=e){this.ft.add(t);const r="string"==typeof e&&e.endsWith(i);t.includes("-")||r?s.setProperty(t,r?e.slice(0,-11):e,r?n:""):s[t]=e;}}return E}});
 
-var __defProp$2 = Object.defineProperty;
-var __decorateClass$7 = (decorators, target, key, kind) => {
+var __defProp$4 = Object.defineProperty;
+var __decorateClass$8 = (decorators, target, key, kind) => {
   var result = void 0 ;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (decorator(target, key, result) ) || result;
-  if (result) __defProp$2(target, key, result);
+  if (result) __defProp$4(target, key, result);
   return result;
 };
 class InsightBaseCard extends i$2 {
@@ -6739,10 +6747,10 @@ class InsightBaseCard extends i$2 {
     }
     console.debug("[Base-card] render", this.offsetHeight);
     const styleContent = {
-      paddingTop: `${this._config.padding_top ?? 0}px`,
-      paddingBottom: `${this._config.padding_bottom ?? 0}px`,
-      paddingLeft: `${this._config.padding_left ?? 0}px`,
-      paddingRight: `${this._config.padding_right ?? 0}px`
+      paddingTop: `${this._config.margin_top ?? 0}px`,
+      paddingBottom: `${this._config.margin_bottom ?? 0}px`,
+      paddingLeft: `${this._config.margin_left ?? 0}px`,
+      paddingRight: `${this._config.margin_right ?? 0}px`
     };
     return b`
           <ha-card>
@@ -6839,37 +6847,291 @@ InsightBaseCard.styles = i$5`
         font-size: 0.875rem;
       }
       `;
-__decorateClass$7([
+__decorateClass$8([
   n$1({ attribute: false })
 ], InsightBaseCard.prototype, "hass");
-__decorateClass$7([
+__decorateClass$8([
   r()
 ], InsightBaseCard.prototype, "_config");
-__decorateClass$7([
+__decorateClass$8([
   r()
 ], InsightBaseCard.prototype, "_data");
-__decorateClass$7([
+__decorateClass$8([
   r()
 ], InsightBaseCard.prototype, "_loading");
-__decorateClass$7([
+__decorateClass$8([
   r()
 ], InsightBaseCard.prototype, "_error");
-__decorateClass$7([
+__decorateClass$8([
   r()
 ], InsightBaseCard.prototype, "_cardWidth");
-__decorateClass$7([
+__decorateClass$8([
   e$1(".card-header")
 ], InsightBaseCard.prototype, "_header");
 
-var __defProp$1 = Object.defineProperty;
-var __decorateClass$6 = (decorators, target, key, kind) => {
+var editor$1 = {
+	loading: "Loading editor…",
+	section: {
+		general: "General",
+		entities: "Entities",
+		time_range: "Time range",
+		chart_style: "Chart style",
+		y_axis: "Y axis",
+		appearance: "Appearance",
+		data_aggregation: "Data aggregation",
+		overlays: "Overlays",
+		advanced: "Advanced"
+	},
+	field: {
+		title: "Title (optional)",
+		hours: "Time range",
+		name: "Name",
+		entity: "Entity",
+		color: "Color",
+		hex: "Hex",
+		style: "Chart style",
+		curve: "Interpolation",
+		zoom: "Drag-to-zoom",
+		show_points: "Data points",
+		line_width: "Line width",
+		fill_opacity: "Fill opacity",
+		y_min: "Soft minimum",
+		y_max: "Soft maximum",
+		decimals: "Decimal places",
+		logarithmic: "Logarithmic scale (base 10)",
+		y_min_secondary: "Secondary axis minimum",
+		y_max_secondary: "Secondary axis maximum",
+		show_legend: "Show legend",
+		show_x_axis: "Show X axis",
+		show_y_axis: "Show Y axis",
+		grid_opacity: "Grid opacity",
+		tooltip_format: "Tooltip timestamp",
+		time_format: "X-axis label format",
+		aggregate: "Aggregation method",
+		aggregate_period: "Aggregation period (e.g. 30m, 1h, 6h, 1d)",
+		update_interval: "Update interval",
+		theme: "Theme",
+		margin_top: "Margin top",
+		margin_bottom: "Margin bottom",
+		margin_left: "Margin left",
+		margin_right: "Margin right",
+		padding_top: "Padding top",
+		padding_bottom: "Padding bottom",
+		padding_left: "Padding left",
+		padding_right: "Padding right",
+		y_axis: "Y axis",
+		hidden: "Start hidden",
+		stroke_dash: "Stroke dash (e.g. 5 or 8,4)",
+		transform: "Transform",
+		statistics: "Statistics period",
+		attribute: "Attribute",
+		unit: "Unit override",
+		scale: "Scale factor",
+		invert: "Invert values",
+		value: "Value",
+		label: "Label",
+		dash: "Dash pattern (e.g. 4,3)",
+		appearance: "Appearance",
+		data: "Data"
+	},
+	action: {
+		add_entity: "+ Add entity",
+		remove_entity: "Remove entity",
+		add_threshold: "+ Add threshold",
+		add_color_threshold: "+ Add color threshold"
+	},
+	option: {
+		style: {
+			line: "Line",
+			line_desc: "Classic line chart without fill",
+			area: "Area",
+			area_desc: "Line chart with filled area below",
+			step: "Step",
+			step_desc: "Staircase chart, ideal for state changes"
+		},
+		curve: {
+			smooth: "Smooth",
+			linear: "Linear"
+		}
+	},
+	subsection: {
+		threshold_lines: "Threshold lines",
+		color_thresholds: "Color thresholds (gradient)"
+	}
+};
+var card$1 = {
+	error: {
+		no_config: "No configuration.",
+		fetch_failed: "Failed to fetch data"
+	}
+};
+var en = {
+	editor: editor$1,
+	card: card$1
+};
+
+var editor = {
+	loading: "Editor wird geladen…",
+	section: {
+		general: "Allgemein",
+		entities: "Entitäten",
+		time_range: "Zeitbereich",
+		chart_style: "Diagrammstil",
+		y_axis: "Y-Achse",
+		appearance: "Darstellung",
+		data_aggregation: "Datenaggregation",
+		overlays: "Überlagerungen",
+		advanced: "Erweitert"
+	},
+	field: {
+		title: "Titel (optional)",
+		hours: "Zeitbereich",
+		name: "Name",
+		entity: "Entität",
+		color: "Farbe",
+		hex: "Hex",
+		style: "Diagrammstil",
+		curve: "Interpolation",
+		zoom: "Zoom per Drag",
+		show_points: "Datenpunkte",
+		line_width: "Linienbreite",
+		fill_opacity: "Fülldeckkraft",
+		y_min: "Weiches Minimum",
+		y_max: "Weiches Maximum",
+		decimals: "Dezimalstellen",
+		logarithmic: "Logarithmische Skala (Basis 10)",
+		y_min_secondary: "Sekundärachse Minimum",
+		y_max_secondary: "Sekundärachse Maximum",
+		show_legend: "Legende anzeigen",
+		show_x_axis: "X-Achse anzeigen",
+		show_y_axis: "Y-Achse anzeigen",
+		grid_opacity: "Rasterdeckkraft",
+		tooltip_format: "Tooltip-Zeitstempel",
+		time_format: "X-Achsen-Beschriftungsformat",
+		aggregate: "Aggregationsmethode",
+		aggregate_period: "Aggregationszeitraum (z.B. 30m, 1h, 6h, 1d)",
+		update_interval: "Aktualisierungsintervall",
+		theme: "Thema",
+		margin_top: "Außenabstand oben",
+		margin_bottom: "Außenabstand unten",
+		margin_left: "Außenabstand links",
+		margin_right: "Außenabstand rechts",
+		padding_top: "Innenabstand oben",
+		padding_bottom: "Innenabstand unten",
+		padding_left: "Innenabstand links",
+		padding_right: "Innenabstand rechts",
+		y_axis: "Y-Achse",
+		hidden: "Ausgeblendet starten",
+		stroke_dash: "Strichmuster (z.B. 5 oder 8,4)",
+		transform: "Transformation",
+		statistics: "Statistikzeitraum",
+		attribute: "Attribut",
+		unit: "Einheit (überschreiben)",
+		scale: "Skalierungsfaktor",
+		invert: "Werte invertieren",
+		value: "Wert",
+		label: "Bezeichnung",
+		dash: "Strichmuster (z.B. 4,3)",
+		appearance: "Darstellung",
+		data: "Daten"
+	},
+	action: {
+		add_entity: "+ Entität hinzufügen",
+		remove_entity: "Entität entfernen",
+		add_threshold: "+ Schwellenwert hinzufügen",
+		add_color_threshold: "+ Farbschwellenwert hinzufügen"
+	},
+	option: {
+		style: {
+			line: "Linie",
+			line_desc: "Klassisches Liniendiagramm ohne Füllung",
+			area: "Fläche",
+			area_desc: "Liniendiagramm mit gefüllter Fläche darunter",
+			step: "Stufen",
+			step_desc: "Treppendiagramm, ideal für Zustandsänderungen"
+		},
+		curve: {
+			smooth: "Smooth",
+			linear: "Linear"
+		}
+	},
+	subsection: {
+		threshold_lines: "Schwellenwertlinien",
+		color_thresholds: "Farbschwellenwerte (Gradient)"
+	}
+};
+var card = {
+	error: {
+		no_config: "Keine Konfiguration.",
+		fetch_failed: "Datenabruf fehlgeschlagen"
+	}
+};
+var de = {
+	editor: editor,
+	card: card
+};
+
+const translations = {
+  en,
+  de
+};
+function getNestedValue(obj, keyPath) {
+  return keyPath.split(".").reduce((acc, key) => acc?.[key], obj);
+}
+function localize(key, lang = "en", vars) {
+  const langKey = Object.keys(translations).includes(
+    lang
+  ) ? lang : "en";
+  const langData = translations[langKey];
+  const fallbackData = translations["en"];
+  let template = getNestedValue(langData, key) ?? getNestedValue(fallbackData, key);
+  if (typeof template !== "string") return key;
+  return template;
+}
+
+var __defProp$3 = Object.defineProperty;
+var __decorateClass$7 = (decorators, target, key, kind) => {
   var result = void 0 ;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (decorator(target, key, result) ) || result;
-  if (result) __defProp$1(target, key, result);
+  if (result) __defProp$3(target, key, result);
   return result;
 };
+i$5`
+  .entity-picker-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .entity-picker-row ha-entity-picker {
+    flex: 1;
+    min-width: 0;
+    display: block;
+  }
+  .entity-picker-row .epr-color-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .entity-picker-row .epr-color-label {
+    font-size: 0.75rem;
+    color: var(--secondary-text-color);
+    white-space: nowrap;
+  }
+  .entity-picker-row .epr-color-swatch {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 2px;
+    background: transparent;
+  }
+`;
 const TIME_PRESETS = [
   { label: "6h", hours: 6 },
   { label: "12h", hours: 12 },
@@ -6886,14 +7148,20 @@ class InsightBaseEditor extends i$2 {
     this._config = config;
   }
   // -------------------------------------------------------------------------
+  // Helpers
+  // -------------------------------------------------------------------------
+  get _lang() {
+    return this.hass?.locale?.language ?? "en";
+  }
+  // -------------------------------------------------------------------------
   // Shared section renderers
   // -------------------------------------------------------------------------
   renderTitleSection() {
     return b`
       <div class="section">
-        <div class="section-header">General</div>
+        <div class="section-header">${localize("editor.section.general", this._lang)}</div>
         <ha-textfield
-          label="Title (optional)"
+          label=${localize("editor.field.title", this._lang)}
           .value=${this._config?.title ?? ""}
           @change=${(e) => this._updateConfig({
       title: e.target.value || void 0
@@ -6906,7 +7174,7 @@ class InsightBaseEditor extends i$2 {
     const entities = (this._config?.entities ?? []).map(normaliseEntityConfig);
     return b`
       <div class="section">
-        <div class="section-header">Entities</div>
+        <div class="section-header">${localize("editor.section.entities", this._lang)}</div>
 
         ${entities.map(
       (ec, index) => b`
@@ -6920,7 +7188,7 @@ class InsightBaseEditor extends i$2 {
               ></ha-entity-picker>
 
               <ha-textfield
-                label="Name"
+                label=${localize("editor.field.name", this._lang)}
                 .value=${ec.name ?? ""}
                 @change=${(e) => this._updateEntity(index, {
         name: e.target.value || void 0
@@ -6929,7 +7197,7 @@ class InsightBaseEditor extends i$2 {
 
               <div class="entity-row-actions">
                 <ha-icon-button
-                  label="Remove entity"
+                  label=${localize("editor.action.remove_entity", this._lang)}
                   .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
                   @click=${() => this._removeEntity(index)}
                 ></ha-icon-button>
@@ -6942,7 +7210,7 @@ class InsightBaseEditor extends i$2 {
           class="add-entity-btn"
           @click=${this._addEntity}
         >
-          + Add entity
+          ${localize("editor.action.add_entity", this._lang)}
         </mwc-button>
       </div>
     `;
@@ -6951,7 +7219,7 @@ class InsightBaseEditor extends i$2 {
     const currentHours = this._config?.hours ?? 24;
     return b`
       <div class="section">
-        <div class="section-header">Time range</div>
+        <div class="section-header">${localize("editor.section.time_range", this._lang)}</div>
         <div class="preset-buttons">
           ${TIME_PRESETS.map(
       ({ label, hours }) => b`
@@ -6973,14 +7241,10 @@ class InsightBaseEditor extends i$2 {
   // -------------------------------------------------------------------------
   render() {
     if (!this._config) {
-      return b`<div class="editor-loading">Loading editor…</div>`;
+      return b`<div class="editor-loading">${localize("editor.loading", this._lang)}</div>`;
     }
     return b`
       <div class="editor-container">
-        ${this.renderTitleSection()}
-        ${this.renderEntitySection()}
-        ${this.renderTimeRangeSection()}
-        ${this.renderCardOptions()}
       </div>
     `;
   }
@@ -7110,21 +7374,21 @@ InsightBaseEditor.styles = i$5`
       text-align: center;
     }
   `;
-__decorateClass$6([
+__decorateClass$7([
   n$1({ attribute: false })
 ], InsightBaseEditor.prototype, "hass");
-__decorateClass$6([
+__decorateClass$7([
   r()
 ], InsightBaseEditor.prototype, "_config");
 
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc$5 = Object.getOwnPropertyDescriptor;
-var __decorateClass$5 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$5(target, key) : target;
+var __defProp$2 = Object.defineProperty;
+var __getOwnPropDesc$6 = Object.getOwnPropertyDescriptor;
+var __decorateClass$6 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$6(target, key) : target;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp(target, key, result);
+  if (kind && result) __defProp$2(target, key, result);
   return result;
 };
 let InsightLineCard = class extends InsightBaseCard {
@@ -7137,6 +7401,7 @@ let InsightLineCard = class extends InsightBaseCard {
     this._overTop = 0;
     /** Cached resolved --error-color for threshold lines — avoids getComputedStyle on every draw */
     this._thresholdDefaultColor = "#db4437";
+    this._isZoomed = false;
     this._resizeObserver = null;
     /** Cached chart height in px — updated by ResizeObserver, read by _syncUplot/_buildOptions */
     this._chartHeight = 220;
@@ -7151,16 +7416,16 @@ let InsightLineCard = class extends InsightBaseCard {
     const sensor = findNumericSensor(hass, entities, entitiesFallback);
     return {
       type: InsightLineCard.cardType,
-      entities: [{ entity: sensor }],
+      entities: [sensor],
       hours: 24,
       style: "area",
       zoom: true,
       line_width: 1,
       show_legend: true,
-      padding_bottom: 16,
-      padding_top: 16,
-      padding_left: 4,
-      padding_right: 4
+      margin_bottom: 16,
+      margin_top: 16,
+      margin_left: 4,
+      margin_right: 4
     };
   }
   // -------------------------------------------------------------------------
@@ -7192,8 +7457,8 @@ let InsightLineCard = class extends InsightBaseCard {
     let h = total;
     h -= this._header?.offsetHeight ?? 0;
     h -= legendHeight;
-    h -= this._config?.padding_top ?? 0;
-    h -= this._config?.padding_bottom ?? 0;
+    h -= this._config?.margin_top ?? 0;
+    h -= this._config?.margin_bottom ?? 0;
     const clamped = Math.max(80, h);
     if (clamped !== this._chartHeight) {
       this._chartHeight = clamped;
@@ -7223,7 +7488,8 @@ let InsightLineCard = class extends InsightBaseCard {
         show: !ec.hidden,
         width: ec.line_width ?? config.line_width ?? 2,
         dash: ec.stroke_dash != null ? Array.isArray(ec.stroke_dash) ? ec.stroke_dash : [ec.stroke_dash, ec.stroke_dash] : void 0,
-        points: { show: config.show_points === true },
+        // true = always show static dots; false/"hover" = no static dots
+        points: { show: config.show_points === true, size: 5 },
         paths: pathBuilder,
         spanGaps: true
       });
@@ -7256,20 +7522,25 @@ let InsightLineCard = class extends InsightBaseCard {
       }
     }
     const timestamps = Array.from(allTimestamps).sort((a, b) => a - b);
-    const valueSeries = datasets.map((data) => {
-      const map = /* @__PURE__ */ new Map();
-      for (const point of data) {
-        map.set(Math.floor(point.t / 1e3), point.v);
+    const valueSeries = datasets.map(
+      (data) => {
+        const map = /* @__PURE__ */ new Map();
+        for (const point of data) {
+          map.set(Math.floor(point.t / 1e3), point.v);
+        }
+        return timestamps.map((ts) => map.get(ts) ?? null);
       }
-      return timestamps.map((ts) => map.get(ts) ?? null);
-    });
+    );
     console.log("uPlot data built", valueSeries);
     return [timestamps, ...valueSeries];
   }
   /** Build uPlot options object */
   _buildOptions(config) {
     console.debug("[line-card] build options");
-    const chartWidth = Math.max(100, this.wrapper?.clientWidth || this._cardWidth - 32);
+    const chartWidth = Math.max(
+      100,
+      this.wrapper?.clientWidth || this._cardWidth - 32
+    );
     let chartHeight = this._chartHeight;
     const isDark = this.isDarkTheme;
     const cs = getComputedStyle(this);
@@ -7294,12 +7565,16 @@ let InsightLineCard = class extends InsightBaseCard {
     } else {
       yScaleOpts = { auto: true };
     }
-    const hasSecondaryAxis = this.entityConfigs.some((ec) => ec.y_axis === "right");
+    const hasSecondaryAxis = this.entityConfigs.some(
+      (ec) => ec.y_axis === "right"
+    );
     const y2Min = config.y_min_secondary;
     const y2Max = config.y_max_secondary;
     let y2ScaleOpts;
     if (Array.isArray(config.y_range_secondary)) {
-      y2ScaleOpts = { range: config.y_range_secondary };
+      y2ScaleOpts = {
+        range: config.y_range_secondary
+      };
     } else if (y2Min !== void 0 || y2Max !== void 0) {
       y2ScaleOpts = {
         range: (_u, dataMin, dataMax) => [
@@ -7310,12 +7585,18 @@ let InsightLineCard = class extends InsightBaseCard {
     } else {
       y2ScaleOpts = { auto: true };
     }
-    const primaryUnits = [...new Set(
-      this.entityConfigs.filter((ec) => ec.y_axis !== "right").map((_, i) => this._data[i]?.unit).filter(Boolean)
-    )];
-    const secondaryUnits = [...new Set(
-      this.entityConfigs.flatMap((ec, i) => ec.y_axis === "right" ? [this._data[i]?.unit] : []).filter(Boolean)
-    )];
+    const primaryUnits = [
+      ...new Set(
+        this.entityConfigs.filter((ec) => ec.y_axis !== "right").map((_, i) => this._data[i]?.unit).filter(Boolean)
+      )
+    ];
+    const secondaryUnits = [
+      ...new Set(
+        this.entityConfigs.flatMap(
+          (ec, i) => ec.y_axis === "right" ? [this._data[i]?.unit] : []
+        ).filter(Boolean)
+      )
+    ];
     const yUnit = primaryUnits.length === 1 ? primaryUnits[0] : "";
     const y2Unit = secondaryUnits.length === 1 ? secondaryUnits[0] : "";
     const decimals = config.decimals;
@@ -7341,7 +7622,15 @@ let InsightLineCard = class extends InsightBaseCard {
           y: false,
           uni: 50
         },
-        focus: { prox: 16 }
+        focus: { prox: 16 },
+        // "none": no cursor dots (return undefined → uPlot skips creation)
+        // "hover"/"always": use uPlot default (omit show → cursorPointShow)
+        ...config.show_points === false ? {
+          points: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            show: () => void 0
+          }
+        } : {}
       },
       scales: {
         x: { time: true },
@@ -7359,8 +7648,10 @@ let InsightLineCard = class extends InsightBaseCard {
           ...config.time_format && config.time_format !== "auto" ? {
             values: (_u, vals) => vals.map((v) => {
               const ms = v * 1e3;
-              if (config.time_format === "time") return formatTime(ms);
-              if (config.time_format === "date") return formatDate(ms);
+              if (config.time_format === "time")
+                return formatTime(ms);
+              if (config.time_format === "date")
+                return formatDate(ms);
               return formatDateTime(ms);
             })
           } : {}
@@ -7378,55 +7669,85 @@ let InsightLineCard = class extends InsightBaseCard {
           labelFont: "11px sans-serif",
           values: yValFormatter
         },
-        ...hasSecondaryAxis ? [{
-          scale: "y2",
-          side: 1,
-          // right side
-          stroke: axisStroke,
-          grid: { show: false },
-          ticks: { stroke: gridStroke, width: 1 },
-          font: "12px sans-serif",
-          size: yAxisSize,
-          label: y2Unit,
-          labelSize: y2Unit ? 16 : 0,
-          labelFont: "11px sans-serif",
-          values: yValFormatter
-        }] : [{
-          // Invisible balancing axis on the right to mirror the left Y-axis width
-          show: false,
-          side: 1,
-          scale: "y",
-          size: yAxisSize,
-          gap: 0,
-          stroke: axisStroke,
-          grid: { show: false },
-          ticks: { show: false }
-        }]
+        ...hasSecondaryAxis ? [
+          {
+            scale: "y2",
+            side: 1,
+            // right side
+            stroke: axisStroke,
+            grid: { show: false },
+            ticks: { stroke: gridStroke, width: 1 },
+            font: "12px sans-serif",
+            size: yAxisSize,
+            label: y2Unit,
+            labelSize: y2Unit ? 16 : 0,
+            labelFont: "11px sans-serif",
+            values: yValFormatter
+          }
+        ] : [
+          {
+            // Invisible balancing axis on the right to mirror the left Y-axis width
+            show: false,
+            side: 1,
+            scale: "y",
+            size: yAxisSize,
+            gap: 0,
+            stroke: axisStroke,
+            grid: { show: false },
+            ticks: { show: false }
+          }
+        ]
       ],
       legend: {
         show: config.show_legend !== false,
         live: false
       },
       hooks: {
+        setScale: [
+          (u, key) => {
+            if (key !== "x") return;
+            const xs = u.data[0];
+            if (!xs?.length) return;
+            const fullMin = xs[0];
+            const fullMax = xs[xs.length - 1];
+            const curMin = u.scales.x?.min ?? fullMin;
+            const curMax = u.scales.x?.max ?? fullMax;
+            const zoomed = curMin > fullMin || curMax < fullMax;
+            this._zoomedRange = zoomed ? [curMin, curMax] : void 0;
+            this._isZoomed = zoomed;
+          }
+        ],
         setCursor: [(u) => this._updateTooltip(u)],
-        draw: config.thresholds?.length ? [(u) => this._drawThresholds(u, config.thresholds)] : [],
-        ready: [(u) => {
-          this._tooltipEl = document.createElement("div");
-          this._tooltipEl.className = "u-tooltip";
-          u.root.appendChild(this._tooltipEl);
-          this._overLeft = u.over.offsetLeft;
-          this._overTop = u.over.offsetTop;
-        }],
-        setSize: [(u) => {
-          this._overLeft = u.over.offsetLeft;
-          this._overTop = u.over.offsetTop;
-        }],
-        destroy: [() => {
-          this._tooltipEl = void 0;
-        }]
+        draw: config.thresholds?.length ? [
+          (u) => this._drawThresholds(u, config.thresholds)
+        ] : [],
+        ready: [
+          (u) => {
+            this._tooltipEl = document.createElement("div");
+            this._tooltipEl.className = "u-tooltip";
+            u.root.appendChild(this._tooltipEl);
+            this._overLeft = u.over.offsetLeft;
+            this._overTop = u.over.offsetTop;
+          }
+        ],
+        setSize: [
+          (u) => {
+            this._overLeft = u.over.offsetLeft;
+            this._overTop = u.over.offsetTop;
+          }
+        ],
+        destroy: [
+          () => {
+            this._tooltipEl = void 0;
+          }
+        ]
       },
-      // padding: [0, 0, 0, 0],
-      padding: [8, 16, 8, 16]
+      padding: [
+        config.padding_top ?? 8,
+        config.padding_right ?? 16,
+        config.padding_bottom ?? 8,
+        config.padding_left ?? 16
+      ]
     };
   }
   /**
@@ -7449,7 +7770,10 @@ let InsightLineCard = class extends InsightBaseCard {
     const sorted = [...thresholds].sort((a, b) => b.value - a.value);
     for (const t of sorted) {
       const yPx = u.valToPos(t.value, "y", true);
-      const stop = Math.max(0, Math.min(1, (yPx - u.bbox.top) / u.bbox.height));
+      const stop = Math.max(
+        0,
+        Math.min(1, (yPx - u.bbox.top) / u.bbox.height)
+      );
       const color = opacity < 1 ? hexToRgba(t.color, opacity) : t.color;
       grad.addColorStop(stop, color);
     }
@@ -7477,7 +7801,11 @@ let InsightLineCard = class extends InsightBaseCard {
         ctx.font = `${11 * dpr}px sans-serif`;
         ctx.textAlign = "right";
         ctx.textBaseline = "bottom";
-        ctx.fillText(t.label, u.bbox.left + u.bbox.width - 4 * dpr, y - 2 * dpr);
+        ctx.fillText(
+          t.label,
+          u.bbox.left + u.bbox.width - 4 * dpr,
+          y - 2 * dpr
+        );
       }
     }
     ctx.restore();
@@ -7528,7 +7856,22 @@ let InsightLineCard = class extends InsightBaseCard {
     console.debug("[line-card] render chart", this._config);
     const config = this._config;
     if (!config) return b``;
-    return b`<div id="chart"></div>`;
+    return b`
+            <div class="chart-wrapper">
+                <div id="chart"></div>
+                ${this._isZoomed ? b`<button class="zoom-reset-btn" @click=${this._resetZoom} title="Reset zoom">
+                          <ha-svg-icon .path=${"M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"}></ha-svg-icon>
+                      </button>` : ""}
+            </div>
+        `;
+  }
+  _resetZoom() {
+    if (!this._uplot) return;
+    const xs = this._uplot.data[0];
+    if (!xs?.length) return;
+    this._zoomedRange = void 0;
+    this._isZoomed = false;
+    this._uplot.setScale("x", { min: xs[0], max: xs[xs.length - 1] });
   }
   connectedCallback() {
     super.connectedCallback();
@@ -7560,7 +7903,13 @@ let InsightLineCard = class extends InsightBaseCard {
         this._needsRebuild = true;
         this._syncUplot();
       } else {
-        this._uplot.setData(this._cachedUData);
+        this._uplot.setData(this._cachedUData, false);
+        if (this._zoomedRange) {
+          this._uplot.setScale("x", {
+            min: this._zoomedRange[0],
+            max: this._zoomedRange[1]
+          });
+        }
       }
     }
   }
@@ -7571,7 +7920,11 @@ let InsightLineCard = class extends InsightBaseCard {
     if (!config || !this.wrapper) return;
     const needsFull = this._needsRebuild || !this._uplot;
     const dataChanged = this._data !== this._lastDataRef;
-    console.debug("[_syncUpload] needsFull, dataChanged", needsFull, dataChanged);
+    console.debug(
+      "[_syncUpload] needsFull, dataChanged",
+      needsFull,
+      dataChanged
+    );
     if (needsFull || dataChanged) {
       this._cachedUData = this._buildUplotData();
       this._lastDataRef = this._data;
@@ -7579,17 +7932,36 @@ let InsightLineCard = class extends InsightBaseCard {
     const uData = this._cachedUData;
     if (needsFull) {
       const palette = generateColors(this.entityConfigs.length);
-      this._tooltipColors = this.entityConfigs.map((ec, i) => ec.color ?? palette[i]);
+      this._tooltipColors = this.entityConfigs.map(
+        (ec, i) => ec.color ?? palette[i]
+      );
       this._thresholdDefaultColor = getComputedStyle(this).getPropertyValue("--error-color").trim() || "#db4437";
       const opts = this._buildOptions(config);
       this._uplot?.destroy();
       this._uplot = void 0;
       this._uplot = new uPlot(opts, uData, this.wrapper);
       this._needsRebuild = false;
+      if (this._zoomedRange) {
+        this._uplot.setScale("x", {
+          min: this._zoomedRange[0],
+          max: this._zoomedRange[1]
+        });
+      }
     } else {
-      const chartWidth = Math.max(100, this.wrapper.clientWidth || this._cardWidth - 32);
+      const chartWidth = Math.max(
+        100,
+        this.wrapper.clientWidth || this._cardWidth - 32
+      );
       const chartHeight = this._chartHeight;
-      if (dataChanged) this._uplot.setData(uData, false);
+      if (dataChanged) {
+        this._uplot.setData(uData, false);
+        if (this._zoomedRange) {
+          this._uplot.setScale("x", {
+            min: this._zoomedRange[0],
+            max: this._zoomedRange[1]
+          });
+        }
+      }
       this._uplot.setSize({ width: chartWidth, height: chartHeight });
     }
   }
@@ -7600,6 +7972,8 @@ let InsightLineCard = class extends InsightBaseCard {
     this._uplot = void 0;
     this._lastDataRef = void 0;
     this._cachedUData = void 0;
+    this._zoomedRange = void 0;
+    this._isZoomed = false;
   }
 };
 // uPlot injects CSS into document.head which doesn't reach Shadow DOM —
@@ -7607,121 +7981,208 @@ let InsightLineCard = class extends InsightBaseCard {
 InsightLineCard.styles = [
   InsightBaseCard.styles,
   i$5`
-      #chart {
-        width: 100%;
-        display: block;
-      }
+            .chart-wrapper {
+                position: relative;
+                width: 100%;
+                display: block;
+            }
 
-      /* uPlot core layout — must be in Shadow DOM since uPlot injects to document.head */
-      .u-wrap {
-        display: block;
-        position: relative;
-        user-select: none;
-        width: 100%;
-      }
-      .u-over, .u-under { position: absolute; }
-      .u-under { overflow: hidden; }
-      .u-axis { position: absolute; }
+            #chart {
+                width: 100%;
+                display: block;
+            }
 
-      /* Canvas must be constrained to logical size — uPlot sets 2x pixel
+            .zoom-reset-btn {
+                position: absolute;
+                top: 6px;
+                right: 6px;
+                z-index: 10;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 28px;
+                height: 28px;
+                border: none;
+                border-radius: 6px;
+                background: var(--card-background-color, #fff);
+                color: var(--primary-text-color);
+                box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+                cursor: pointer;
+                opacity: 0.85;
+                transition: opacity 0.15s;
+            }
+            .zoom-reset-btn:hover {
+                opacity: 1;
+            }
+            .zoom-reset-btn ha-svg-icon {
+                --mdc-icon-size: 16px;
+            }
+
+            /* uPlot core layout — must be in Shadow DOM since uPlot injects to document.head */
+            .u-wrap {
+                display: block;
+                position: relative;
+                user-select: none;
+                width: 100%;
+            }
+            .u-over,
+            .u-under {
+                position: absolute;
+            }
+            .u-under {
+                overflow: hidden;
+            }
+            .u-axis {
+                position: absolute;
+            }
+
+            /* Canvas must be constrained to logical size — uPlot sets 2x pixel
          dimensions for HiDPI but relies on injected CSS for the CSS size */
-      .u-wrap canvas {
-        display: block;
-        width: 100%;
-        height: 100%;
-      }
+            .u-wrap canvas {
+                display: block;
+                width: 100%;
+                height: 100%;
+            }
 
-      /* Legend below the plot — horizontal, centered */
-      .u-legend { font-size: 12px; color: var(--secondary-text-color); margin: 4px auto 0; text-align: center; }
-      .u-inline { display: block; }
-      .u-inline * { display: inline-block; }
-      .u-inline tr { margin-right: 12px; }
-      .u-legend th { font-weight: normal; padding: 2px 0; cursor: pointer; }
-      .u-legend th > * { vertical-align: middle; }
-      .u-legend .u-marker { width: 10px; height: 10px; border-radius: 50%; margin-right: 3px; }
-      .u-legend .u-off > * { opacity: 0.4; }
-      /* uPlot legend click fires only when e.target === th — pass clicks through children */
-      .u-legend th * { pointer-events: none; }
+            /* Legend below the plot — horizontal, centered */
+            .u-legend {
+                font-size: 12px;
+                color: var(--secondary-text-color);
+                margin: 4px auto 0;
+                text-align: center;
+            }
+            .u-inline {
+                display: block;
+            }
+            .u-inline * {
+                display: inline-block;
+            }
+            .u-inline tr {
+                margin-right: 12px;
+            }
+            .u-legend th {
+                font-weight: normal;
+                padding: 2px 0;
+                cursor: pointer;
+            }
+            .u-legend th > * {
+                vertical-align: middle;
+            }
+            .u-legend .u-marker {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                margin-right: 3px;
+            }
+            .u-legend .u-off > * {
+                opacity: 0.4;
+            }
+            /* uPlot legend click fires only when e.target === th — pass clicks through children */
+            .u-legend th * {
+                pointer-events: none;
+            }
 
-      /* Cursor & selection */
-      .u-select {
-        background: color-mix(in srgb, var(--primary-color, #03a9f4) 15%, transparent);
-        position: absolute;
-        pointer-events: none;
-      }
-      .u-cursor-x, .u-cursor-y {
-        position: absolute;
-        left: 0; top: 0;
-        pointer-events: none;
-        will-change: transform;
-        z-index: 100;
-      }
-      .u-cursor-x { height: 100%; border-right: 1px dashed #607D8B; }
-      .u-cursor-y { width: 100%; border-bottom: 1px dashed #607D8B; }
-      .u-cursor-pt {
-        position: absolute;
-        top: 0; left: 0;
-        border-radius: 50%;
-        pointer-events: none;
-        will-change: transform;
-        z-index: 100;
-        background-clip: padding-box !important;
-      }
-      .u-axis.u-off,
-      .u-select.u-off,
-      .u-cursor-x.u-off,
-      .u-cursor-y.u-off,
-      .u-cursor-pt.u-off { display: none; }
+            /* Cursor & selection */
+            .u-select {
+                background: color-mix(
+                    in srgb,
+                    var(--primary-color, #03a9f4) 15%,
+                    transparent
+                );
+                position: absolute;
+                pointer-events: none;
+            }
+            .u-cursor-x,
+            .u-cursor-y {
+                position: absolute;
+                left: 0;
+                top: 0;
+                pointer-events: none;
+                will-change: transform;
+                z-index: 100;
+            }
+            .u-cursor-x {
+                height: 100%;
+                border-right: 1px dashed #607d8b;
+            }
+            .u-cursor-y {
+                width: 100%;
+                border-bottom: 1px dashed #607d8b;
+            }
+            .u-cursor-pt {
+                position: absolute;
+                top: 0;
+                left: 0;
+                border-radius: 50%;
+                border: 0 solid;
+                pointer-events: none;
+                will-change: transform;
+                z-index: 100;
+                background-clip: padding-box !important;
+            }
+            .u-axis.u-off,
+            .u-select.u-off,
+            .u-cursor-x.u-off,
+            .u-cursor-y.u-off,
+            .u-cursor-pt.u-off {
+                display: none;
+            }
 
-      /* Custom floating tooltip */
-      .u-tooltip {
-        position: absolute;
-        pointer-events: none;
-        z-index: 200;
-        background: var(--card-background-color, #fff);
-        border: 1px solid var(--divider-color, #e0e0e0);
-        border-radius: 6px;
-        padding: 6px 10px;
-        font-size: 0.75rem;
-        color: var(--primary-text-color);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        white-space: nowrap;
-        display: none;
-      }
-      .u-tooltip-time {
-        color: var(--secondary-text-color);
-        margin-bottom: 4px;
-        font-size: 0.7rem;
-      }
-      .u-tooltip-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 1px 0;
-      }
-      .u-tooltip-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        flex-shrink: 0;
-      }
-      .u-tooltip-name {
-        color: var(--secondary-text-color);
-        flex: 1;
-      }
-      .u-tooltip-value {
-        font-weight: 500;
-        text-align: right;
-      }
-    `
+            /* Custom floating tooltip */
+            .u-tooltip {
+                position: absolute;
+                pointer-events: none;
+                z-index: 200;
+                background: var(--card-background-color, #fff);
+                border: 1px solid var(--divider-color, #e0e0e0);
+                border-radius: 6px;
+                padding: 6px 10px;
+                font-size: 0.75rem;
+                color: var(--primary-text-color);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                white-space: nowrap;
+                display: none;
+            }
+            .u-tooltip-time {
+                color: var(--secondary-text-color);
+                margin-bottom: 4px;
+                font-size: 0.7rem;
+            }
+            .u-tooltip-row {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 1px 0;
+            }
+            .u-tooltip-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
+            .u-tooltip-name {
+                color: var(--secondary-text-color);
+                flex: 1;
+            }
+            .u-tooltip-value {
+                font-weight: 500;
+                text-align: right;
+            }
+        `
 ];
 InsightLineCard.cardType = "custom:insight-line-card";
 InsightLineCard.cardName = "InsightChart Line";
 InsightLineCard.cardDescription = "Interactive time-series line & area chart with zoom";
-__decorateClass$5([
+__decorateClass$6([
+  r()
+], InsightLineCard.prototype, "_isZoomed", 2);
+__decorateClass$6([
   e$1("#chart")
 ], InsightLineCard.prototype, "wrapper", 2);
-InsightLineCard = __decorateClass$5([
+__decorateClass$6([
+  e$1(".chart-wrapper")
+], InsightLineCard.prototype, "_chartWrapper", 2);
+InsightLineCard = __decorateClass$6([
   t$1("insight-line-card")
 ], InsightLineCard);
 window.customCards = window.customCards ?? [];
@@ -7732,181 +8193,31 @@ window.customCards.push({
   preview: true
 });
 
-var __getOwnPropDesc$4 = Object.getOwnPropertyDescriptor;
-var __getProtoOf$2 = Object.getPrototypeOf;
-var __reflectGet$2 = Reflect.get;
-var __decorateClass$4 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$4(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = (decorator(result)) || result;
-  return result;
-};
-var __superGet$2 = (cls, obj, key) => __reflectGet$2(__getProtoOf$2(cls), key, obj);
-function dropEmpty(data) {
-  return Object.fromEntries(
-    Object.entries(data).filter(([, v]) => v !== null && v !== void 0 && v !== "")
-  );
-}
-function buildChartStyleSchema(cfg) {
-  const isArea = (cfg.style ?? "area") === "area";
-  const isStep = cfg.style === "step";
-  return [
-    {
-      name: "style",
-      selector: {
-        select: {
-          mode: "list",
-          options: [
-            { value: "line", label: "Line" },
-            { value: "area", label: "Area" },
-            { value: "step", label: "Step" }
-          ]
-        }
-      }
-    },
-    ...!isStep ? [
-      {
-        name: "curve",
-        selector: {
-          select: {
-            mode: "list",
-            options: [
-              { value: "smooth", label: "Smooth" },
-              { value: "linear", label: "Linear" }
-            ]
-          }
-        }
-      }
-    ] : [],
-    { name: "zoom", selector: { boolean: {} } },
-    {
-      name: "show_points",
-      selector: {
-        select: {
-          options: [
-            { value: "false", label: "None" },
-            { value: "true", label: "Always" },
-            { value: "hover", label: "On hover" }
-          ]
-        }
-      }
-    },
-    {
-      name: "line_width",
-      selector: {
-        number: { min: 0.5, max: 10, step: 0.5, mode: "slider", unit_of_measurement: "px" }
-      }
-    },
-    ...isArea ? [
-      {
-        name: "fill_opacity",
-        selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
-      }
-    ] : []
-  ];
-}
-const Y_AXIS_SCHEMA = [
-  { name: "y_min", selector: { number: { step: 0.1, mode: "box" } } },
-  { name: "y_max", selector: { number: { step: 0.1, mode: "box" } } },
-  { name: "decimals", selector: { number: { min: 0, max: 6, step: 1, mode: "box" } } },
-  { name: "logarithmic", selector: { boolean: {} } },
-  { name: "y_min_secondary", selector: { number: { step: 0.1, mode: "box" } } },
-  { name: "y_max_secondary", selector: { number: { step: 0.1, mode: "box" } } }
-];
-const APPEARANCE_SCHEMA = [
-  { name: "show_legend", selector: { boolean: {} } },
-  { name: "show_x_axis", selector: { boolean: {} } },
-  { name: "show_y_axis", selector: { boolean: {} } },
-  { name: "grid_opacity", selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } } },
-  {
-    name: "tooltip_format",
-    selector: {
-      select: {
-        options: [
-          { value: "datetime", label: "Date & time" },
-          { value: "time", label: "Time only" },
-          { value: "date", label: "Date only" }
-        ]
-      }
-    }
-  },
-  {
-    name: "time_format",
-    selector: {
-      select: {
-        options: [
-          { value: "auto", label: "Auto" },
-          { value: "time", label: "HH:MM" },
-          { value: "date", label: "DD.MM" },
-          { value: "datetime", label: "DD.MM HH:MM" }
-        ]
-      }
-    }
+// Material Design Icons v7.4.47
+var mdiAxisArrow = "M12,2L16,6H13V13.85L19.53,17.61L21,15.03L22.5,20.5L17,21.96L18.53,19.35L12,15.58L5.47,19.35L7,21.96L1.5,20.5L3,15.03L4.47,17.61L11,13.85V6H8L12,2Z";
+var mdiChartLine = "M16,11.78L20.24,4.45L21.97,5.45L16.74,14.5L10.23,10.75L5.46,19H22V21H2V3H4V17.54L9.5,8L16,11.78Z";
+var mdiCog = "M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z";
+var mdiDatabaseClock = "M16.5 16.25L19.36 17.94L18.61 19.16L15 17V12H16.5V16.25M23 16C23 19.87 19.87 23 16 23C13.61 23 11.5 21.8 10.25 20C6.18 19.79 3 18.08 3 16V13C3 14.88 5.58 16.44 9.06 16.88C9.03 16.59 9 16.3 9 16C9 15.62 9.04 15.25 9.1 14.88C5.6 14.45 3 12.88 3 11V8C3 10.09 6.2 11.8 10.27 12C10.87 11.14 11.64 10.44 12.53 9.93C12.04 9.97 11.5 10 11 10C6.58 10 3 8.21 3 6S6.58 2 11 2 19 3.79 19 6C19 7.2 17.93 8.28 16.25 9C17 9.04 17.75 9.19 18.44 9.45C18.79 9 19 8.5 19 8V9.68C21.36 10.81 23 13.21 23 16M21 16C21 13.24 18.76 11 16 11S11 13.24 11 16 13.24 21 16 21 21 18.76 21 16Z";
+var mdiDelete = "M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z";
+var mdiEye = "M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z";
+var mdiFormatListBulleted = "M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z";
+var mdiLayersOutline = "M12,18.54L19.37,12.8L21,14.07L12,21.07L3,14.07L4.62,12.81L12,18.54M12,16L3,9L12,2L21,9L12,16M12,4.53L6.26,9L12,13.47L17.74,9L12,4.53Z";
+var mdiPlus = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
+
+class InsightEntityTab {
+  constructor(index, config) {
+    this.index = index;
+    this.config = config !== void 0 ? normaliseEntityConfig(config) : { entity: "" };
   }
-];
-function buildAggregationSchema(cfg) {
-  return [
-    {
-      name: "aggregate",
-      selector: {
-        select: {
-          options: [
-            { value: "", label: "None" },
-            { value: "mean", label: "Mean" },
-            { value: "min", label: "Min" },
-            { value: "max", label: "Max" },
-            { value: "sum", label: "Sum" },
-            { value: "last", label: "Last" }
-          ]
-        }
-      }
-    },
-    ...cfg.aggregate ? [
-      {
-        name: "aggregate_period",
-        selector: { text: {} }
-      }
-    ] : []
-  ];
 }
-const ADVANCED_SCHEMA = [
-  {
-    name: "update_interval",
-    selector: { number: { min: 10, max: 3600, step: 10, mode: "box", unit_of_measurement: "s" } }
-  },
-  {
-    name: "theme",
-    selector: {
-      select: {
-        options: [
-          { value: "auto", label: "Auto (follow HA theme)" },
-          { value: "light", label: "Light" },
-          { value: "dark", label: "Dark" }
-        ]
-      }
-    }
-  },
-  {
-    name: "padding_top",
-    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
-  },
-  {
-    name: "padding_bottom",
-    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
-  },
-  {
-    name: "padding_left",
-    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
-  },
-  {
-    name: "padding_right",
-    selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
-  }
-];
+
 function buildEntitySchema(style) {
   const isArea = style === "area";
   return [
+    {
+      name: "entity",
+      selector: { entity: {} }
+    },
     {
       name: "y_axis",
       selector: {
@@ -7996,6 +8307,511 @@ function buildEntitySchema(style) {
     }
   ];
 }
+
+var __defProp$1 = Object.defineProperty;
+var __getOwnPropDesc$5 = Object.getOwnPropertyDescriptor;
+var __decorateClass$5 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$5(target, key) : target;
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result) __defProp$1(target, key, result);
+  return result;
+};
+let InsightLineEntityEditor = class extends i$2 {
+  constructor() {
+    super(...arguments);
+    this.chartStyle = "area";
+    this._computeLabel = (schema) => {
+      return localize(`editor.field.${schema.name}`, this._lang);
+    };
+  }
+  get _lang() {
+    return this.hass?.locale?.language ?? "en";
+  }
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
+  render() {
+    if (!this.tab) return b`${A}`;
+    const ec = this.tab.config;
+    const schema = buildEntitySchema(this.chartStyle ?? "area");
+    return b`
+            <div class="entity-editor-content">
+                <div class="entity-top-row">
+                    <ha-icon-button
+                        .path=${mdiDelete}
+                        @click=${this._handleDelete}
+                    ></ha-icon-button>
+                </div>
+
+                <div class="color-row">
+                    <div class="color-label">
+                        ${localize("editor.field.color", this._lang)}
+                    </div>
+                    <input
+                        type="color"
+                        class="color-swatch"
+                        .value=${ec.color ?? DEFAULT_COLORS[this.tab.index - 1] ?? DEFAULT_COLORS[0]}
+                        @input=${(e) => this._patch({
+      color: e.target.value
+    })}
+                    />
+                </div>
+
+                <ha-form
+                    .hass=${this.hass}
+                    .schema=${schema}
+                    .data=${this._formData(ec)}
+                    .computeLabel=${this._computeLabel}
+                    @value-changed=${(e) => this._onFormChanged(e.detail.value)}
+                ></ha-form>
+            </div>
+        `;
+  }
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+  _formData(ec) {
+    return {
+      entity: ec.entity ?? "",
+      y_axis: ec.y_axis ?? "left",
+      hidden: ec.hidden ?? false,
+      line_width: ec.line_width,
+      fill_opacity: ec.fill_opacity,
+      stroke_dash: Array.isArray(ec.stroke_dash) ? ec.stroke_dash.join(",") : ec.stroke_dash != null ? String(ec.stroke_dash) : "",
+      attribute: ec.attribute ?? "",
+      unit: ec.unit ?? "",
+      scale: ec.scale,
+      invert: ec.invert ?? false,
+      transform: ec.transform ?? "none",
+      aggregate: ec.aggregate ?? "",
+      statistics: ec.statistics ?? ""
+    };
+  }
+  _onFormChanged(raw) {
+    const dashStr = raw["stroke_dash"];
+    const parsedDash = dashStr ? dashStr.includes(",") ? dashStr.split(",").map(Number).filter((n) => !isNaN(n)) : Number(dashStr) || void 0 : void 0;
+    const patch = Object.fromEntries(
+      Object.entries({
+        entity: raw["entity"] ?? "",
+        y_axis: raw["y_axis"] ?? void 0,
+        hidden: raw["hidden"],
+        line_width: raw["line_width"],
+        fill_opacity: raw["fill_opacity"],
+        stroke_dash: parsedDash,
+        attribute: raw["attribute"] || void 0,
+        unit: raw["unit"] || void 0,
+        scale: raw["scale"],
+        invert: raw["invert"],
+        transform: raw["transform"] || void 0,
+        aggregate: raw["aggregate"] || void 0,
+        statistics: raw["statistics"] || void 0
+      }).filter(([, v]) => v !== void 0)
+    );
+    this.dispatchEvent(
+      new CustomEvent("onChange", {
+        detail: { ...this.tab.config, ...patch }
+      })
+    );
+  }
+  _patch(patch) {
+    const updated = { ...this.tab.config, ...patch };
+    this.dispatchEvent(new CustomEvent("onChange", { detail: updated }));
+  }
+  _handleDelete() {
+    this.dispatchEvent(
+      new CustomEvent("onDelete", { detail: this.tab.index })
+    );
+  }
+};
+// ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
+InsightLineEntityEditor.styles = i$5`
+        :host {
+            display: block;
+        }
+
+        .entity-editor-content {
+            border: 1px solid var(--divider-color, #e0e0e0);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .entity-top-row {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .color-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .color-swatch {
+            width: 100%;
+            height: 36px;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 2px;
+            background: transparent;
+        }
+    `;
+__decorateClass$5([
+  n$1({ attribute: false })
+], InsightLineEntityEditor.prototype, "hass", 2);
+__decorateClass$5([
+  n$1({ attribute: false })
+], InsightLineEntityEditor.prototype, "tab", 2);
+__decorateClass$5([
+  n$1()
+], InsightLineEntityEditor.prototype, "chartStyle", 2);
+InsightLineEntityEditor = __decorateClass$5([
+  t$1("insight-line-entity-editor")
+], InsightLineEntityEditor);
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc$4 = Object.getOwnPropertyDescriptor;
+var __getProtoOf$2 = Object.getPrototypeOf;
+var __reflectGet$2 = Reflect.get;
+var __decorateClass$4 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$4(target, key) : target;
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result) __defProp(target, key, result);
+  return result;
+};
+var __superGet$2 = (cls, obj, key) => __reflectGet$2(__getProtoOf$2(cls), key, obj);
+function dropEmpty(data) {
+  return Object.fromEntries(
+    Object.entries(data).filter(
+      ([, v]) => v !== null && v !== void 0 && v !== ""
+    )
+  );
+}
+function buildChartStyleSchema(cfg) {
+  const isArea = (cfg.style ?? "area") === "area";
+  return [
+    { name: "zoom", selector: { boolean: {} } },
+    {
+      name: "show_points",
+      selector: {
+        select: {
+          options: [
+            { value: "false", label: "None" },
+            { value: "true", label: "Always" },
+            { value: "hover", label: "On hover" }
+          ]
+        }
+      }
+    },
+    {
+      name: "line_width",
+      selector: {
+        number: {
+          min: 0.5,
+          max: 10,
+          step: 0.5,
+          mode: "slider",
+          unit_of_measurement: "px"
+        }
+      }
+    },
+    ...isArea ? [
+      {
+        name: "fill_opacity",
+        selector: {
+          number: {
+            min: 0,
+            max: 1,
+            step: 0.05,
+            mode: "slider"
+          }
+        }
+      }
+    ] : []
+  ];
+}
+function buildGeneralSchema(lang, cfg) {
+  const isStep = cfg.style === "step";
+  return [
+    {
+      name: "title",
+      selector: { text: {} }
+    },
+    {
+      name: "style",
+      required: true,
+      selector: {
+        select: {
+          mode: "box",
+          options: [
+            {
+              value: "line",
+              label: localize("editor.option.style.line", lang),
+              description: localize(
+                "editor.option.style.line_desc",
+                lang
+              ),
+              image: "/local/insight-card/images/chart-line.svg"
+            },
+            {
+              value: "area",
+              label: localize("editor.option.style.area", lang),
+              description: localize(
+                "editor.option.style.area_desc",
+                lang
+              ),
+              image: "/local/insight-card/images/chart-area.svg"
+            },
+            {
+              value: "step",
+              label: localize("editor.option.style.step", lang),
+              description: localize(
+                "editor.option.style.step_desc",
+                lang
+              ),
+              image: "/local/insight-card/images/chart-step.svg"
+            }
+          ]
+        }
+      }
+    },
+    ...!isStep ? [
+      {
+        name: "curve",
+        selector: {
+          select: {
+            mode: "box",
+            options: [
+              {
+                value: "smooth",
+                label: localize(
+                  "editor.option.curve.smooth",
+                  lang
+                ),
+                image: "/local/insight-card/images/curve-smooth.svg"
+              },
+              {
+                value: "linear",
+                label: localize(
+                  "editor.option.curve.linear",
+                  lang
+                ),
+                image: "/local/insight-card/images/curve-linear.svg"
+              }
+            ]
+          }
+        }
+      }
+    ] : []
+  ];
+}
+const Y_AXIS_SCHEMA = [
+  { name: "y_min", selector: { number: { step: 0.1, mode: "box" } } },
+  { name: "y_max", selector: { number: { step: 0.1, mode: "box" } } },
+  {
+    name: "decimals",
+    selector: { number: { min: 0, max: 6, step: 1, mode: "box" } }
+  },
+  { name: "logarithmic", selector: { boolean: {} } },
+  {
+    name: "y_min_secondary",
+    selector: { number: { step: 0.1, mode: "box" } }
+  },
+  {
+    name: "y_max_secondary",
+    selector: { number: { step: 0.1, mode: "box" } }
+  }
+];
+const APPEARANCE_SCHEMA = [
+  { name: "show_legend", selector: { boolean: {} } },
+  { name: "show_x_axis", selector: { boolean: {} } },
+  { name: "show_y_axis", selector: { boolean: {} } },
+  {
+    name: "grid_opacity",
+    selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
+  },
+  {
+    name: "tooltip_format",
+    selector: {
+      select: {
+        options: [
+          { value: "datetime", label: "Date & time" },
+          { value: "time", label: "Time only" },
+          { value: "date", label: "Date only" }
+        ]
+      }
+    }
+  },
+  {
+    name: "time_format",
+    selector: {
+      select: {
+        options: [
+          { value: "auto", label: "Auto" },
+          { value: "time", label: "HH:MM" },
+          { value: "date", label: "DD.MM" },
+          { value: "datetime", label: "DD.MM HH:MM" }
+        ]
+      }
+    }
+  }
+];
+function buildAggregationSchema(cfg) {
+  return [
+    {
+      name: "aggregate",
+      selector: {
+        select: {
+          options: [
+            { value: "", label: "None" },
+            { value: "mean", label: "Mean" },
+            { value: "min", label: "Min" },
+            { value: "max", label: "Max" },
+            { value: "sum", label: "Sum" },
+            { value: "last", label: "Last" }
+          ]
+        }
+      }
+    },
+    ...cfg.aggregate ? [
+      {
+        name: "aggregate_period",
+        selector: { text: {} }
+      }
+    ] : []
+  ];
+}
+const ADVANCED_SCHEMA = [
+  {
+    name: "update_interval",
+    selector: {
+      number: {
+        min: 10,
+        max: 3600,
+        step: 10,
+        mode: "box",
+        unit_of_measurement: "s"
+      }
+    }
+  },
+  {
+    name: "theme",
+    selector: {
+      select: {
+        options: [
+          { value: "auto", label: "Auto (follow HA theme)" },
+          { value: "light", label: "Light" },
+          { value: "dark", label: "Dark" }
+        ]
+      }
+    }
+  },
+  {
+    name: "margin_top",
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
+  },
+  {
+    name: "margin_bottom",
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
+  },
+  {
+    name: "margin_left",
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
+  },
+  {
+    name: "margin_right",
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
+  },
+  {
+    name: "padding_top",
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
+  },
+  {
+    name: "padding_bottom",
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
+  },
+  {
+    name: "padding_left",
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
+  },
+  {
+    name: "padding_right",
+    selector: {
+      number: {
+        min: 0,
+        max: 100,
+        step: 1,
+        mode: "box",
+        unit_of_measurement: "px"
+      }
+    }
+  }
+];
 const THRESHOLD_SCHEMA = [
   { name: "value", selector: { number: { step: 0.1, mode: "box" } } },
   { name: "label", selector: { text: {} } },
@@ -8004,63 +8820,31 @@ const THRESHOLD_SCHEMA = [
 const COLOR_THRESHOLD_SCHEMA = [
   { name: "value", selector: { number: { step: 0.1, mode: "box" } } }
 ];
-const LABELS = {
-  style: "Chart style",
-  curve: "Interpolation",
-  zoom: "Drag-to-zoom",
-  show_points: "Data points",
-  line_width: "Line width",
-  fill_opacity: "Fill opacity",
-  y_min: "Soft minimum",
-  y_max: "Soft maximum",
-  decimals: "Decimal places",
-  logarithmic: "Logarithmic scale (base 10)",
-  y_min_secondary: "Secondary axis minimum",
-  y_max_secondary: "Secondary axis maximum",
-  show_legend: "Show legend",
-  show_x_axis: "Show X axis",
-  show_y_axis: "Show Y axis",
-  grid_opacity: "Grid opacity",
-  tooltip_format: "Tooltip timestamp",
-  time_format: "X-axis label format",
-  aggregate: "Aggregation method",
-  aggregate_period: "Aggregation period (e.g. 30m, 1h, 6h, 1d)",
-  update_interval: "Update interval",
-  theme: "Theme",
-  padding_top: "Padding top",
-  padding_bottom: "Padding bottom",
-  padding_left: "Padding left",
-  padding_right: "Padding right",
-  y_axis: "Y axis",
-  hidden: "Start hidden",
-  stroke_dash: "Stroke dash (e.g. 5 or 8,4)",
-  transform: "Transform",
-  statistics: "Statistics period",
-  attribute: "Attribute",
-  unit: "Unit override",
-  scale: "Scale factor",
-  invert: "Invert values",
-  value: "Value",
-  color: "Color",
-  label: "Label",
-  dash: "Dash pattern (e.g. 4,3)"
-};
 let InsightLineCardEditor = class extends InsightBaseEditor {
   constructor() {
     super(...arguments);
+    this._tabs = [];
+    this._currTab = "1";
+    this._hoursOptions = [
+      { value: "6", label: "6h" },
+      { value: "12", label: "12h" },
+      { value: "24", label: "24h" },
+      { value: "48", label: "48h" },
+      { value: "72", label: "72h" },
+      { value: "168", label: "7d" }
+    ];
+    this._addTab = () => {
+      const newTab = new InsightEntityTab(this._tabs.length + 1, void 0);
+      this._tabs = [...this._tabs, newTab];
+      this._currTab = newTab.index.toString();
+      this._syncEntitiesToConfig();
+    };
     // ---------------------------------------------------------------------------
     // computeLabel
     // ---------------------------------------------------------------------------
     this._computeLabel = (schema) => {
       if ("title" in schema) return schema.title;
-      return LABELS[schema.name] ?? schema.name;
-    };
-    // ---------------------------------------------------------------------------
-    // Entity helpers
-    // ---------------------------------------------------------------------------
-    this._appendEntity = () => {
-      const entities = [...(this._config?.entities ?? []).map(normaliseEntityConfig), { entity: "" }];
-      this._updateConfig({ entities });
+      return localize(`editor.field.${schema.name}`, this._lang);
     };
     this._appendThreshold = () => {
       const thresholds = [
@@ -8083,6 +8867,14 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   get _lineConfig() {
     return this._config ?? {};
   }
+  setConfig(config) {
+    super.setConfig(config);
+    const cfg = config;
+    this._tabs = (cfg.entities ?? []).map(
+      (e, i) => new InsightEntityTab(i + 1, e)
+    );
+    if (this._tabs.length === 0) this._addTab();
+  }
   // Required by abstract base — unused since we override render()
   renderCardOptions() {
     return b`${A}`;
@@ -8092,135 +8884,133 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   // ---------------------------------------------------------------------------
   render() {
     if (!this._config) {
-      return b`<div class="editor-loading">Loading editor…</div>`;
+      return b`<div class="editor-loading">
+                ${localize("editor.loading", this._lang)}
+            </div>`;
     }
     return b`
-      <div class="editor-container">
-        ${this.renderTitleSection()}
-        ${this.renderTimeRangeSection()}
-        ${this._renderEntitySection()}
-        ${this._renderChartStyleSection()}
-        ${this._renderYAxisSection()}
-        ${this._renderAppearanceSection()}
-        ${this._renderAggregationSection()}
-        ${this._renderOverlaysSection()}
-        ${this._renderAdvancedSection()}
-      </div>
-    `;
+            <div class="editor-container">
+                ${this._renderGeneralSection()} ${this._renderEntitySection()}
+                ${this._renderChartStyleSection()} ${this._renderYAxisSection()}
+                ${this._renderAppearanceSection()}
+                ${this._renderAggregationSection()}
+                ${this._renderOverlaysSection()}
+                ${this._renderAdvancedSection()}
+            </div>
+        `;
+  }
+  _renderGeneralSection() {
+    const cfg = this._lineConfig;
+    const data = {
+      title: cfg.title ?? "",
+      style: cfg.style ?? "area",
+      curve: cfg.curve ?? "smooth"
+    };
+    return b`
+            <div class="section">
+                <ha-form
+                    .hass=${this.hass}
+                    .schema=${buildGeneralSchema(this._lang, cfg)}
+                    .data=${data}
+                    .computeLabel=${this._computeLabel}
+                    @value-changed=${(e) => this._updateConfig(
+      e.detail.value
+    )}
+                ></ha-form>
+                <div class="control-row">
+                    <span class="control-label"
+                        >${localize("editor.field.hours", this._lang)}</span
+                    >
+                    <ha-control-select
+                        .options=${this._hoursOptions}
+                        .value=${String(cfg.hours ?? 24)}
+                        @value-changed=${(e) => this._updateConfig({
+      hours: Number(e.detail.value)
+    })}
+                    ></ha-control-select>
+                </div>
+            </div>
+        `;
   }
   // ---------------------------------------------------------------------------
-  // Entities
+  // Entities (expandable + tabs)
   // ---------------------------------------------------------------------------
   _renderEntitySection() {
-    const cfg = this._lineConfig;
-    const entities = (cfg.entities ?? []).map(normaliseEntityConfig);
-    const style = cfg.style ?? "area";
-    const schema = buildEntitySchema(style);
+    const currentTab = this._tabs.find((t) => t.index.toString() === this._currTab) ?? this._tabs[0];
     return b`
-      <div class="section">
-        <div class="section-header">Entities</div>
-
-        ${entities.map(
-      (ec, idx) => b`
-            <div class="entity-card">
-              <div class="entity-top-row">
-                <ha-entity-picker
-                  .hass=${this.hass}
-                  .value=${ec.entity}
-                  allow-custom-entity
-                  @value-changed=${(e) => this._updateEntityAt(idx, { entity: e.detail.value })}
-                ></ha-entity-picker>
-                <ha-textfield
-                  label="Name"
-                  .value=${ec.name ?? ""}
-                  @change=${(e) => this._updateEntityAt(idx, {
-        name: e.target.value || void 0
-      })}
-                ></ha-textfield>
-                <ha-icon-button
-                  .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
-                  @click=${() => this._removeEntityAt(idx)}
-                ></ha-icon-button>
-              </div>
-
-              <div class="entity-color-row">
-                <span class="field-label">Color</span>
-                <input
-                  type="color"
-                  class="color-swatch"
-                  .value=${ec.color ?? "#4AAFFF"}
-                  @input=${(e) => this._updateEntityAt(idx, {
-        color: e.target.value
-      })}
-                />
-                <ha-textfield
-                  class="color-text"
-                  label="Hex"
-                  .value=${ec.color ?? ""}
-                  placeholder="#4AAFFF"
-                  @change=${(e) => {
-        const v = e.target.value.trim();
-        this._updateEntityAt(idx, { color: v || void 0 });
-      }}
-                ></ha-textfield>
-              </div>
-
-              <ha-form
-                .hass=${this.hass}
-                .schema=${schema}
-                .data=${this._entityFormData(ec)}
-                .computeLabel=${this._computeLabel}
-                @value-changed=${(e) => this._onEntityFormChanged(idx, e.detail.value)}
-              ></ha-form>
-            </div>
-          `
+            <ha-expansion-panel outlined>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiFormatListBulleted}
+                ></ha-svg-icon>
+                <span slot="header"
+                    >${localize("editor.section.entities", this._lang)}</span
+                >
+                <div class="entities-panel">
+                    <div class="entities-toolbar">
+                        <ha-tab-group @wa-tab-show=${this._handleTabChanged}>
+                            ${this._tabs.map(
+      (tab) => b`
+                                    <ha-tab-group-tab
+                                        slot="nav"
+                                        .panel=${tab.index}
+                                        .active=${this._currTab === tab.index.toString()}
+                                    >
+                                        ${tab.index}
+                                    </ha-tab-group-tab>
+                                `
     )}
+                        </ha-tab-group>
+                        <ha-icon-button
+                            .path=${mdiPlus}
+                            .label=${localize(
+      "editor.action.add_entity",
+      this._lang
+    )}
+                            @click=${this._addTab}
+                        ></ha-icon-button>
+                    </div>
 
-        <mwc-button class="add-entity-btn" @click=${this._appendEntity}>
-          + Add entity
-        </mwc-button>
-      </div>
-    `;
+                    ${currentTab ? b`
+                              <insight-line-entity-editor
+                                  .hass=${this.hass}
+                                  .tab=${currentTab}
+                                  .chartStyle=${this._lineConfig.style ?? "area"}
+                                  @onChange=${this._handleEntityChange}
+                                  @onDelete=${this._handleEntityDelete}
+                              ></insight-line-entity-editor>
+                          ` : A}
+                </div>
+            </ha-expansion-panel>
+        `;
   }
-  _entityFormData(ec) {
-    return {
-      y_axis: ec.y_axis ?? "left",
-      hidden: ec.hidden ?? false,
-      line_width: ec.line_width,
-      fill_opacity: ec.fill_opacity,
-      stroke_dash: Array.isArray(ec.stroke_dash) ? ec.stroke_dash.join(",") : ec.stroke_dash != null ? String(ec.stroke_dash) : "",
-      attribute: ec.attribute ?? "",
-      unit: ec.unit ?? "",
-      scale: ec.scale,
-      invert: ec.invert ?? false,
-      transform: ec.transform ?? "none",
-      aggregate: ec.aggregate ?? "",
-      statistics: ec.statistics ?? ""
-    };
+  _handleTabChanged(e) {
+    const next = e.detail.name?.toString();
+    if (next && next !== this._currTab) this._currTab = next;
   }
-  _onEntityFormChanged(idx, raw) {
-    const dashStr = raw["stroke_dash"];
-    const parsedDash = dashStr ? dashStr.includes(",") ? dashStr.split(",").map(Number).filter((n) => !isNaN(n)) : Number(dashStr) || void 0 : void 0;
-    const patch = {
-      y_axis: raw["y_axis"] ?? void 0,
-      hidden: raw["hidden"],
-      line_width: raw["line_width"],
-      fill_opacity: raw["fill_opacity"],
-      stroke_dash: parsedDash,
-      attribute: raw["attribute"] || void 0,
-      unit: raw["unit"] || void 0,
-      scale: raw["scale"],
-      invert: raw["invert"],
-      transform: raw["transform"] || void 0,
-      aggregate: raw["aggregate"] || void 0,
-      statistics: raw["statistics"] || void 0
-    };
-    this._updateEntityAt(
-      idx,
-      Object.fromEntries(
-        Object.entries(patch).filter(([, v]) => v !== void 0)
-      )
+  _handleEntityChange(e) {
+    e.stopPropagation();
+    const idx = this._tabs.findIndex(
+      (t) => t.index.toString() === this._currTab
     );
+    if (idx === -1) return;
+    this._tabs[idx].config = e.detail;
+    this._syncEntitiesToConfig();
+  }
+  _handleEntityDelete(e) {
+    e.stopPropagation();
+    const delIndex = e.detail;
+    this._tabs = this._tabs.filter((t) => t.index !== delIndex).map((t, i) => new InsightEntityTab(i + 1, t.config));
+    const newCurr = Math.max(1, parseInt(this._currTab) - 1);
+    this._currTab = this._tabs.length > 0 ? Math.min(newCurr, this._tabs.length).toString() : "1";
+    this._syncEntitiesToConfig();
+  }
+  _syncEntitiesToConfig() {
+    this._updateConfig({
+      entities: this._tabs.filter((t) => t.config.entity).map(
+        (t) => serialiseEntityConfig(t.config)
+      )
+    });
   }
   // ---------------------------------------------------------------------------
   // Chart style
@@ -8229,22 +9019,27 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     const cfg = this._lineConfig;
     const showPointsStr = cfg.show_points === true ? "true" : cfg.show_points === "hover" ? "hover" : "false";
     const data = {
-      style: cfg.style ?? "area",
-      curve: cfg.curve ?? "smooth",
       zoom: cfg.zoom !== false,
       show_points: showPointsStr,
       line_width: cfg.line_width ?? 2,
       fill_opacity: cfg.fill_opacity ?? 0.15
     };
     return b`
-      <div class="section">
-        <div class="section-header">Chart style</div>
-        <ha-form
-          .hass=${this.hass}
-          .schema=${buildChartStyleSchema(cfg)}
-          .data=${data}
-          .computeLabel=${this._computeLabel}
-          @value-changed=${(e) => {
+            <ha-expansion-panel outlined>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiChartLine}
+                ></ha-svg-icon>
+                <span slot="header"
+                    >${localize("editor.section.chart_style", this._lang)}</span
+                >
+                <div class="panel-content">
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${buildChartStyleSchema(cfg)}
+                        .data=${data}
+                        .computeLabel=${this._computeLabel}
+                        @value-changed=${(e) => {
       const v = e.detail.value;
       const showPoints = v.show_points === "true" ? true : v.show_points === "hover" ? "hover" : false;
       this._updateConfig({
@@ -8252,9 +9047,10 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
         show_points: showPoints
       });
     }}
-        ></ha-form>
-      </div>
-    `;
+                    ></ha-form>
+                </div>
+            </ha-expansion-panel>
+        `;
   }
   // ---------------------------------------------------------------------------
   // Y axis
@@ -8270,19 +9066,29 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       y_max_secondary: cfg.y_max_secondary
     };
     return b`
-      <div class="section">
-        <div class="section-header">Y axis</div>
-        <ha-form
-          .hass=${this.hass}
-          .schema=${Y_AXIS_SCHEMA}
-          .data=${data}
-          .computeLabel=${this._computeLabel}
-          @value-changed=${(e) => this._updateConfig(
-      dropEmpty(e.detail.value)
+            <ha-expansion-panel outlined>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiAxisArrow}
+                ></ha-svg-icon>
+                <span slot="header"
+                    >${localize("editor.section.y_axis", this._lang)}</span
+                >
+                <div class="panel-content">
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${Y_AXIS_SCHEMA}
+                        .data=${data}
+                        .computeLabel=${this._computeLabel}
+                        @value-changed=${(e) => this._updateConfig(
+      dropEmpty(
+        e.detail.value
+      )
     )}
-        ></ha-form>
-      </div>
-    `;
+                    ></ha-form>
+                </div>
+            </ha-expansion-panel>
+        `;
   }
   // ---------------------------------------------------------------------------
   // Appearance
@@ -8298,17 +9104,24 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       time_format: cfg.time_format ?? "auto"
     };
     return b`
-      <div class="section">
-        <div class="section-header">Appearance</div>
-        <ha-form
-          .hass=${this.hass}
-          .schema=${APPEARANCE_SCHEMA}
-          .data=${data}
-          .computeLabel=${this._computeLabel}
-          @value-changed=${(e) => this._updateConfig(e.detail.value)}
-        ></ha-form>
-      </div>
-    `;
+            <ha-expansion-panel outlined>
+                <ha-svg-icon slot="leading-icon" .path=${mdiEye}></ha-svg-icon>
+                <span slot="header"
+                    >${localize("editor.section.appearance", this._lang)}</span
+                >
+                <div class="panel-content">
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${APPEARANCE_SCHEMA}
+                        .data=${data}
+                        .computeLabel=${this._computeLabel}
+                        @value-changed=${(e) => this._updateConfig(
+      e.detail.value
+    )}
+                    ></ha-form>
+                </div>
+            </ha-expansion-panel>
+        `;
   }
   // ---------------------------------------------------------------------------
   // Data aggregation
@@ -8320,19 +9133,32 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       aggregate_period: cfg.aggregate_period ?? ""
     };
     return b`
-      <div class="section">
-        <div class="section-header">Data aggregation</div>
-        <ha-form
-          .hass=${this.hass}
-          .schema=${buildAggregationSchema(cfg)}
-          .data=${data}
-          .computeLabel=${this._computeLabel}
-          @value-changed=${(e) => this._updateConfig(
-      dropEmpty(e.detail.value)
+            <ha-expansion-panel outlined>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiDatabaseClock}
+                ></ha-svg-icon>
+                <span slot="header"
+                    >${localize(
+      "editor.section.data_aggregation",
+      this._lang
+    )}</span
+                >
+                <div class="panel-content">
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${buildAggregationSchema(cfg)}
+                        .data=${data}
+                        .computeLabel=${this._computeLabel}
+                        @value-changed=${(e) => this._updateConfig(
+      dropEmpty(
+        e.detail.value
+      )
     )}
-        ></ha-form>
-      </div>
-    `;
+                    ></ha-form>
+                </div>
+            </ha-expansion-panel>
+        `;
   }
   // ---------------------------------------------------------------------------
   // Overlays (threshold lines + color thresholds)
@@ -8342,79 +9168,123 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     const thresholds = cfg.thresholds ?? [];
     const colorThresholds = cfg.color_thresholds ?? [];
     return b`
-      <div class="section">
-        <div class="section-header">Overlays</div>
-
-        <div class="subsection-label">Threshold lines</div>
-        ${thresholds.map(
+            <ha-expansion-panel outlined>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiLayersOutline}
+                ></ha-svg-icon>
+                <span slot="header"
+                    >${localize("editor.section.overlays", this._lang)}</span
+                >
+                <div class="panel-content">
+                    <div class="subsection-label">
+                        ${localize(
+      "editor.subsection.threshold_lines",
+      this._lang
+    )}
+                    </div>
+                    ${thresholds.map(
       (t, idx) => b`
-            <div class="overlay-row">
-              <div class="overlay-color-field">
-                <span class="field-label">Color</span>
-                <input
-                  type="color"
-                  class="color-swatch"
-                  .value=${t.color ?? "#db4437"}
-                  @input=${(e) => this._updateThresholdAt(idx, {
+                            <div class="overlay-row">
+                                <div class="overlay-color-field">
+                                    <span class="field-label"
+                                        >${localize(
+        "editor.field.color",
+        this._lang
+      )}</span
+                                    >
+                                    <input
+                                        type="color"
+                                        class="color-swatch"
+                                        .value=${t.color ?? "#db4437"}
+                                        @input=${(e) => this._updateThresholdAt(idx, {
         ...t,
         color: e.target.value
       })}
-                />
-              </div>
-              <ha-form
-                .hass=${this.hass}
-                .schema=${THRESHOLD_SCHEMA}
-                .data=${{ value: t.value, label: t.label ?? "", dash: t.dash?.join(",") ?? "" }}
-                .computeLabel=${this._computeLabel}
-                @value-changed=${(e) => this._updateThresholdAt(idx, { ...t, ...this._parseThreshold(e.detail.value) })}
-              ></ha-form>
-              <ha-icon-button
-                .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
-                @click=${() => this._removeThresholdAt(idx)}
-              ></ha-icon-button>
-            </div>
-          `
+                                    />
+                                </div>
+                                <ha-form
+                                    .hass=${this.hass}
+                                    .schema=${THRESHOLD_SCHEMA}
+                                    .data=${{
+        value: t.value,
+        label: t.label ?? "",
+        dash: t.dash?.join(",") ?? ""
+      }}
+                                    .computeLabel=${this._computeLabel}
+                                    @value-changed=${(e) => this._updateThresholdAt(idx, {
+        ...t,
+        ...this._parseThreshold(
+          e.detail.value
+        )
+      })}
+                                ></ha-form>
+                                <ha-icon-button
+                                    .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
+                                    @click=${() => this._removeThresholdAt(idx)}
+                                ></ha-icon-button>
+                            </div>
+                        `
     )}
-        <mwc-button @click=${this._appendThreshold}>+ Add threshold</mwc-button>
+                    <mwc-button @click=${this._appendThreshold}
+                        >${localize(
+      "editor.action.add_threshold",
+      this._lang
+    )}</mwc-button
+                    >
 
-        <div class="subsection-label" style="margin-top:12px">
-          Color thresholds (gradient)
-        </div>
-        ${colorThresholds.map(
+                    <div class="subsection-label" style="margin-top:12px">
+                        ${localize(
+      "editor.subsection.color_thresholds",
+      this._lang
+    )}
+                    </div>
+                    ${colorThresholds.map(
       (ct, idx) => b`
-            <div class="overlay-row">
-              <div class="overlay-color-field">
-                <span class="field-label">Color</span>
-                <input
-                  type="color"
-                  class="color-swatch"
-                  .value=${ct.color ?? "#03a9f4"}
-                  @input=${(e) => this._updateColorThresholdAt(idx, {
+                            <div class="overlay-row">
+                                <div class="overlay-color-field">
+                                    <span class="field-label"
+                                        >${localize(
+        "editor.field.color",
+        this._lang
+      )}</span
+                                    >
+                                    <input
+                                        type="color"
+                                        class="color-swatch"
+                                        .value=${ct.color ?? "#03a9f4"}
+                                        @input=${(e) => this._updateColorThresholdAt(idx, {
         ...ct,
         color: e.target.value
       })}
-                />
-              </div>
-              <ha-form
-                .hass=${this.hass}
-                .schema=${COLOR_THRESHOLD_SCHEMA}
-                .data=${{ value: ct.value }}
-                .computeLabel=${this._computeLabel}
-                @value-changed=${(e) => this._updateColorThresholdAt(idx, {
+                                    />
+                                </div>
+                                <ha-form
+                                    .hass=${this.hass}
+                                    .schema=${COLOR_THRESHOLD_SCHEMA}
+                                    .data=${{ value: ct.value }}
+                                    .computeLabel=${this._computeLabel}
+                                    @value-changed=${(e) => this._updateColorThresholdAt(idx, {
         ...ct,
         value: e.detail.value["value"] ?? 0
       })}
-              ></ha-form>
-              <ha-icon-button
-                .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
-                @click=${() => this._removeColorThresholdAt(idx)}
-              ></ha-icon-button>
-            </div>
-          `
+                                ></ha-form>
+                                <ha-icon-button
+                                    .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
+                                    @click=${() => this._removeColorThresholdAt(idx)}
+                                ></ha-icon-button>
+                            </div>
+                        `
     )}
-        <mwc-button @click=${this._appendColorThreshold}>+ Add color threshold</mwc-button>
-      </div>
-    `;
+                    <mwc-button @click=${this._appendColorThreshold}
+                        >${localize(
+      "editor.action.add_color_threshold",
+      this._lang
+    )}</mwc-button
+                    >
+                </div>
+            </ha-expansion-panel>
+        `;
   }
   // ---------------------------------------------------------------------------
   // Advanced
@@ -8424,33 +9294,34 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     const data = {
       update_interval: cfg.update_interval ?? 60,
       theme: cfg.theme ?? "auto",
-      padding_top: cfg.padding_top ?? 0,
-      padding_bottom: cfg.padding_bottom ?? 0,
-      padding_left: cfg.padding_left ?? 0,
-      padding_right: cfg.padding_right ?? 0
+      margin_top: cfg.margin_top ?? 0,
+      margin_bottom: cfg.margin_bottom ?? 0,
+      margin_left: cfg.margin_left ?? 0,
+      margin_right: cfg.margin_right ?? 0,
+      padding_top: cfg.padding_top ?? 8,
+      padding_bottom: cfg.padding_bottom ?? 8,
+      padding_left: cfg.padding_left ?? 16,
+      padding_right: cfg.padding_right ?? 16
     };
     return b`
-      <div class="section">
-        <div class="section-header">Advanced</div>
-        <ha-form
-          .hass=${this.hass}
-          .schema=${ADVANCED_SCHEMA}
-          .data=${data}
-          .computeLabel=${this._computeLabel}
-          @value-changed=${(e) => this._updateConfig(e.detail.value)}
-        ></ha-form>
-      </div>
-    `;
-  }
-  _removeEntityAt(index) {
-    const entities = (this._config?.entities ?? []).map(normaliseEntityConfig);
-    entities.splice(index, 1);
-    this._updateConfig({ entities });
-  }
-  _updateEntityAt(index, patch) {
-    const entities = (this._config?.entities ?? []).map(normaliseEntityConfig);
-    entities[index] = { ...entities[index], ...patch };
-    this._updateConfig({ entities });
+            <ha-expansion-panel outlined>
+                <ha-svg-icon slot="leading-icon" .path=${mdiCog}></ha-svg-icon>
+                <span slot="header"
+                    >${localize("editor.section.advanced", this._lang)}</span
+                >
+                <div class="panel-content">
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${ADVANCED_SCHEMA}
+                        .data=${data}
+                        .computeLabel=${this._computeLabel}
+                        @value-changed=${(e) => this._updateConfig(
+      e.detail.value
+    )}
+                    ></ha-form>
+                </div>
+            </ha-expansion-panel>
+        `;
   }
   // ---------------------------------------------------------------------------
   // Threshold helpers
@@ -8491,84 +9362,109 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
 InsightLineCardEditor.styles = [
   __superGet$2(InsightLineCardEditor, InsightLineCardEditor, "styles"),
   i$5`
-      .entity-card {
-        border: 1px solid var(--divider-color, #e0e0e0);
-        border-radius: 8px;
-        padding: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
+            .entities-panel {
+                padding: 8px 0;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
 
-      .entity-top-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr auto;
-        gap: 8px;
-        align-items: flex-end;
-      }
+            .entities-toolbar {
+                display: flex;
+                align-items: flex-start;
+                gap: 4px;
+            }
 
-      .entity-color-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
+            ha-tab-group {
+                flex: 1;
+            }
 
-      .field-label {
-        font-size: 0.875rem;
-        color: var(--secondary-text-color);
-        white-space: nowrap;
-      }
+            ha-expansion-panel {
+                margin-top: 4px;
+            }
 
-      .color-swatch {
-        width: 36px;
-        height: 36px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        padding: 2px;
-        background: transparent;
-        flex-shrink: 0;
-      }
+            .panel-content {
+                padding: 8px 0;
+            }
 
-      .color-text {
-        flex: 1;
-      }
+            .control-row {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
 
-      .add-entity-btn {
-        align-self: flex-start;
-        margin-top: 4px;
-      }
+            .control-label {
+                font-size: 0.75rem;
+                font-weight: 500;
+                color: var(--secondary-text-color);
+            }
 
-      .subsection-label {
-        font-size: 0.8rem;
-        font-weight: 500;
-        color: var(--secondary-text-color);
-        margin-bottom: 4px;
-      }
+            ha-control-select {
+                width: 100%;
+            }
 
-      .overlay-row {
-        display: flex;
-        align-items: flex-start;
-        gap: 4px;
-        border: 1px solid var(--divider-color, #e0e0e0);
-        border-radius: 6px;
-        padding: 8px;
-        margin-bottom: 6px;
-      }
+            .field-label {
+                font-size: 0.875rem;
+                color: var(--secondary-text-color);
+                white-space: nowrap;
+            }
 
-      .overlay-color-field {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        padding-top: 4px;
-      }
+            .color-swatch {
+                width: 36px;
+                height: 36px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                padding: 2px;
+                background: transparent;
+                flex-shrink: 0;
+            }
 
-      .overlay-row ha-form {
-        flex: 1;
-      }
-    `
+            .color-text {
+                flex: 1;
+            }
+
+            .add-entity-btn {
+                align-self: flex-start;
+                margin-top: 4px;
+            }
+
+            .subsection-label {
+                font-size: 0.8rem;
+                font-weight: 500;
+                color: var(--secondary-text-color);
+                margin-bottom: 4px;
+            }
+
+            .overlay-row {
+                display: flex;
+                align-items: flex-start;
+                gap: 4px;
+                border: 1px solid var(--divider-color, #e0e0e0);
+                border-radius: 6px;
+                padding: 8px;
+                margin-bottom: 6px;
+            }
+
+            .overlay-color-field {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                padding-top: 4px;
+            }
+
+            .overlay-row ha-form {
+                flex: 1;
+            }
+        `
 ];
+__decorateClass$4([
+  r()
+], InsightLineCardEditor.prototype, "_tabs", 2);
+__decorateClass$4([
+  r()
+], InsightLineCardEditor.prototype, "_currTab", 2);
 InsightLineCardEditor = __decorateClass$4([
   t$1("insight-line-card-editor")
 ], InsightLineCardEditor);
