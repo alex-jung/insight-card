@@ -14,7 +14,9 @@
     },
     "field": {
       "title": "Titel (optional)",
+      "hours": "Zeitbereich",
       "name": "Name",
+      "entity": "Entität",
       "color": "Farbe",
       "hex": "Hex",
       "style": "Diagrammstil",
@@ -63,6 +65,16 @@
       "remove_entity": "Entität entfernen",
       "add_threshold": "+ Schwellenwert hinzufügen",
       "add_color_threshold": "+ Farbschwellenwert hinzufügen"
+    },
+    "option": {
+      "style": {
+        "line": "Linie",
+        "line_desc": "Klassisches Liniendiagramm ohne Füllung",
+        "area": "Fläche",
+        "area_desc": "Liniendiagramm mit gefüllter Fläche darunter",
+        "step": "Stufen",
+        "step_desc": "Treppendiagramm, ideal für Zustandsänderungen"
+      }
     },
     "subsection": {
       "threshold_lines": "Schwellenwertlinien",

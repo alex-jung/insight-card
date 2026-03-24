@@ -6,7 +6,7 @@
  * Subclasses implement `renderCardOptions()` with card-specific controls.
  */
 
-import { LitElement, html, css, type TemplateResult, type CSSResultGroup } from "lit";
+import { LitElement, html, css, nothing, type TemplateResult, type CSSResultGroup, type CSSResult } from "lit";
 import { property, state } from "lit/decorators.js";
 
 import type {
@@ -18,6 +18,84 @@ import type {
 } from "../types/index.js";
 import { normaliseEntityConfig } from "../utils/index.js";
 import { localize } from "../locales/localize.js";
+
+// ---------------------------------------------------------------------------
+// Shared entity-picker-row helper (function, not component, to stay in the
+// caller's shadow DOM and pick up its CSS context)
+// ---------------------------------------------------------------------------
+
+export const entityPickerRowStyles: CSSResult = css`
+  .entity-picker-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .entity-picker-row ha-entity-picker {
+    flex: 1;
+    min-width: 0;
+    display: block;
+  }
+  .entity-picker-row .epr-color-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .entity-picker-row .epr-color-label {
+    font-size: 0.75rem;
+    color: var(--secondary-text-color);
+    white-space: nowrap;
+  }
+  .entity-picker-row .epr-color-swatch {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 2px;
+    background: transparent;
+  }
+`;
+
+export function renderEntityPickerRow(params: {
+  hass: HomeAssistant | undefined;
+  entityId: string;
+  color?: string;
+  lang: string;
+  onEntityChange: (value: string) => void;
+  onColorChange?: (value: string) => void;
+}): TemplateResult {
+  const { hass, entityId, color, lang, onEntityChange, onColorChange } = params;
+  const showColor = onColorChange !== undefined;
+
+  return html`
+    <div class="entity-picker-row">
+      <ha-entity-picker
+        .hass=${hass}
+        .value=${entityId}
+        allow-custom-entity
+        @value-changed=${(e: CustomEvent<{ value: string }>) => onEntityChange(e.detail.value)}
+      ></ha-entity-picker>
+
+      ${showColor
+        ? html`
+            <div class="epr-color-col">
+              <span class="epr-color-label">${localize("editor.field.color", lang)}</span>
+              <input
+                type="color"
+                class="epr-color-swatch"
+                .value=${color ?? "#4AAFFF"}
+                @input=${(e: Event) =>
+                  onColorChange!((e.target as HTMLInputElement).value)}
+              />
+            </div>
+          `
+        : nothing}
+    </div>
+  `;
+}
 
 // Time-range presets available in every editor
 const TIME_PRESETS: { label: string; hours: number }[] = [
@@ -174,10 +252,6 @@ export abstract class InsightBaseEditor
 
     return html`
       <div class="editor-container">
-        ${this.renderTitleSection()}
-        ${this.renderEntitySection()}
-        ${this.renderTimeRangeSection()}
-        ${this.renderCardOptions()}
       </div>
     `;
   }

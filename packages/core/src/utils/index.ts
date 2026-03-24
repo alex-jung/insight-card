@@ -37,7 +37,7 @@ export function normaliseEntityConfig(
   if (typeof obj["entity"] === "string") return obj as unknown as InsightEntityConfig;
 
   // Entity-as-key format: entity ID used as a YAML key
-  // Flat:   { "sensor.xxx": null, color: "...", y_axis: "..." }
+  // Flat:   { "sensor.xxx": color: "...", y_axis: "..." }
   // Nested: { "sensor.xxx": { color: "...", y_axis: "..." } }
   const entityKey = Object.keys(obj).find((k) => !ENTITY_OPTION_KEYS.has(k));
   if (entityKey) {
@@ -51,6 +51,21 @@ export function normaliseEntityConfig(
   }
 
   return e as InsightEntityConfig;
+}
+
+/**
+ * Serialise an InsightEntityConfig back to entity-as-key format for YAML storage.
+ *
+ * { entity: "sensor.xxx", color: "#f00" } → { "sensor.xxx": null, color: "#f00" }
+ * { entity: "sensor.xxx" }                → "sensor.xxx"  (plain string, no options)
+ */
+export function serialiseEntityConfig(ec: InsightEntityConfig): Record<string, unknown> | string {
+  const { entity, ...options } = ec;
+  const cleanOptions = Object.fromEntries(
+    Object.entries(options).filter(([, v]) => v !== undefined && v !== null),
+  );
+  if (Object.keys(cleanOptions).length === 0) return entity;
+  return { [entity]: cleanOptions };
 }
 
 // ---------------------------------------------------------------------------

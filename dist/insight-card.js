@@ -6224,6 +6224,14 @@ function normaliseEntityConfig(e) {
   }
   return e;
 }
+function serialiseEntityConfig(ec) {
+  const { entity, ...options } = ec;
+  const cleanOptions = Object.fromEntries(
+    Object.entries(options).filter(([, v]) => v !== void 0 && v !== null)
+  );
+  if (Object.keys(cleanOptions).length === 0) return entity;
+  return { [entity]: cleanOptions };
+}
 const DEFAULT_COLORS = [
   "#FF6B4A",
   "#4AAFFF",
@@ -6549,13 +6557,13 @@ const t={ATTRIBUTE:1},e=t=>(...e)=>({_$litDirective$:t,values:e});let i$1 = clas
  * SPDX-License-Identifier: BSD-3-Clause
  */const n="important",i=" !"+n,o=e(class extends i$1{constructor(t$1){if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||t$1.strings?.length>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.includes("-")?r:r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`},"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.ft)return this.ft=new Set(Object.keys(r)),this.render(r);for(const t of this.ft)null==r[t]&&(this.ft.delete(t),t.includes("-")?s.removeProperty(t):s[t]=null);for(const t in r){const e=r[t];if(null!=e){this.ft.add(t);const r="string"==typeof e&&e.endsWith(i);t.includes("-")||r?s.setProperty(t,r?e.slice(0,-11):e,r?n:""):s[t]=e;}}return E}});
 
-var __defProp$2 = Object.defineProperty;
-var __decorateClass$7 = (decorators, target, key, kind) => {
+var __defProp$4 = Object.defineProperty;
+var __decorateClass$8 = (decorators, target, key, kind) => {
   var result = void 0 ;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (decorator(target, key, result) ) || result;
-  if (result) __defProp$2(target, key, result);
+  if (result) __defProp$4(target, key, result);
   return result;
 };
 class InsightBaseCard extends i$2 {
@@ -6839,25 +6847,25 @@ InsightBaseCard.styles = i$5`
         font-size: 0.875rem;
       }
       `;
-__decorateClass$7([
+__decorateClass$8([
   n$1({ attribute: false })
 ], InsightBaseCard.prototype, "hass");
-__decorateClass$7([
+__decorateClass$8([
   r()
 ], InsightBaseCard.prototype, "_config");
-__decorateClass$7([
+__decorateClass$8([
   r()
 ], InsightBaseCard.prototype, "_data");
-__decorateClass$7([
+__decorateClass$8([
   r()
 ], InsightBaseCard.prototype, "_loading");
-__decorateClass$7([
+__decorateClass$8([
   r()
 ], InsightBaseCard.prototype, "_error");
-__decorateClass$7([
+__decorateClass$8([
   r()
 ], InsightBaseCard.prototype, "_cardWidth");
-__decorateClass$7([
+__decorateClass$8([
   e$1(".card-header")
 ], InsightBaseCard.prototype, "_header");
 
@@ -6876,7 +6884,9 @@ var editor$1 = {
 	},
 	field: {
 		title: "Title (optional)",
+		hours: "Time range",
 		name: "Name",
+		entity: "Entity",
 		color: "Color",
 		hex: "Hex",
 		style: "Chart style",
@@ -6926,6 +6936,16 @@ var editor$1 = {
 		add_threshold: "+ Add threshold",
 		add_color_threshold: "+ Add color threshold"
 	},
+	option: {
+		style: {
+			line: "Line",
+			line_desc: "Classic line chart without fill",
+			area: "Area",
+			area_desc: "Line chart with filled area below",
+			step: "Step",
+			step_desc: "Staircase chart, ideal for state changes"
+		}
+	},
 	subsection: {
 		threshold_lines: "Threshold lines",
 		color_thresholds: "Color thresholds (gradient)"
@@ -6957,7 +6977,9 @@ var editor = {
 	},
 	field: {
 		title: "Titel (optional)",
+		hours: "Zeitbereich",
 		name: "Name",
+		entity: "Entität",
 		color: "Farbe",
 		hex: "Hex",
 		style: "Diagrammstil",
@@ -7007,6 +7029,16 @@ var editor = {
 		add_threshold: "+ Schwellenwert hinzufügen",
 		add_color_threshold: "+ Farbschwellenwert hinzufügen"
 	},
+	option: {
+		style: {
+			line: "Linie",
+			line_desc: "Klassisches Liniendiagramm ohne Füllung",
+			area: "Fläche",
+			area_desc: "Liniendiagramm mit gefüllter Fläche darunter",
+			step: "Stufen",
+			step_desc: "Treppendiagramm, ideal für Zustandsänderungen"
+		}
+	},
 	subsection: {
 		threshold_lines: "Schwellenwertlinien",
 		color_thresholds: "Farbschwellenwerte (Gradient)"
@@ -7041,15 +7073,49 @@ function localize(key, lang = "en", vars) {
   return template;
 }
 
-var __defProp$1 = Object.defineProperty;
-var __decorateClass$6 = (decorators, target, key, kind) => {
+var __defProp$3 = Object.defineProperty;
+var __decorateClass$7 = (decorators, target, key, kind) => {
   var result = void 0 ;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (decorator(target, key, result) ) || result;
-  if (result) __defProp$1(target, key, result);
+  if (result) __defProp$3(target, key, result);
   return result;
 };
+i$5`
+  .entity-picker-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .entity-picker-row ha-entity-picker {
+    flex: 1;
+    min-width: 0;
+    display: block;
+  }
+  .entity-picker-row .epr-color-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .entity-picker-row .epr-color-label {
+    font-size: 0.75rem;
+    color: var(--secondary-text-color);
+    white-space: nowrap;
+  }
+  .entity-picker-row .epr-color-swatch {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 2px;
+    background: transparent;
+  }
+`;
 const TIME_PRESETS = [
   { label: "6h", hours: 6 },
   { label: "12h", hours: 12 },
@@ -7163,10 +7229,6 @@ class InsightBaseEditor extends i$2 {
     }
     return b`
       <div class="editor-container">
-        ${this.renderTitleSection()}
-        ${this.renderEntitySection()}
-        ${this.renderTimeRangeSection()}
-        ${this.renderCardOptions()}
       </div>
     `;
   }
@@ -7296,21 +7358,21 @@ InsightBaseEditor.styles = i$5`
       text-align: center;
     }
   `;
-__decorateClass$6([
+__decorateClass$7([
   n$1({ attribute: false })
 ], InsightBaseEditor.prototype, "hass");
-__decorateClass$6([
+__decorateClass$7([
   r()
 ], InsightBaseEditor.prototype, "_config");
 
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc$5 = Object.getOwnPropertyDescriptor;
-var __decorateClass$5 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$5(target, key) : target;
+var __defProp$2 = Object.defineProperty;
+var __getOwnPropDesc$6 = Object.getOwnPropertyDescriptor;
+var __decorateClass$6 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$6(target, key) : target;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp(target, key, result);
+  if (kind && result) __defProp$2(target, key, result);
   return result;
 };
 let InsightLineCard = class extends InsightBaseCard {
@@ -7337,7 +7399,7 @@ let InsightLineCard = class extends InsightBaseCard {
     const sensor = findNumericSensor(hass, entities, entitiesFallback);
     return {
       type: InsightLineCard.cardType,
-      entities: [{ entity: sensor }],
+      entities: [sensor],
       hours: 24,
       style: "area",
       zoom: true,
@@ -7904,10 +7966,10 @@ InsightLineCard.styles = [
 InsightLineCard.cardType = "custom:insight-line-card";
 InsightLineCard.cardName = "InsightChart Line";
 InsightLineCard.cardDescription = "Interactive time-series line & area chart with zoom";
-__decorateClass$5([
+__decorateClass$6([
   e$1("#chart")
 ], InsightLineCard.prototype, "wrapper", 2);
-InsightLineCard = __decorateClass$5([
+InsightLineCard = __decorateClass$6([
   t$1("insight-line-card")
 ], InsightLineCard);
 window.customCards = window.customCards ?? [];
@@ -7918,6 +7980,274 @@ window.customCards.push({
   preview: true
 });
 
+// Material Design Icons v7.4.47
+var mdiDelete$1 = "M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z";
+var mdiFormatListBulleted = "M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z";
+var mdiPlus = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
+
+class InsightEntityTab {
+  constructor(index, config) {
+    this.index = index;
+    this.config = config !== void 0 ? normaliseEntityConfig(config) : { entity: "" };
+  }
+}
+
+function buildEntitySchema(style) {
+  const isArea = style === "area";
+  return [
+    {
+      name: "entity",
+      selector: { entity: {} }
+    },
+    {
+      name: "y_axis",
+      selector: {
+        select: {
+          mode: "list",
+          options: [
+            { value: "left", label: "Left axis" },
+            { value: "right", label: "Right axis" }
+          ]
+        }
+      }
+    },
+    { name: "hidden", selector: { boolean: {} } },
+    {
+      type: "expandable",
+      name: "appearance",
+      title: "Appearance",
+      schema: [
+        {
+          name: "line_width",
+          selector: {
+            number: { min: 0.5, max: 10, step: 0.5, mode: "slider", unit_of_measurement: "px" }
+          }
+        },
+        ...isArea ? [
+          {
+            name: "fill_opacity",
+            selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
+          }
+        ] : [],
+        { name: "stroke_dash", selector: { text: {} } }
+      ]
+    },
+    {
+      type: "expandable",
+      name: "data",
+      title: "Data",
+      schema: [
+        { name: "attribute", selector: { text: {} } },
+        { name: "unit", selector: { text: {} } },
+        { name: "scale", selector: { number: { step: 1e-3, mode: "box" } } },
+        { name: "invert", selector: { boolean: {} } },
+        {
+          name: "transform",
+          selector: {
+            select: {
+              options: [
+                { value: "none", label: "None" },
+                { value: "diff", label: "Difference" },
+                { value: "normalize", label: "Normalize (0\u20131)" },
+                { value: "cumulative", label: "Cumulative" }
+              ]
+            }
+          }
+        },
+        {
+          name: "aggregate",
+          selector: {
+            select: {
+              options: [
+                { value: "", label: "None (use card default)" },
+                { value: "mean", label: "Mean" },
+                { value: "min", label: "Min" },
+                { value: "max", label: "Max" },
+                { value: "sum", label: "Sum" },
+                { value: "last", label: "Last" }
+              ]
+            }
+          }
+        },
+        {
+          name: "statistics",
+          selector: {
+            select: {
+              options: [
+                { value: "", label: "None (use History API)" },
+                { value: "5minute", label: "5 minutes" },
+                { value: "hour", label: "Hour" },
+                { value: "day", label: "Day" },
+                { value: "week", label: "Week" },
+                { value: "month", label: "Month" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ];
+}
+
+var __defProp$1 = Object.defineProperty;
+var __getOwnPropDesc$5 = Object.getOwnPropertyDescriptor;
+var __decorateClass$5 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$5(target, key) : target;
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result) __defProp$1(target, key, result);
+  return result;
+};
+let InsightLineEntityEditor = class extends i$2 {
+  constructor() {
+    super(...arguments);
+    this.chartStyle = "area";
+    this._computeLabel = (schema) => {
+      return localize(`editor.field.${schema.name}`, this._lang);
+    };
+  }
+  get _lang() {
+    return this.hass?.locale?.language ?? "en";
+  }
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
+  render() {
+    if (!this.tab) return b`${A}`;
+    const ec = this.tab.config;
+    const schema = buildEntitySchema(this.chartStyle ?? "area");
+    return b`
+      <div class="entity-editor-content">
+        <div class="entity-top-row">
+          <ha-icon-button
+            .path=${mdiDelete$1}
+            @click=${this._handleDelete}
+          ></ha-icon-button>
+        </div>
+
+        <div class="color-row">
+          <div class="color-label">${localize("editor.field.color", this._lang)}</div>
+          <input
+            type="color"
+            class="color-swatch"
+            .value=${ec.color ?? "#4AAFFF"}
+            @input=${(e) => this._patch({ color: e.target.value })}
+          />
+        </div>
+
+        <ha-form
+          .hass=${this.hass}
+          .schema=${schema}
+          .data=${this._formData(ec)}
+          .computeLabel=${this._computeLabel}
+          @value-changed=${(e) => this._onFormChanged(e.detail.value)}
+        ></ha-form>
+      </div>
+    `;
+  }
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+  _formData(ec) {
+    return {
+      entity: ec.entity ?? "",
+      y_axis: ec.y_axis ?? "left",
+      hidden: ec.hidden ?? false,
+      line_width: ec.line_width,
+      fill_opacity: ec.fill_opacity,
+      stroke_dash: Array.isArray(ec.stroke_dash) ? ec.stroke_dash.join(",") : ec.stroke_dash != null ? String(ec.stroke_dash) : "",
+      attribute: ec.attribute ?? "",
+      unit: ec.unit ?? "",
+      scale: ec.scale,
+      invert: ec.invert ?? false,
+      transform: ec.transform ?? "none",
+      aggregate: ec.aggregate ?? "",
+      statistics: ec.statistics ?? ""
+    };
+  }
+  _onFormChanged(raw) {
+    const dashStr = raw["stroke_dash"];
+    const parsedDash = dashStr ? dashStr.includes(",") ? dashStr.split(",").map(Number).filter((n) => !isNaN(n)) : Number(dashStr) || void 0 : void 0;
+    const patch = Object.fromEntries(
+      Object.entries({
+        entity: raw["entity"] ?? "",
+        y_axis: raw["y_axis"] ?? void 0,
+        hidden: raw["hidden"],
+        line_width: raw["line_width"],
+        fill_opacity: raw["fill_opacity"],
+        stroke_dash: parsedDash,
+        attribute: raw["attribute"] || void 0,
+        unit: raw["unit"] || void 0,
+        scale: raw["scale"],
+        invert: raw["invert"],
+        transform: raw["transform"] || void 0,
+        aggregate: raw["aggregate"] || void 0,
+        statistics: raw["statistics"] || void 0
+      }).filter(([, v]) => v !== void 0)
+    );
+    this.dispatchEvent(new CustomEvent("onChange", { detail: patch }));
+  }
+  _patch(patch) {
+    const updated = { ...this.tab.config, ...patch };
+    this.dispatchEvent(new CustomEvent("onChange", { detail: updated }));
+  }
+  _handleDelete() {
+    this.dispatchEvent(new CustomEvent("onDelete", { detail: this.tab.index }));
+  }
+};
+// ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
+InsightLineEntityEditor.styles = i$5`
+    :host {
+      display: block;
+    }
+
+    .entity-editor-content {
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .entity-top-row {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .color-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .color-swatch {
+      width: 100%;
+      height: 36px;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 2px;
+      background: transparent;
+    }
+  `;
+__decorateClass$5([
+  n$1({ attribute: false })
+], InsightLineEntityEditor.prototype, "hass", 2);
+__decorateClass$5([
+  n$1({ attribute: false })
+], InsightLineEntityEditor.prototype, "tab", 2);
+__decorateClass$5([
+  n$1()
+], InsightLineEntityEditor.prototype, "chartStyle", 2);
+InsightLineEntityEditor = __decorateClass$5([
+  t$1("insight-line-entity-editor")
+], InsightLineEntityEditor);
+
+var __defProp = Object.defineProperty;
 var __getOwnPropDesc$4 = Object.getOwnPropertyDescriptor;
 var __getProtoOf$2 = Object.getPrototypeOf;
 var __reflectGet$2 = Reflect.get;
@@ -7925,7 +8255,8 @@ var __decorateClass$4 = (decorators, target, key, kind) => {
   var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$4(target, key) : target;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
-      result = (decorator(result)) || result;
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result) __defProp(target, key, result);
   return result;
 };
 var __superGet$2 = (cls, obj, key) => __reflectGet$2(__getProtoOf$2(cls), key, obj);
@@ -7990,6 +8321,43 @@ function buildChartStyleSchema(cfg) {
         selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
       }
     ] : []
+  ];
+}
+function buildGeneralSchema(lang) {
+  return [
+    {
+      name: "title",
+      selector: { text: {} }
+    },
+    {
+      name: "style",
+      required: true,
+      selector: {
+        select: {
+          mode: "box",
+          options: [
+            {
+              value: "line",
+              label: localize("editor.option.style.line", lang),
+              description: localize("editor.option.style.line_desc", lang),
+              image: "/local/insight-card/images/chart-line.svg"
+            },
+            {
+              value: "area",
+              label: localize("editor.option.style.area", lang),
+              description: localize("editor.option.style.area_desc", lang),
+              image: "/local/insight-card/images/chart-area.svg"
+            },
+            {
+              value: "step",
+              label: localize("editor.option.style.step", lang),
+              description: localize("editor.option.style.step_desc", lang),
+              image: "/local/insight-card/images/chart-step.svg"
+            }
+          ]
+        }
+      }
+    }
   ];
 }
 const Y_AXIS_SCHEMA = [
@@ -8090,98 +8458,6 @@ const ADVANCED_SCHEMA = [
     selector: { number: { min: 0, max: 100, step: 1, mode: "box", unit_of_measurement: "px" } }
   }
 ];
-function buildEntitySchema(style) {
-  const isArea = style === "area";
-  return [
-    {
-      name: "y_axis",
-      selector: {
-        select: {
-          mode: "list",
-          options: [
-            { value: "left", label: "Left axis" },
-            { value: "right", label: "Right axis" }
-          ]
-        }
-      }
-    },
-    { name: "hidden", selector: { boolean: {} } },
-    {
-      type: "expandable",
-      name: "appearance",
-      title: "Appearance",
-      schema: [
-        {
-          name: "line_width",
-          selector: {
-            number: { min: 0.5, max: 10, step: 0.5, mode: "slider", unit_of_measurement: "px" }
-          }
-        },
-        ...isArea ? [
-          {
-            name: "fill_opacity",
-            selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
-          }
-        ] : [],
-        { name: "stroke_dash", selector: { text: {} } }
-      ]
-    },
-    {
-      type: "expandable",
-      name: "data",
-      title: "Data",
-      schema: [
-        { name: "attribute", selector: { text: {} } },
-        { name: "unit", selector: { text: {} } },
-        { name: "scale", selector: { number: { step: 1e-3, mode: "box" } } },
-        { name: "invert", selector: { boolean: {} } },
-        {
-          name: "transform",
-          selector: {
-            select: {
-              options: [
-                { value: "none", label: "None" },
-                { value: "diff", label: "Difference" },
-                { value: "normalize", label: "Normalize (0\u20131)" },
-                { value: "cumulative", label: "Cumulative" }
-              ]
-            }
-          }
-        },
-        {
-          name: "aggregate",
-          selector: {
-            select: {
-              options: [
-                { value: "", label: "None (use card default)" },
-                { value: "mean", label: "Mean" },
-                { value: "min", label: "Min" },
-                { value: "max", label: "Max" },
-                { value: "sum", label: "Sum" },
-                { value: "last", label: "Last" }
-              ]
-            }
-          }
-        },
-        {
-          name: "statistics",
-          selector: {
-            select: {
-              options: [
-                { value: "", label: "None (use History API)" },
-                { value: "5minute", label: "5 minutes" },
-                { value: "hour", label: "Hour" },
-                { value: "day", label: "Day" },
-                { value: "week", label: "Week" },
-                { value: "month", label: "Month" }
-              ]
-            }
-          }
-        }
-      ]
-    }
-  ];
-}
 const THRESHOLD_SCHEMA = [
   { name: "value", selector: { number: { step: 0.1, mode: "box" } } },
   { name: "label", selector: { text: {} } },
@@ -8193,19 +8469,28 @@ const COLOR_THRESHOLD_SCHEMA = [
 let InsightLineCardEditor = class extends InsightBaseEditor {
   constructor() {
     super(...arguments);
+    this._tabs = [];
+    this._currTab = "1";
+    this._hoursOptions = [
+      { value: "6", label: "6h" },
+      { value: "12", label: "12h" },
+      { value: "24", label: "24h" },
+      { value: "48", label: "48h" },
+      { value: "72", label: "72h" },
+      { value: "168", label: "7d" }
+    ];
+    this._addTab = () => {
+      const newTab = new InsightEntityTab(this._tabs.length + 1, void 0);
+      this._tabs = [...this._tabs, newTab];
+      this._currTab = newTab.index.toString();
+      this._syncEntitiesToConfig();
+    };
     // ---------------------------------------------------------------------------
     // computeLabel
     // ---------------------------------------------------------------------------
     this._computeLabel = (schema) => {
       if ("title" in schema) return schema.title;
       return localize(`editor.field.${schema.name}`, this._lang);
-    };
-    // ---------------------------------------------------------------------------
-    // Entity helpers
-    // ---------------------------------------------------------------------------
-    this._appendEntity = () => {
-      const entities = [...(this._config?.entities ?? []).map(normaliseEntityConfig), { entity: "" }];
-      this._updateConfig({ entities });
     };
     this._appendThreshold = () => {
       const thresholds = [
@@ -8228,6 +8513,14 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   get _lineConfig() {
     return this._config ?? {};
   }
+  setConfig(config) {
+    super.setConfig(config);
+    const cfg = config;
+    this._tabs = (cfg.entities ?? []).map(
+      (e, i) => new InsightEntityTab(i + 1, e)
+    );
+    if (this._tabs.length === 0) this._addTab();
+  }
   // Required by abstract base — unused since we override render()
   renderCardOptions() {
     return b`${A}`;
@@ -8241,8 +8534,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     }
     return b`
       <div class="editor-container">
-        ${this.renderTitleSection()}
-        ${this.renderTimeRangeSection()}
+        ${this._renderGeneralSection()}
         ${this._renderEntitySection()}
         ${this._renderChartStyleSection()}
         ${this._renderYAxisSection()}
@@ -8253,119 +8545,99 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       </div>
     `;
   }
-  // ---------------------------------------------------------------------------
-  // Entities
-  // ---------------------------------------------------------------------------
-  _renderEntitySection() {
+  _renderGeneralSection() {
     const cfg = this._lineConfig;
-    const entities = (cfg.entities ?? []).map(normaliseEntityConfig);
-    const style = cfg.style ?? "area";
-    const schema = buildEntitySchema(style);
+    const data = {
+      title: cfg.title ?? "",
+      style: cfg.style ?? "area"
+    };
     return b`
       <div class="section">
-        <div class="section-header">${localize("editor.section.entities", this._lang)}</div>
-
-        ${entities.map(
-      (ec, idx) => b`
-            <div class="entity-card">
-              <div class="entity-top-row">
-                <ha-entity-picker
-                  .hass=${this.hass}
-                  .value=${ec.entity}
-                  allow-custom-entity
-                  @value-changed=${(e) => this._updateEntityAt(idx, { entity: e.detail.value })}
-                ></ha-entity-picker>
-                <ha-textfield
-                  label=${localize("editor.field.name", this._lang)}
-                  .value=${ec.name ?? ""}
-                  @change=${(e) => this._updateEntityAt(idx, {
-        name: e.target.value || void 0
-      })}
-                ></ha-textfield>
-                <ha-icon-button
-                  .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
-                  @click=${() => this._removeEntityAt(idx)}
-                ></ha-icon-button>
-              </div>
-
-              <div class="entity-color-row">
-                <span class="field-label">${localize("editor.field.color", this._lang)}</span>
-                <input
-                  type="color"
-                  class="color-swatch"
-                  .value=${ec.color ?? "#4AAFFF"}
-                  @input=${(e) => this._updateEntityAt(idx, {
-        color: e.target.value
-      })}
-                />
-                <ha-textfield
-                  class="color-text"
-                  label=${localize("editor.field.hex", this._lang)}
-                  .value=${ec.color ?? ""}
-                  placeholder="#4AAFFF"
-                  @change=${(e) => {
-        const v = e.target.value.trim();
-        this._updateEntityAt(idx, { color: v || void 0 });
-      }}
-                ></ha-textfield>
-              </div>
-
-              <ha-form
-                .hass=${this.hass}
-                .schema=${schema}
-                .data=${this._entityFormData(ec)}
-                .computeLabel=${this._computeLabel}
-                @value-changed=${(e) => this._onEntityFormChanged(idx, e.detail.value)}
-              ></ha-form>
-            </div>
-          `
-    )}
-
-        <mwc-button class="add-entity-btn" @click=${this._appendEntity}>
-          ${localize("editor.action.add_entity", this._lang)}
-        </mwc-button>
+        <ha-form
+          .hass=${this.hass}
+          .schema=${buildGeneralSchema(this._lang)}
+          .data=${data}
+          .computeLabel=${this._computeLabel}
+          @value-changed=${(e) => this._updateConfig(e.detail.value)}
+        ></ha-form>
+        <div class="control-row">
+          <span class="control-label">${localize("editor.field.hours", this._lang)}</span>
+          <ha-control-select
+            .options=${this._hoursOptions}
+            .value=${String(cfg.hours ?? 24)}
+            @value-changed=${(e) => this._updateConfig({ hours: Number(e.detail.value) })}
+          ></ha-control-select>
+        </div>
       </div>
     `;
   }
-  _entityFormData(ec) {
-    return {
-      y_axis: ec.y_axis ?? "left",
-      hidden: ec.hidden ?? false,
-      line_width: ec.line_width,
-      fill_opacity: ec.fill_opacity,
-      stroke_dash: Array.isArray(ec.stroke_dash) ? ec.stroke_dash.join(",") : ec.stroke_dash != null ? String(ec.stroke_dash) : "",
-      attribute: ec.attribute ?? "",
-      unit: ec.unit ?? "",
-      scale: ec.scale,
-      invert: ec.invert ?? false,
-      transform: ec.transform ?? "none",
-      aggregate: ec.aggregate ?? "",
-      statistics: ec.statistics ?? ""
-    };
+  // ---------------------------------------------------------------------------
+  // Entities (expandable + tabs)
+  // ---------------------------------------------------------------------------
+  _renderEntitySection() {
+    const currentTab = this._tabs.find((t) => t.index.toString() === this._currTab) ?? this._tabs[0];
+    return b`
+      <ha-expansion-panel outlined>
+        <ha-svg-icon slot="leading-icon" .path=${mdiFormatListBulleted}></ha-svg-icon>
+        <span slot="header">${localize("editor.section.entities", this._lang)}</span>
+        <div class="entities-panel">
+          <div class="entities-toolbar">
+            <ha-tab-group @wa-tab-show=${this._handleTabChanged}>
+              ${this._tabs.map(
+      (tab) => b`
+                  <ha-tab-group-tab
+                    slot="nav"
+                    .panel=${tab.index}
+                    .active=${this._currTab === tab.index.toString()}
+                  >
+                    ${tab.index}
+                  </ha-tab-group-tab>
+                `
+    )}
+            </ha-tab-group>
+            <ha-icon-button
+              .path=${mdiPlus}
+              .label=${localize("editor.action.add_entity", this._lang)}
+              @click=${this._addTab}
+            ></ha-icon-button>
+          </div>
+
+          ${currentTab ? b`
+                <insight-line-entity-editor
+                  .hass=${this.hass}
+                  .tab=${currentTab}
+                  .chartStyle=${this._lineConfig.style ?? "area"}
+                  @onChange=${this._handleEntityChange}
+                  @onDelete=${this._handleEntityDelete}
+                ></insight-line-entity-editor>
+              ` : A}
+        </div>
+      </ha-expansion-panel>
+    `;
   }
-  _onEntityFormChanged(idx, raw) {
-    const dashStr = raw["stroke_dash"];
-    const parsedDash = dashStr ? dashStr.includes(",") ? dashStr.split(",").map(Number).filter((n) => !isNaN(n)) : Number(dashStr) || void 0 : void 0;
-    const patch = {
-      y_axis: raw["y_axis"] ?? void 0,
-      hidden: raw["hidden"],
-      line_width: raw["line_width"],
-      fill_opacity: raw["fill_opacity"],
-      stroke_dash: parsedDash,
-      attribute: raw["attribute"] || void 0,
-      unit: raw["unit"] || void 0,
-      scale: raw["scale"],
-      invert: raw["invert"],
-      transform: raw["transform"] || void 0,
-      aggregate: raw["aggregate"] || void 0,
-      statistics: raw["statistics"] || void 0
-    };
-    this._updateEntityAt(
-      idx,
-      Object.fromEntries(
-        Object.entries(patch).filter(([, v]) => v !== void 0)
-      )
-    );
+  _handleTabChanged(e) {
+    const next = e.detail.name?.toString();
+    if (next && next !== this._currTab) this._currTab = next;
+  }
+  _handleEntityChange(e) {
+    e.stopPropagation();
+    const idx = this._tabs.findIndex((t) => t.index.toString() === this._currTab);
+    if (idx === -1) return;
+    this._tabs[idx].config = e.detail;
+    this._syncEntitiesToConfig();
+  }
+  _handleEntityDelete(e) {
+    e.stopPropagation();
+    const delIndex = e.detail;
+    this._tabs = this._tabs.filter((t) => t.index !== delIndex).map((t, i) => new InsightEntityTab(i + 1, t.config));
+    const newCurr = Math.max(1, parseInt(this._currTab) - 1);
+    this._currTab = this._tabs.length > 0 ? Math.min(newCurr, this._tabs.length).toString() : "1";
+    this._syncEntitiesToConfig();
+  }
+  _syncEntitiesToConfig() {
+    this._updateConfig({
+      entities: this._tabs.filter((t) => t.config.entity).map((t) => serialiseEntityConfig(t.config))
+    });
   }
   // ---------------------------------------------------------------------------
   // Chart style
@@ -8587,16 +8859,6 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       </div>
     `;
   }
-  _removeEntityAt(index) {
-    const entities = (this._config?.entities ?? []).map(normaliseEntityConfig);
-    entities.splice(index, 1);
-    this._updateConfig({ entities });
-  }
-  _updateEntityAt(index, patch) {
-    const entities = (this._config?.entities ?? []).map(normaliseEntityConfig);
-    entities[index] = { ...entities[index], ...patch };
-    this._updateConfig({ entities });
-  }
   // ---------------------------------------------------------------------------
   // Threshold helpers
   // ---------------------------------------------------------------------------
@@ -8636,27 +8898,43 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
 InsightLineCardEditor.styles = [
   __superGet$2(InsightLineCardEditor, InsightLineCardEditor, "styles"),
   i$5`
-      .entity-card {
-        border: 1px solid var(--divider-color, #e0e0e0);
-        border-radius: 8px;
-        padding: 12px;
+      .entities-panel {
+        padding: 8px 0;
         display: flex;
         flex-direction: column;
         gap: 8px;
       }
 
-      .entity-top-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr auto;
-        gap: 8px;
-        align-items: flex-end;
+      .entities-toolbar {
+        display: flex;
+        align-items: flex-start;
+        gap: 4px;
       }
 
-      .entity-color-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+      ha-tab-group {
+        flex: 1;
       }
+
+      ha-expansion-panel {
+        margin-top: 4px;
+      }
+
+      .control-row {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .control-label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--secondary-text-color);
+      }
+
+      ha-control-select {
+        width: 100%;
+      }
+
 
       .field-label {
         font-size: 0.875rem;
@@ -8714,6 +8992,12 @@ InsightLineCardEditor.styles = [
       }
     `
 ];
+__decorateClass$4([
+  r()
+], InsightLineCardEditor.prototype, "_tabs", 2);
+__decorateClass$4([
+  r()
+], InsightLineCardEditor.prototype, "_currTab", 2);
 InsightLineCardEditor = __decorateClass$4([
   t$1("insight-line-card-editor")
 ], InsightLineCardEditor);

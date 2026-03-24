@@ -14,7 +14,9 @@
     },
     "field": {
       "title": "Title (optional)",
+      "hours": "Time range",
       "name": "Name",
+      "entity": "Entity",
       "color": "Color",
       "hex": "Hex",
       "style": "Chart style",
@@ -63,6 +65,16 @@
       "remove_entity": "Remove entity",
       "add_threshold": "+ Add threshold",
       "add_color_threshold": "+ Add color threshold"
+    },
+    "option": {
+      "style": {
+        "line": "Line",
+        "line_desc": "Classic line chart without fill",
+        "area": "Area",
+        "area_desc": "Line chart with filled area below",
+        "step": "Step",
+        "step_desc": "Staircase chart, ideal for state changes"
+      }
     },
     "subsection": {
       "threshold_lines": "Threshold lines",

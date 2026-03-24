@@ -6,43 +6,24 @@
  */
 
 import { html, css, nothing, type TemplateResult, type CSSResultGroup } from "lit";
-import { customElement } from "lit/decorators.js";
-import { mdiTableRow, mdiPalette, mdiFormatListBulleted, mdiAnimation } from "@mdi/js";
+import { customElement, state } from "lit/decorators.js";
+import { mdiPalette, mdiFormatListBulleted, mdiPlus } from "@mdi/js";
 
 import {
   InsightBaseEditor,
   localize,
-  normaliseEntityConfig,
+  serialiseEntityConfig,
   type InsightLineConfig,
   type InsightEntityConfig,
   type ThresholdConfig,
   type ColorThresholdConfig,
+  type LovelaceCardConfig,
+  type InsightBaseConfig,
 } from "@insight-chart/core";
 
-// ---------------------------------------------------------------------------
-// Minimal ha-form schema types (HA does not publish these officially)
-// ---------------------------------------------------------------------------
-
-type HaSelector =
-  | { boolean: Record<string, never> }
-  | { number: { min?: number; max?: number; step?: number; mode?: "box" | "slider"; unit_of_measurement?: string } }
-  | { text: { multiline?: boolean; type?: string } }
-  | { select: { options: string[] | Array<{ value: string; label: string; description?: string }>; mode?: "dropdown" | "list" | "box" } };
-
-interface HaFormField {
-  name: string;
-  required?: boolean;
-  selector: HaSelector;
-}
-
-interface HaFormExpandable {
-  type: "expandable";
-  name: string;
-  title: string;
-  schema: HaFormField[];
-}
-
-type HaFormSchema = HaFormField | HaFormExpandable;
+import { InsightEntityTab } from "./insight-line-entity-tab.js";
+import "./insight-line-entity-editor.js";
+import { type HaFormField, type HaFormSchema, type HaSelector } from "./insight-line-entity-schema.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -119,6 +100,44 @@ function buildChartStyleSchema(cfg: InsightLineConfig): HaFormSchema[] {
           } satisfies HaFormField,
         ]
       : []),
+  ];
+}
+
+function buildGeneralSchema(lang: string): HaFormSchema[] {
+  return [
+    {
+      name: "title",
+      selector: { text: {} },
+    },
+    {
+      name: "style",
+      required: true,
+      selector: {
+        select: {
+          mode: "box",
+          options: [
+            {
+              value: "line",
+              label: localize("editor.option.style.line", lang),
+              description: localize("editor.option.style.line_desc", lang),
+              image: "/local/insight-card/images/chart-line.svg",
+            },
+            {
+              value: "area",
+              label: localize("editor.option.style.area", lang),
+              description: localize("editor.option.style.area_desc", lang),
+              image: "/local/insight-card/images/chart-area.svg",
+            },
+            {
+              value: "step",
+              label: localize("editor.option.style.step", lang),
+              description: localize("editor.option.style.step_desc", lang),
+              image: "/local/insight-card/images/chart-step.svg",
+            },
+          ],
+        },
+      },
+    },
   ];
 }
 
@@ -226,101 +245,6 @@ const ADVANCED_SCHEMA: HaFormSchema[] = [
   },
 ];
 
-function buildEntitySchema(style: string): HaFormSchema[] {
-  const isArea = style === "area";
-  return [
-    {
-      name: "y_axis",
-      selector: {
-        select: {
-          mode: "list",
-          options: [
-            { value: "left", label: "Left axis" },
-            { value: "right", label: "Right axis" },
-          ],
-        },
-      },
-    },
-    { name: "hidden", selector: { boolean: {} as Record<string, never> } },
-    {
-      type: "expandable",
-      name: "appearance",
-      title: "Appearance",
-      schema: [
-        {
-          name: "line_width",
-          selector: {
-            number: { min: 0.5, max: 10, step: 0.5, mode: "slider", unit_of_measurement: "px" },
-          },
-        },
-        ...(isArea
-          ? [
-              {
-                name: "fill_opacity",
-                selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" as const } },
-              } satisfies HaFormField,
-            ]
-          : []),
-        { name: "stroke_dash", selector: { text: {} } },
-      ],
-    },
-    {
-      type: "expandable",
-      name: "data",
-      title: "Data",
-      schema: [
-        { name: "attribute", selector: { text: {} } },
-        { name: "unit", selector: { text: {} } },
-        { name: "scale", selector: { number: { step: 0.001, mode: "box" } } },
-        { name: "invert", selector: { boolean: {} as Record<string, never> } },
-        {
-          name: "transform",
-          selector: {
-            select: {
-              options: [
-                { value: "none", label: "None" },
-                { value: "diff", label: "Difference" },
-                { value: "normalize", label: "Normalize (0–1)" },
-                { value: "cumulative", label: "Cumulative" },
-              ],
-            },
-          },
-        },
-        {
-          name: "aggregate",
-          selector: {
-            select: {
-              options: [
-                { value: "", label: "None (use card default)" },
-                { value: "mean", label: "Mean" },
-                { value: "min", label: "Min" },
-                { value: "max", label: "Max" },
-                { value: "sum", label: "Sum" },
-                { value: "last", label: "Last" },
-              ],
-            },
-          },
-        },
-        {
-          name: "statistics",
-          selector: {
-            select: {
-              options: [
-                { value: "", label: "None (use History API)" },
-                { value: "5minute", label: "5 minutes" },
-                { value: "hour", label: "Hour" },
-                { value: "day", label: "Day" },
-                { value: "week", label: "Week" },
-                { value: "month", label: "Month" },
-              ],
-            },
-          },
-        },
-      ],
-    },
-  ];
-}
-
 const THRESHOLD_SCHEMA: HaFormField[] = [
   { name: "value", selector: { number: { step: 0.1, mode: "box" } } },
   { name: "label", selector: { text: {} } },
@@ -337,8 +261,20 @@ const COLOR_THRESHOLD_SCHEMA: HaFormField[] = [
 
 @customElement("insight-line-card-editor")
 export class InsightLineCardEditor extends InsightBaseEditor {
+  @state() private _tabs: InsightEntityTab[] = [];
+  @state() private _currTab = "1";
+
   private get _lineConfig(): InsightLineConfig {
     return (this._config ?? {}) as InsightLineConfig;
+  }
+
+  override setConfig(config: LovelaceCardConfig): void {
+    super.setConfig(config);
+    const cfg = config as unknown as InsightLineConfig;
+    this._tabs = (cfg.entities ?? []).map(
+      (e, i) => new InsightEntityTab(i + 1, e as InsightEntityConfig | string),
+    );
+    if (this._tabs.length === 0) this._addTab();
   }
 
   // Required by abstract base — unused since we override render()
@@ -357,8 +293,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
 
       return html`
       <div class="editor-container">
-        ${this.renderTitleSection()}
-        ${this.renderTimeRangeSection()}
+        ${this._renderGeneralSection()}
         ${this._renderEntitySection()}
         ${this._renderChartStyleSection()}
         ${this._renderYAxisSection()}
@@ -370,140 +305,132 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     `;
   }
 
-  // ---------------------------------------------------------------------------
-  // Entities
-  // ---------------------------------------------------------------------------
+  private readonly _hoursOptions = [
+    { value: "6",   label: "6h" },
+    { value: "12",  label: "12h" },
+    { value: "24",  label: "24h" },
+    { value: "48",  label: "48h" },
+    { value: "72",  label: "72h" },
+    { value: "168", label: "7d" },
+  ];
 
-  private _renderEntitySection(): TemplateResult {
+  private _renderGeneralSection(): TemplateResult {
     const cfg = this._lineConfig;
-    const entities = (cfg.entities ?? []).map(normaliseEntityConfig);
-    const style = cfg.style ?? "area";
-    const schema = buildEntitySchema(style);
+    const data = {
+      title: cfg.title ?? "",
+      style: cfg.style ?? "area",
+    };
 
     return html`
       <div class="section">
-        <div class="section-header">${localize("editor.section.entities", this._lang)}</div>
-
-        ${entities.map(
-          (ec, idx) => html`
-            <div class="entity-card">
-              <div class="entity-top-row">
-                <ha-entity-picker
-                  .hass=${this.hass}
-                  .value=${ec.entity}
-                  allow-custom-entity
-                  @value-changed=${(e: CustomEvent<{ value: string }>) =>
-                    this._updateEntityAt(idx, { entity: e.detail.value })}
-                ></ha-entity-picker>
-                <ha-textfield
-                  label=${localize("editor.field.name", this._lang)}
-                  .value=${ec.name ?? ""}
-                  @change=${(e: Event) =>
-                    this._updateEntityAt(idx, {
-                      name: (e.target as HTMLInputElement).value || undefined,
-                    })}
-                ></ha-textfield>
-                <ha-icon-button
-                  .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
-                  @click=${() => this._removeEntityAt(idx)}
-                ></ha-icon-button>
-              </div>
-
-              <div class="entity-color-row">
-                <span class="field-label">${localize("editor.field.color", this._lang)}</span>
-                <input
-                  type="color"
-                  class="color-swatch"
-                  .value=${ec.color ?? "#4AAFFF"}
-                  @input=${(e: Event) =>
-                    this._updateEntityAt(idx, {
-                      color: (e.target as HTMLInputElement).value,
-                    })}
-                />
-                <ha-textfield
-                  class="color-text"
-                  label=${localize("editor.field.hex", this._lang)}
-                  .value=${ec.color ?? ""}
-                  placeholder="#4AAFFF"
-                  @change=${(e: Event) => {
-                    const v = (e.target as HTMLInputElement).value.trim();
-                    this._updateEntityAt(idx, { color: v || undefined });
-                  }}
-                ></ha-textfield>
-              </div>
-
-              <ha-form
-                .hass=${this.hass}
-                .schema=${schema}
-                .data=${this._entityFormData(ec)}
-                .computeLabel=${this._computeLabel}
-                @value-changed=${(e: CustomEvent<{ value: Record<string, unknown> }>) =>
-                  this._onEntityFormChanged(idx, e.detail.value)}
-              ></ha-form>
-            </div>
-          `,
-        )}
-
-        <mwc-button class="add-entity-btn" @click=${this._appendEntity}>
-          ${localize("editor.action.add_entity", this._lang)}
-        </mwc-button>
+        <ha-form
+          .hass=${this.hass}
+          .schema=${buildGeneralSchema(this._lang)}
+          .data=${data}
+          .computeLabel=${this._computeLabel}
+          @value-changed=${(e: CustomEvent<{ value: Record<string, unknown> }>) =>
+            this._updateConfig(e.detail.value as Partial<InsightLineConfig>)}
+        ></ha-form>
+        <div class="control-row">
+          <span class="control-label">${localize("editor.field.hours", this._lang)}</span>
+          <ha-control-select
+            .options=${this._hoursOptions}
+            .value=${String(cfg.hours ?? 24)}
+            @value-changed=${(e: CustomEvent<{ value: string }>) =>
+              this._updateConfig({ hours: Number(e.detail.value) })}
+          ></ha-control-select>
+        </div>
       </div>
     `;
   }
 
-  private _entityFormData(ec: InsightEntityConfig): Record<string, unknown> {
-    return {
-      y_axis: ec.y_axis ?? "left",
-      hidden: ec.hidden ?? false,
-      line_width: ec.line_width,
-      fill_opacity: ec.fill_opacity,
-      stroke_dash: Array.isArray(ec.stroke_dash)
-        ? ec.stroke_dash.join(",")
-        : ec.stroke_dash != null
-          ? String(ec.stroke_dash)
-          : "",
-      attribute: ec.attribute ?? "",
-      unit: ec.unit ?? "",
-      scale: ec.scale,
-      invert: ec.invert ?? false,
-      transform: ec.transform ?? "none",
-      aggregate: ec.aggregate ?? "",
-      statistics: ec.statistics ?? "",
-    };
+  // ---------------------------------------------------------------------------
+  // Entities (expandable + tabs)
+  // ---------------------------------------------------------------------------
+
+  private _renderEntitySection(): TemplateResult {
+    const currentTab = this._tabs.find((t) => t.index.toString() === this._currTab)
+      ?? this._tabs[0];
+
+    return html`
+      <ha-expansion-panel outlined>
+        <ha-svg-icon slot="leading-icon" .path=${mdiFormatListBulleted}></ha-svg-icon>
+        <span slot="header">${localize("editor.section.entities", this._lang)}</span>
+        <div class="entities-panel">
+          <div class="entities-toolbar">
+            <ha-tab-group @wa-tab-show=${this._handleTabChanged}>
+              ${this._tabs.map(
+                (tab) => html`
+                  <ha-tab-group-tab
+                    slot="nav"
+                    .panel=${tab.index}
+                    .active=${this._currTab === tab.index.toString()}
+                  >
+                    ${tab.index}
+                  </ha-tab-group-tab>
+                `,
+              )}
+            </ha-tab-group>
+            <ha-icon-button
+              .path=${mdiPlus}
+              .label=${localize("editor.action.add_entity", this._lang)}
+              @click=${this._addTab}
+            ></ha-icon-button>
+          </div>
+
+          ${currentTab
+            ? html`
+                <insight-line-entity-editor
+                  .hass=${this.hass}
+                  .tab=${currentTab}
+                  .chartStyle=${this._lineConfig.style ?? "area"}
+                  @onChange=${this._handleEntityChange}
+                  @onDelete=${this._handleEntityDelete}
+                ></insight-line-entity-editor>
+              `
+            : nothing}
+        </div>
+      </ha-expansion-panel>
+    `;
   }
 
-  private _onEntityFormChanged(idx: number, raw: Record<string, unknown>): void {
-    const dashStr = raw["stroke_dash"] as string | undefined;
-    const parsedDash: InsightEntityConfig["stroke_dash"] = dashStr
-      ? dashStr.includes(",")
-        ? dashStr
-            .split(",")
-            .map(Number)
-            .filter((n) => !isNaN(n))
-        : Number(dashStr) || undefined
-      : undefined;
+  private _addTab = (): void => {
+    const newTab = new InsightEntityTab(this._tabs.length + 1, undefined);
+    this._tabs = [...this._tabs, newTab];
+    this._currTab = newTab.index.toString();
+    this._syncEntitiesToConfig();
+  };
 
-    const patch: Partial<InsightEntityConfig> = {
-      y_axis: (raw["y_axis"] as InsightEntityConfig["y_axis"]) ?? undefined,
-      hidden: raw["hidden"] as boolean | undefined,
-      line_width: raw["line_width"] as number | undefined,
-      fill_opacity: raw["fill_opacity"] as number | undefined,
-      stroke_dash: parsedDash,
-      attribute: (raw["attribute"] as string) || undefined,
-      unit: (raw["unit"] as string) || undefined,
-      scale: raw["scale"] as number | undefined,
-      invert: raw["invert"] as boolean | undefined,
-      transform: (raw["transform"] as InsightEntityConfig["transform"]) || undefined,
-      aggregate: (raw["aggregate"] as InsightEntityConfig["aggregate"]) || undefined,
-      statistics: (raw["statistics"] as InsightEntityConfig["statistics"]) || undefined,
-    };
+  private _handleTabChanged(e: CustomEvent): void {
+    const next = e.detail.name?.toString();
+    if (next && next !== this._currTab) this._currTab = next;
+  }
 
-    this._updateEntityAt(
-      idx,
-      Object.fromEntries(
-        Object.entries(patch).filter(([, v]) => v !== undefined),
-      ) as Partial<InsightEntityConfig>,
-    );
+  private _handleEntityChange(e: CustomEvent<InsightEntityConfig>): void {
+    e.stopPropagation();
+    const idx = this._tabs.findIndex((t) => t.index.toString() === this._currTab);
+    if (idx === -1) return;
+    this._tabs[idx].config = e.detail;
+    this._syncEntitiesToConfig();
+  }
+
+  private _handleEntityDelete(e: CustomEvent<number>): void {
+    e.stopPropagation();
+    const delIndex = e.detail;
+    this._tabs = this._tabs
+      .filter((t) => t.index !== delIndex)
+      .map((t, i) => new InsightEntityTab(i + 1, t.config));
+    const newCurr = Math.max(1, parseInt(this._currTab) - 1);
+    this._currTab = this._tabs.length > 0 ? Math.min(newCurr, this._tabs.length).toString() : "1";
+    this._syncEntitiesToConfig();
+  }
+
+  private _syncEntitiesToConfig(): void {
+    this._updateConfig({
+      entities: this._tabs
+        .filter((t) => t.config.entity)
+        .map((t) => serialiseEntityConfig(t.config)),
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -764,27 +691,6 @@ export class InsightLineCardEditor extends InsightBaseEditor {
   };
 
   // ---------------------------------------------------------------------------
-  // Entity helpers
-  // ---------------------------------------------------------------------------
-
-  private readonly _appendEntity = (): void => {
-    const entities = [...(this._config?.entities ?? []).map(normaliseEntityConfig), { entity: "" }];
-    this._updateConfig({ entities });
-  };
-
-  private _removeEntityAt(index: number): void {
-    const entities = (this._config?.entities ?? []).map(normaliseEntityConfig);
-    entities.splice(index, 1);
-    this._updateConfig({ entities });
-  }
-
-  private _updateEntityAt(index: number, patch: Partial<InsightEntityConfig>): void {
-    const entities = (this._config?.entities ?? []).map(normaliseEntityConfig);
-    entities[index] = { ...entities[index], ...patch };
-    this._updateConfig({ entities });
-  }
-
-  // ---------------------------------------------------------------------------
   // Threshold helpers
   // ---------------------------------------------------------------------------
 
@@ -854,27 +760,43 @@ export class InsightLineCardEditor extends InsightBaseEditor {
   static styles: CSSResultGroup = [
     super.styles,
     css`
-      .entity-card {
-        border: 1px solid var(--divider-color, #e0e0e0);
-        border-radius: 8px;
-        padding: 12px;
+      .entities-panel {
+        padding: 8px 0;
         display: flex;
         flex-direction: column;
         gap: 8px;
       }
 
-      .entity-top-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr auto;
-        gap: 8px;
-        align-items: flex-end;
+      .entities-toolbar {
+        display: flex;
+        align-items: flex-start;
+        gap: 4px;
       }
 
-      .entity-color-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+      ha-tab-group {
+        flex: 1;
       }
+
+      ha-expansion-panel {
+        margin-top: 4px;
+      }
+
+      .control-row {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .control-label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--secondary-text-color);
+      }
+
+      ha-control-select {
+        width: 100%;
+      }
+
 
       .field-label {
         font-size: 0.875rem;

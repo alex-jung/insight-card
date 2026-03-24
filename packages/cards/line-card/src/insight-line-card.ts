@@ -206,7 +206,7 @@ export class InsightLineCard extends InsightBaseCard {
         const sensor = findNumericSensor(hass, entities, entitiesFallback);
         return {
             type: InsightLineCard.cardType,
-            entities: [{ entity: sensor }],
+            entities: [sensor],
             hours: 24,
             style: "area",
             zoom: true,
