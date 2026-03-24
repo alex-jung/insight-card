@@ -74,6 +74,10 @@
         "area_desc": "Line chart with filled area below",
         "step": "Step",
         "step_desc": "Staircase chart, ideal for state changes"
+      },
+      "curve": {
+        "smooth": "Smooth",
+        "linear": "Linear"
       }
     },
     "subsection": {

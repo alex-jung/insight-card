@@ -7,7 +7,17 @@
 
 import { html, css, nothing, type TemplateResult, type CSSResultGroup } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { mdiPalette, mdiFormatListBulleted, mdiPlus } from "@mdi/js";
+import {
+  mdiPalette,
+  mdiFormatListBulleted,
+  mdiPlus,
+  mdiChartLine,
+  mdiAxisArrow,
+  mdiEye,
+  mdiDatabaseClock,
+  mdiLayersOutline,
+  mdiCog,
+} from "@mdi/js";
 
 import {
   InsightBaseEditor,
@@ -42,37 +52,7 @@ function dropEmpty<T extends Record<string, unknown>>(data: T): Partial<T> {
 
 function buildChartStyleSchema(cfg: InsightLineConfig): HaFormSchema[] {
   const isArea = (cfg.style ?? "area") === "area";
-  const isStep = cfg.style === "step";
   return [
-    {
-      name: "style",
-      selector: {
-        select: {
-          mode: "list",
-          options: [
-            { value: "line", label: "Line" },
-            { value: "area", label: "Area" },
-            { value: "step", label: "Step" },
-          ],
-        },
-      },
-    },
-    ...(!isStep
-      ? [
-          {
-            name: "curve",
-            selector: {
-              select: {
-                mode: "list" as const,
-                options: [
-                  { value: "smooth", label: "Smooth" },
-                  { value: "linear", label: "Linear" },
-                ],
-              },
-            },
-          } satisfies HaFormField,
-        ]
-      : []),
     { name: "zoom", selector: { boolean: {} as Record<string, never> } },
     {
       name: "show_points",
@@ -103,7 +83,8 @@ function buildChartStyleSchema(cfg: InsightLineConfig): HaFormSchema[] {
   ];
 }
 
-function buildGeneralSchema(lang: string): HaFormSchema[] {
+function buildGeneralSchema(lang: string, cfg: InsightLineConfig): HaFormSchema[] {
+  const isStep = cfg.style === "step";
   return [
     {
       name: "title",
@@ -138,6 +119,30 @@ function buildGeneralSchema(lang: string): HaFormSchema[] {
         },
       },
     },
+    ...(!isStep
+      ? [
+          {
+            name: "curve",
+            selector: {
+              select: {
+                mode: "box" as const,
+                options: [
+                  {
+                    value: "smooth",
+                    label: localize("editor.option.curve.smooth", lang),
+                    image: "/local/insight-card/images/curve-smooth.svg",
+                  },
+                  {
+                    value: "linear",
+                    label: localize("editor.option.curve.linear", lang),
+                    image: "/local/insight-card/images/curve-linear.svg",
+                  },
+                ],
+              },
+            },
+          } satisfies HaFormField,
+        ]
+      : []),
   ];
 }
 
@@ -319,13 +324,14 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     const data = {
       title: cfg.title ?? "",
       style: cfg.style ?? "area",
+      curve: cfg.curve ?? "smooth",
     };
 
     return html`
       <div class="section">
         <ha-form
           .hass=${this.hass}
-          .schema=${buildGeneralSchema(this._lang)}
+          .schema=${buildGeneralSchema(this._lang, cfg)}
           .data=${data}
           .computeLabel=${this._computeLabel}
           @value-changed=${(e: CustomEvent<{ value: Record<string, unknown> }>) =>
@@ -442,8 +448,6 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     const showPointsStr =
       cfg.show_points === true ? "true" : cfg.show_points === "hover" ? "hover" : "false";
     const data = {
-      style: cfg.style ?? "area",
-      curve: cfg.curve ?? "smooth",
       zoom: cfg.zoom !== false,
       show_points: showPointsStr,
       line_width: cfg.line_width ?? 2,
@@ -451,24 +455,27 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     };
 
     return html`
-      <div class="section">
-        <div class="section-header">Chart style</div>
-        <ha-form
-          .hass=${this.hass}
-          .schema=${buildChartStyleSchema(cfg)}
-          .data=${data}
-          .computeLabel=${this._computeLabel}
-          @value-changed=${(e: CustomEvent<{ value: typeof data & { show_points: string } }>) => {
-            const v = e.detail.value;
-            const showPoints =
-              v.show_points === "true" ? true : v.show_points === "hover" ? "hover" : false;
-            this._updateConfig({
-              ...v,
-              show_points: showPoints as InsightLineConfig["show_points"],
-            } as Partial<InsightLineConfig>);
-          }}
-        ></ha-form>
-      </div>
+      <ha-expansion-panel outlined>
+        <ha-svg-icon slot="leading-icon" .path=${mdiChartLine}></ha-svg-icon>
+        <span slot="header">${localize("editor.section.chart_style", this._lang)}</span>
+        <div class="panel-content">
+          <ha-form
+            .hass=${this.hass}
+            .schema=${buildChartStyleSchema(cfg)}
+            .data=${data}
+            .computeLabel=${this._computeLabel}
+            @value-changed=${(e: CustomEvent<{ value: typeof data & { show_points: string } }>) => {
+              const v = e.detail.value;
+              const showPoints =
+                v.show_points === "true" ? true : v.show_points === "hover" ? "hover" : false;
+              this._updateConfig({
+                ...v,
+                show_points: showPoints as InsightLineConfig["show_points"],
+              } as Partial<InsightLineConfig>);
+            }}
+          ></ha-form>
+        </div>
+      </ha-expansion-panel>
     `;
   }
 
@@ -488,19 +495,22 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     };
 
     return html`
-      <div class="section">
-        <div class="section-header">${localize("editor.section.y_axis", this._lang)}</div>
-        <ha-form
-          .hass=${this.hass}
-          .schema=${Y_AXIS_SCHEMA}
-          .data=${data}
-          .computeLabel=${this._computeLabel}
-          @value-changed=${(e: CustomEvent<{ value: Record<string, unknown> }>) =>
-            this._updateConfig(
-              dropEmpty(e.detail.value) as Partial<InsightLineConfig>,
-            )}
-        ></ha-form>
-      </div>
+      <ha-expansion-panel outlined>
+        <ha-svg-icon slot="leading-icon" .path=${mdiAxisArrow}></ha-svg-icon>
+        <span slot="header">${localize("editor.section.y_axis", this._lang)}</span>
+        <div class="panel-content">
+          <ha-form
+            .hass=${this.hass}
+            .schema=${Y_AXIS_SCHEMA}
+            .data=${data}
+            .computeLabel=${this._computeLabel}
+            @value-changed=${(e: CustomEvent<{ value: Record<string, unknown> }>) =>
+              this._updateConfig(
+                dropEmpty(e.detail.value) as Partial<InsightLineConfig>,
+              )}
+          ></ha-form>
+        </div>
+      </ha-expansion-panel>
     `;
   }
 
@@ -520,17 +530,20 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     };
 
     return html`
-      <div class="section">
-        <div class="section-header">${localize("editor.section.appearance", this._lang)}</div>
-        <ha-form
-          .hass=${this.hass}
-          .schema=${APPEARANCE_SCHEMA}
-          .data=${data}
-          .computeLabel=${this._computeLabel}
-          @value-changed=${(e: CustomEvent<{ value: Record<string, unknown> }>) =>
-            this._updateConfig(e.detail.value as Partial<InsightLineConfig>)}
-        ></ha-form>
-      </div>
+      <ha-expansion-panel outlined>
+        <ha-svg-icon slot="leading-icon" .path=${mdiEye}></ha-svg-icon>
+        <span slot="header">${localize("editor.section.appearance", this._lang)}</span>
+        <div class="panel-content">
+          <ha-form
+            .hass=${this.hass}
+            .schema=${APPEARANCE_SCHEMA}
+            .data=${data}
+            .computeLabel=${this._computeLabel}
+            @value-changed=${(e: CustomEvent<{ value: Record<string, unknown> }>) =>
+              this._updateConfig(e.detail.value as Partial<InsightLineConfig>)}
+          ></ha-form>
+        </div>
+      </ha-expansion-panel>
     `;
   }
 
@@ -546,19 +559,22 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     };
 
     return html`
-      <div class="section">
-        <div class="section-header">${localize("editor.section.data_aggregation", this._lang)}</div>
-        <ha-form
-          .hass=${this.hass}
-          .schema=${buildAggregationSchema(cfg)}
-          .data=${data}
-          .computeLabel=${this._computeLabel}
-          @value-changed=${(e: CustomEvent<{ value: Record<string, unknown> }>) =>
-            this._updateConfig(
-              dropEmpty(e.detail.value) as Partial<InsightLineConfig>,
-            )}
-        ></ha-form>
-      </div>
+      <ha-expansion-panel outlined>
+        <ha-svg-icon slot="leading-icon" .path=${mdiDatabaseClock}></ha-svg-icon>
+        <span slot="header">${localize("editor.section.data_aggregation", this._lang)}</span>
+        <div class="panel-content">
+          <ha-form
+            .hass=${this.hass}
+            .schema=${buildAggregationSchema(cfg)}
+            .data=${data}
+            .computeLabel=${this._computeLabel}
+            @value-changed=${(e: CustomEvent<{ value: Record<string, unknown> }>) =>
+              this._updateConfig(
+                dropEmpty(e.detail.value) as Partial<InsightLineConfig>,
+              )}
+          ></ha-form>
+        </div>
+      </ha-expansion-panel>
     `;
   }
 
@@ -572,9 +588,10 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     const colorThresholds = cfg.color_thresholds ?? [];
 
     return html`
-      <div class="section">
-        <div class="section-header">${localize("editor.section.overlays", this._lang)}</div>
-
+      <ha-expansion-panel outlined>
+        <ha-svg-icon slot="leading-icon" .path=${mdiLayersOutline}></ha-svg-icon>
+        <span slot="header">${localize("editor.section.overlays", this._lang)}</span>
+        <div class="panel-content">
         <div class="subsection-label">${localize("editor.subsection.threshold_lines", this._lang)}</div>
         ${thresholds.map(
           (t, idx) => html`
@@ -647,7 +664,8 @@ export class InsightLineCardEditor extends InsightBaseEditor {
           `,
         )}
         <mwc-button @click=${this._appendColorThreshold}>${localize("editor.action.add_color_threshold", this._lang)}</mwc-button>
-      </div>
+        </div>
+      </ha-expansion-panel>
     `;
   }
 
@@ -667,17 +685,20 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     };
 
     return html`
-      <div class="section">
-        <div class="section-header">${localize("editor.section.advanced", this._lang)}</div>
-        <ha-form
-          .hass=${this.hass}
-          .schema=${ADVANCED_SCHEMA}
-          .data=${data}
-          .computeLabel=${this._computeLabel}
-          @value-changed=${(e: CustomEvent<{ value: Record<string, unknown> }>) =>
-            this._updateConfig(e.detail.value as Partial<InsightLineConfig>)}
-        ></ha-form>
-      </div>
+      <ha-expansion-panel outlined>
+        <ha-svg-icon slot="leading-icon" .path=${mdiCog}></ha-svg-icon>
+        <span slot="header">${localize("editor.section.advanced", this._lang)}</span>
+        <div class="panel-content">
+          <ha-form
+            .hass=${this.hass}
+            .schema=${ADVANCED_SCHEMA}
+            .data=${data}
+            .computeLabel=${this._computeLabel}
+            @value-changed=${(e: CustomEvent<{ value: Record<string, unknown> }>) =>
+              this._updateConfig(e.detail.value as Partial<InsightLineConfig>)}
+          ></ha-form>
+        </div>
+      </ha-expansion-panel>
     `;
   }
 
@@ -779,6 +800,10 @@ export class InsightLineCardEditor extends InsightBaseEditor {
 
       ha-expansion-panel {
         margin-top: 4px;
+      }
+
+      .panel-content {
+        padding: 8px 0;
       }
 
       .control-row {

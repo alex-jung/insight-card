@@ -74,6 +74,10 @@
         "area_desc": "Liniendiagramm mit gefüllter Fläche darunter",
         "step": "Stufen",
         "step_desc": "Treppendiagramm, ideal für Zustandsänderungen"
+      },
+      "curve": {
+        "smooth": "Smooth",
+        "linear": "Linear"
       }
     },
     "subsection": {
