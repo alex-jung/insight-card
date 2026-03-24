@@ -5,9 +5,8 @@
       "general": "Allgemein",
       "entities": "Entitäten",
       "time_range": "Zeitbereich",
-      "chart_style": "Diagrammstil",
+      "chart_style": "Darstellung",
       "y_axis": "Y-Achse",
-      "appearance": "Darstellung",
       "data_aggregation": "Datenaggregation",
       "overlays": "Überlagerungen",
       "advanced": "Erweitert"

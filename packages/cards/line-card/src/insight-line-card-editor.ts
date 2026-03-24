@@ -19,7 +19,6 @@ import {
     mdiPlus,
     mdiChartLine,
     mdiAxisArrow,
-    mdiEye,
     mdiDatabaseClock,
     mdiLayersOutline,
     mdiCog,
@@ -105,6 +104,10 @@ function buildChartStyleSchema(cfg: InsightLineConfig): HaFormSchema[] {
                   } satisfies HaFormField,
               ]
             : []),
+        {
+            name: "grid_opacity",
+            selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } },
+        },
     ];
 }
 
@@ -204,13 +207,6 @@ const Y_AXIS_SCHEMA: HaFormSchema[] = [
     {
         name: "y_max_secondary",
         selector: { number: { step: 0.1, mode: "box" } },
-    },
-];
-
-const APPEARANCE_SCHEMA: HaFormSchema[] = [
-    {
-        name: "grid_opacity",
-        selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } },
     },
 ];
 
@@ -418,7 +414,6 @@ export class InsightLineCardEditor extends InsightBaseEditor {
             <div class="editor-container">
                 ${this._renderGeneralSection()} ${this._renderEntitySection()}
                 ${this._renderChartStyleSection()} ${this._renderYAxisSection()}
-                ${this._renderAppearanceSection()}
                 ${this._renderAggregationSection()}
                 ${this._renderOverlaysSection()}
                 ${this._renderAdvancedSection()}
@@ -596,6 +591,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
         const data = {
             line_width: cfg.line_width ?? 2,
             fill_opacity: cfg.fill_opacity ?? 0.15,
+            grid_opacity: cfg.grid_opacity ?? 1,
         };
         const timeFormatOptions = [
             {
@@ -829,40 +825,6 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                                 dropEmpty(
                                     e.detail.value,
                                 ) as Partial<InsightLineConfig>,
-                            )}
-                    ></ha-form>
-                </div>
-            </ha-expansion-panel>
-        `;
-    }
-
-    // ---------------------------------------------------------------------------
-    // Appearance
-    // ---------------------------------------------------------------------------
-
-    private _renderAppearanceSection(): TemplateResult {
-        const cfg = this._lineConfig;
-        const data = {
-            grid_opacity: cfg.grid_opacity ?? 1,
-        };
-
-        return html`
-            <ha-expansion-panel outlined>
-                <ha-svg-icon slot="leading-icon" .path=${mdiEye}></ha-svg-icon>
-                <span slot="header"
-                    >${localize("editor.section.appearance", this._lang)}</span
-                >
-                <div class="panel-content">
-                    <ha-form
-                        .hass=${this.hass}
-                        .schema=${APPEARANCE_SCHEMA}
-                        .data=${data}
-                        .computeLabel=${this._computeLabel}
-                        @value-changed=${(
-                            e: CustomEvent<{ value: Record<string, unknown> }>,
-                        ) =>
-                            this._updateConfig(
-                                e.detail.value as Partial<InsightLineConfig>,
                             )}
                     ></ha-form>
                 </div>

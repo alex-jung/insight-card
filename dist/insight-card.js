@@ -6875,9 +6875,8 @@ var editor$1 = {
 		general: "General",
 		entities: "Entities",
 		time_range: "Time range",
-		chart_style: "Chart style",
+		chart_style: "Appearance",
 		y_axis: "Y axis",
-		appearance: "Appearance",
 		data_aggregation: "Data aggregation",
 		overlays: "Overlays",
 		advanced: "Advanced"
@@ -6992,9 +6991,8 @@ var editor = {
 		general: "Allgemein",
 		entities: "Entitäten",
 		time_range: "Zeitbereich",
-		chart_style: "Diagrammstil",
+		chart_style: "Darstellung",
 		y_axis: "Y-Achse",
-		appearance: "Darstellung",
 		data_aggregation: "Datenaggregation",
 		overlays: "Überlagerungen",
 		advanced: "Erweitert"
@@ -8396,7 +8394,6 @@ var mdiChartLine = "M16,11.78L20.24,4.45L21.97,5.45L16.74,14.5L10.23,10.75L5.46,
 var mdiCog = "M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z";
 var mdiDatabaseClock = "M16.5 16.25L19.36 17.94L18.61 19.16L15 17V12H16.5V16.25M23 16C23 19.87 19.87 23 16 23C13.61 23 11.5 21.8 10.25 20C6.18 19.79 3 18.08 3 16V13C3 14.88 5.58 16.44 9.06 16.88C9.03 16.59 9 16.3 9 16C9 15.62 9.04 15.25 9.1 14.88C5.6 14.45 3 12.88 3 11V8C3 10.09 6.2 11.8 10.27 12C10.87 11.14 11.64 10.44 12.53 9.93C12.04 9.97 11.5 10 11 10C6.58 10 3 8.21 3 6S6.58 2 11 2 19 3.79 19 6C19 7.2 17.93 8.28 16.25 9C17 9.04 17.75 9.19 18.44 9.45C18.79 9 19 8.5 19 8V9.68C21.36 10.81 23 13.21 23 16M21 16C21 13.24 18.76 11 16 11S11 13.24 11 16 13.24 21 16 21 21 18.76 21 16Z";
 var mdiDelete = "M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z";
-var mdiEye = "M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z";
 var mdiFormatListBulleted = "M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z";
 var mdiLayersOutline = "M12,18.54L19.37,12.8L21,14.07L12,21.07L3,14.07L4.62,12.81L12,18.54M12,16L3,9L12,2L21,9L12,16M12,4.53L6.26,9L12,13.47L17.74,9L12,4.53Z";
 var mdiPlus = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
@@ -8726,7 +8723,11 @@ function buildChartStyleSchema(cfg) {
           }
         }
       }
-    ] : []
+    ] : [],
+    {
+      name: "grid_opacity",
+      selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
+    }
   ];
 }
 function buildGeneralSchema(lang, cfg) {
@@ -8819,12 +8820,6 @@ const Y_AXIS_SCHEMA = [
   {
     name: "y_max_secondary",
     selector: { number: { step: 0.1, mode: "box" } }
-  }
-];
-const APPEARANCE_SCHEMA = [
-  {
-    name: "grid_opacity",
-    selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
   }
 ];
 function buildAggregationSchema(cfg) {
@@ -9054,7 +9049,6 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
             <div class="editor-container">
                 ${this._renderGeneralSection()} ${this._renderEntitySection()}
                 ${this._renderChartStyleSection()} ${this._renderYAxisSection()}
-                ${this._renderAppearanceSection()}
                 ${this._renderAggregationSection()}
                 ${this._renderOverlaysSection()}
                 ${this._renderAdvancedSection()}
@@ -9182,7 +9176,8 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     const showPointsStr = cfg.show_points === true ? "true" : cfg.show_points === "hover" ? "hover" : "false";
     const data = {
       line_width: cfg.line_width ?? 2,
-      fill_opacity: cfg.fill_opacity ?? 0.15
+      fill_opacity: cfg.fill_opacity ?? 0.15,
+      grid_opacity: cfg.grid_opacity ?? 1
     };
     const timeFormatOptions = [
       {
@@ -9388,34 +9383,6 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       dropEmpty(
         e.detail.value
       )
-    )}
-                    ></ha-form>
-                </div>
-            </ha-expansion-panel>
-        `;
-  }
-  // ---------------------------------------------------------------------------
-  // Appearance
-  // ---------------------------------------------------------------------------
-  _renderAppearanceSection() {
-    const cfg = this._lineConfig;
-    const data = {
-      grid_opacity: cfg.grid_opacity ?? 1
-    };
-    return b`
-            <ha-expansion-panel outlined>
-                <ha-svg-icon slot="leading-icon" .path=${mdiEye}></ha-svg-icon>
-                <span slot="header"
-                    >${localize("editor.section.appearance", this._lang)}</span
-                >
-                <div class="panel-content">
-                    <ha-form
-                        .hass=${this.hass}
-                        .schema=${APPEARANCE_SCHEMA}
-                        .data=${data}
-                        .computeLabel=${this._computeLabel}
-                        @value-changed=${(e) => this._updateConfig(
-      e.detail.value
     )}
                     ></ha-form>
                 </div>

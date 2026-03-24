@@ -5,9 +5,8 @@
       "general": "General",
       "entities": "Entities",
       "time_range": "Time range",
-      "chart_style": "Chart style",
+      "chart_style": "Appearance",
       "y_axis": "Y axis",
-      "appearance": "Appearance",
       "data_aggregation": "Data aggregation",
       "overlays": "Overlays",
       "advanced": "Advanced"
