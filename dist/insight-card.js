@@ -7534,6 +7534,55 @@ InsightToggleButton = __decorateClass$7([
   t$1("insight-toggle-button")
 ], InsightToggleButton);
 
+function svgToDataUrl(svg) {
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+const IMG_CHART_LINE = svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90">
+  <rect width="160" height="90" rx="6" fill="#f4f6f9"/>
+  <line x1="15" y1="22" x2="145" y2="22" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="42" x2="145" y2="42" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="62" x2="145" y2="62" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="75" x2="145" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <line x1="15" y1="12" x2="15" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <polyline points="15,65 37,43 59,56 81,29 103,41 125,31 145,36" fill="none" stroke="#4AAFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`);
+const IMG_CHART_AREA = svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90">
+  <rect width="160" height="90" rx="6" fill="#f4f6f9"/>
+  <line x1="15" y1="22" x2="145" y2="22" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="42" x2="145" y2="42" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="62" x2="145" y2="62" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="75" x2="145" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <line x1="15" y1="12" x2="15" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <polygon points="15,65 37,43 59,56 81,29 103,41 125,31 145,36 145,75 15,75" fill="rgba(74,175,255,0.18)"/>
+  <polyline points="15,65 37,43 59,56 81,29 103,41 125,31 145,36" fill="none" stroke="#4AAFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`);
+const IMG_CHART_STEP = svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90">
+  <rect width="160" height="90" rx="6" fill="#f4f6f9"/>
+  <line x1="15" y1="22" x2="145" y2="22" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="42" x2="145" y2="42" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="62" x2="145" y2="62" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="75" x2="145" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <line x1="15" y1="12" x2="15" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <polyline points="15,65 37,65 37,43 59,43 59,56 81,56 81,29 103,29 103,41 125,41 125,31 145,31" fill="none" stroke="#4AAFFF" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/>
+</svg>`);
+const IMG_CURVE_SMOOTH = svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90">
+  <rect width="160" height="90" rx="6" fill="#f4f6f9"/>
+  <line x1="15" y1="22" x2="145" y2="22" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="42" x2="145" y2="42" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="62" x2="145" y2="62" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="75" x2="145" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <line x1="15" y1="12" x2="15" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <path d="M15,65 C26,55 32,36 45,35 C58,34 64,52 75,48 C86,44 92,22 105,22 C118,22 125,35 145,32" fill="none" stroke="#4AAFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`);
+const IMG_CURVE_LINEAR = svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90">
+  <rect width="160" height="90" rx="6" fill="#f4f6f9"/>
+  <line x1="15" y1="22" x2="145" y2="22" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="42" x2="145" y2="42" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="62" x2="145" y2="62" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="75" x2="145" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <line x1="15" y1="12" x2="15" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <polyline points="15,65 45,35 75,48 105,22 145,32" fill="none" stroke="#4AAFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`);
 const SVG_ZOOM_DRAG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
   <line x1="2" y1="20" x2="22" y2="20" stroke="currentColor" stroke-width="1" opacity="0.3"/>
   <line x1="2" y1="4"  x2="2"  y2="20" stroke="currentColor" stroke-width="1" opacity="0.3"/>
@@ -8670,12 +8719,6 @@ InsightLineEntityEditor = __decorateClass$5([
   t$1("insight-line-entity-editor")
 ], InsightLineEntityEditor);
 
-const IMG_CHART_LINE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIExpbmUgLS0+CiAgPHBvbHlsaW5lCiAgICBwb2ludHM9IjE1LDY1IDM3LDQzIDU5LDU2IDgxLDI5IDEwMyw0MSAxMjUsMzEgMTQ1LDM2IgogICAgZmlsbD0ibm9uZSIKICAgIHN0cm9rZT0iIzRBQUZGRiIKICAgIHN0cm9rZS13aWR0aD0iMi41IgogICAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogICAgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K";
-const IMG_CHART_AREA = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIEZpbGwgYXJlYSAtLT4KICA8cG9seWdvbgogICAgcG9pbnRzPSIxNSw2NSAzNyw0MyA1OSw1NiA4MSwyOSAxMDMsNDEgMTI1LDMxIDE0NSwzNiAxNDUsNzUgMTUsNzUiCiAgICBmaWxsPSJyZ2JhKDc0LDE3NSwyNTUsMC4xOCkiLz4KCiAgPCEtLSBMaW5lIG9uIHRvcCAtLT4KICA8cG9seWxpbmUKICAgIHBvaW50cz0iMTUsNjUgMzcsNDMgNTksNTYgODEsMjkgMTAzLDQxIDEyNSwzMSAxNDUsMzYiCiAgICBmaWxsPSJub25lIgogICAgc3Ryb2tlPSIjNEFBRkZGIgogICAgc3Ryb2tlLXdpZHRoPSIyLjUiCiAgICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgICBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo=";
-const IMG_CHART_STEP = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIFN0ZXAgbGluZSAoaG9yaXpvbnRhbC1maXJzdCkgLS0+CiAgPHBvbHlsaW5lCiAgICBwb2ludHM9IjE1LDY1IDM3LDY1IDM3LDQzIDU5LDQzIDU5LDU2IDgxLDU2IDgxLDI5IDEwMywyOSAxMDMsNDEgMTI1LDQxIDEyNSwzMSAxNDUsMzEiCiAgICBmaWxsPSJub25lIgogICAgc3Ryb2tlPSIjNEFBRkZGIgogICAgc3Ryb2tlLXdpZHRoPSIyLjUiCiAgICBzdHJva2UtbGluZWNhcD0ic3F1YXJlIgogICAgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIvPgo8L3N2Zz4K";
-const IMG_CURVE_SMOOTH = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIFNtb290aCBjdXJ2ZSB2aWEgY3ViaWMgYmV6aWVyIC0tPgogIDxwYXRoCiAgICBkPSJNMTUsNjUgQzI2LDU1IDMyLDM2IDQ1LDM1IEM1OCwzNCA2NCw1MiA3NSw0OCBDODYsNDQgOTIsMjIgMTA1LDIyIEMxMTgsMjIgMTI1LDM1IDE0NSwzMiIKICAgIGZpbGw9Im5vbmUiCiAgICBzdHJva2U9IiM0QUFGRkYiCiAgICBzdHJva2Utd2lkdGg9IjIuNSIKICAgIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIKICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==";
-const IMG_CURVE_LINEAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIExpbmVhciAoc3RyYWlnaHQgc2VnbWVudHMpIC0tPgogIDxwb2x5bGluZQogICAgcG9pbnRzPSIxNSw2NSA0NSwzNSA3NSw0OCAxMDUsMjIgMTQ1LDMyIgogICAgZmlsbD0ibm9uZSIKICAgIHN0cm9rZT0iIzRBQUZGRiIKICAgIHN0cm9rZS13aWR0aD0iMi41IgogICAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogICAgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K";
-
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc$4 = Object.getOwnPropertyDescriptor;
 var __getProtoOf$2 = Object.getPrototypeOf;
@@ -8726,7 +8769,9 @@ function buildChartStyleSchema(cfg) {
     ] : [],
     {
       name: "grid_opacity",
-      selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
+      selector: {
+        number: { min: 0, max: 1, step: 0.05, mode: "slider" }
+      }
     }
   ];
 }
@@ -9492,11 +9537,11 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                             </div>
                         `
     )}
-                    <mwc-button @click=${this._appendThreshold}
+                    <ha-button @click=${this._appendThreshold}
                         >${localize(
       "editor.action.add_threshold",
       this._lang
-    )}</mwc-button
+    )}</ha-button
                     >
 
                     <div class="subsection-label" style="margin-top:12px">
@@ -9542,11 +9587,11 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                             </div>
                         `
     )}
-                    <mwc-button @click=${this._appendColorThreshold}
+                    <ha-button @click=${this._appendColorThreshold}
                         >${localize(
       "editor.action.add_color_threshold",
       this._lang
-    )}</mwc-button
+    )}</ha-button
                     >
                 </div>
             </ha-expansion-panel>
@@ -9661,10 +9706,6 @@ InsightLineCardEditor.styles = [
                 padding: 20px 0px;
             }
 
-            /*.toggle-row insight-toggle-button {
-                flex: 0 0 auto;
-            }*/
-
             .control-row {
                 display: flex;
                 flex-direction: column;
@@ -9673,9 +9714,7 @@ InsightLineCardEditor.styles = [
             }
 
             .control-label {
-                /*font-size: 0.75rem;*/
                 font-weight: 500;
-                /*color: var(--secondary-text-color);*/
             }
 
             ha-control-select {

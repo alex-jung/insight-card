@@ -74,6 +74,12 @@ export type { Stats } from "./utils/index.js";
 // Components
 export { InsightToggleButton } from "./components/insight-toggle-button.js";
 export {
+    svgToDataUrl,
+    IMG_CHART_LINE,
+    IMG_CHART_AREA,
+    IMG_CHART_STEP,
+    IMG_CURVE_SMOOTH,
+    IMG_CURVE_LINEAR,
     SVG_ZOOM_DRAG,
     SVG_SHOW_LEGEND,
     SVG_SHOW_X_AXIS,

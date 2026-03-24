@@ -55,7 +55,7 @@ import {
     IMG_CHART_STEP,
     IMG_CURVE_SMOOTH,
     IMG_CURVE_LINEAR,
-} from "./insight-line-card-images.js";
+} from "@insight-chart/core";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -106,7 +106,9 @@ function buildChartStyleSchema(cfg: InsightLineConfig): HaFormSchema[] {
             : []),
         {
             name: "grid_opacity",
-            selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } },
+            selector: {
+                number: { min: 0, max: 1, step: 0.05, mode: "slider" },
+            },
         },
     ];
 }
@@ -663,7 +665,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                             @toggle=${() =>
                                 this._updateConfig({
                                     zoom: cfg.zoom === false,
-                                })}
+                                } as Partial<InsightLineConfig>)}
                         ></insight-toggle-button>
                         <insight-toggle-button
                             .svg=${SVG_SHOW_LEGEND}
@@ -729,7 +731,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                                         : v === "hover"
                                           ? "hover"
                                           : false) as InsightLineConfig["show_points"],
-                                });
+                                } as Partial<InsightLineConfig>);
                             }}
                         ></ha-control-select>
                     </div>
@@ -749,7 +751,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                                 this._updateConfig({
                                     tooltip_format: e.detail
                                         .value as InsightLineConfig["tooltip_format"],
-                                })}
+                                } as Partial<InsightLineConfig>)}
                         ></ha-control-select>
                     </div>
                     <div class="control-row">
@@ -768,7 +770,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                                 this._updateConfig({
                                     time_format: e.detail
                                         .value as InsightLineConfig["time_format"],
-                                })}
+                                } as Partial<InsightLineConfig>)}
                         ></ha-control-select>
                     </div>
                     <ha-form
@@ -951,11 +953,11 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                             </div>
                         `,
                     )}
-                    <mwc-button @click=${this._appendThreshold}
+                    <ha-button @click=${this._appendThreshold}
                         >${localize(
                             "editor.action.add_threshold",
                             this._lang,
-                        )}</mwc-button
+                        )}</ha-button
                     >
 
                     <div class="subsection-label" style="margin-top:12px">
@@ -1013,11 +1015,11 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                             </div>
                         `,
                     )}
-                    <mwc-button @click=${this._appendColorThreshold}
+                    <ha-button @click=${this._appendColorThreshold}
                         >${localize(
                             "editor.action.add_color_threshold",
                             this._lang,
-                        )}</mwc-button
+                        )}</ha-button
                     >
                 </div>
             </ha-expansion-panel>
@@ -1184,10 +1186,6 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                 padding: 20px 0px;
             }
 
-            /*.toggle-row insight-toggle-button {
-                flex: 0 0 auto;
-            }*/
-
             .control-row {
                 display: flex;
                 flex-direction: column;
@@ -1196,9 +1194,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
             }
 
             .control-label {
-                /*font-size: 0.75rem;*/
                 font-weight: 500;
-                /*color: var(--secondary-text-color);*/
             }
 
             ha-control-select {
