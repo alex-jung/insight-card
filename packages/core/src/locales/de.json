@@ -82,6 +82,22 @@
       "curve": {
         "smooth": "Smooth",
         "linear": "Linear"
+      },
+      "points": {
+        "none": "Keine",
+        "hover": "Bei Hover",
+        "always": "Immer"
+      },
+      "tooltip": {
+        "datetime": "Datum & Zeit",
+        "time": "Zeit",
+        "date": "Datum"
+      },
+      "time_format": {
+        "auto": "Auto",
+        "time": "HH:MM",
+        "date": "DD.MM",
+        "datetime": "DD.MM HH:MM"
       }
     },
     "subsection": {

@@ -79,18 +79,6 @@ function buildChartStyleSchema(cfg: InsightLineConfig): HaFormSchema[] {
     const isArea = (cfg.style ?? "area") === "area";
     return [
         {
-            name: "show_points",
-            selector: {
-                select: {
-                    options: [
-                        { value: "false", label: "None" },
-                        { value: "true", label: "Always" },
-                        { value: "hover", label: "On hover" },
-                    ],
-                },
-            },
-        },
-        {
             name: "line_width",
             selector: {
                 number: {
@@ -223,31 +211,6 @@ const APPEARANCE_SCHEMA: HaFormSchema[] = [
     {
         name: "grid_opacity",
         selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } },
-    },
-    {
-        name: "tooltip_format",
-        selector: {
-            select: {
-                options: [
-                    { value: "datetime", label: "Date & time" },
-                    { value: "time", label: "Time only" },
-                    { value: "date", label: "Date only" },
-                ],
-            },
-        },
-    },
-    {
-        name: "time_format",
-        selector: {
-            select: {
-                options: [
-                    { value: "auto", label: "Auto" },
-                    { value: "time", label: "HH:MM" },
-                    { value: "date", label: "DD.MM" },
-                    { value: "datetime", label: "DD.MM HH:MM" },
-                ],
-            },
-        },
     },
 ];
 
@@ -631,10 +594,58 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                   ? "hover"
                   : "false";
         const data = {
-            show_points: showPointsStr,
             line_width: cfg.line_width ?? 2,
             fill_opacity: cfg.fill_opacity ?? 0.15,
         };
+        const timeFormatOptions = [
+            {
+                value: "auto",
+                label: localize("editor.option.time_format.auto", this._lang),
+            },
+            {
+                value: "time",
+                label: localize("editor.option.time_format.time", this._lang),
+            },
+            {
+                value: "date",
+                label: localize("editor.option.time_format.date", this._lang),
+            },
+            {
+                value: "datetime",
+                label: localize(
+                    "editor.option.time_format.datetime",
+                    this._lang,
+                ),
+            },
+        ];
+        const tooltipOptions = [
+            {
+                value: "datetime",
+                label: localize("editor.option.tooltip.datetime", this._lang),
+            },
+            {
+                value: "time",
+                label: localize("editor.option.tooltip.time", this._lang),
+            },
+            {
+                value: "date",
+                label: localize("editor.option.tooltip.date", this._lang),
+            },
+        ];
+        const pointsOptions = [
+            {
+                value: "false",
+                label: localize("editor.option.points.none", this._lang),
+            },
+            {
+                value: "hover",
+                label: localize("editor.option.points.hover", this._lang),
+            },
+            {
+                value: "true",
+                label: localize("editor.option.points.always", this._lang),
+            },
+        ];
 
         return html`
             <ha-expansion-panel outlined>
@@ -701,29 +712,80 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                                 })}
                         ></insight-toggle-button>
                     </div>
+
+                    <div class="control-row">
+                        <span class="control-label"
+                            >${localize(
+                                "editor.field.show_points",
+                                this._lang,
+                            )}</span
+                        >
+                        <ha-control-select
+                            .options=${pointsOptions}
+                            .value=${showPointsStr}
+                            @value-changed=${(
+                                e: CustomEvent<{ value: string }>,
+                            ) => {
+                                const v = e.detail.value;
+                                this._updateConfig({
+                                    show_points: (v === "true"
+                                        ? true
+                                        : v === "hover"
+                                          ? "hover"
+                                          : false) as InsightLineConfig["show_points"],
+                                });
+                            }}
+                        ></ha-control-select>
+                    </div>
+                    <div class="control-row">
+                        <span class="control-label"
+                            >${localize(
+                                "editor.field.tooltip_format",
+                                this._lang,
+                            )}</span
+                        >
+                        <ha-control-select
+                            .options=${tooltipOptions}
+                            .value=${cfg.tooltip_format ?? "datetime"}
+                            @value-changed=${(
+                                e: CustomEvent<{ value: string }>,
+                            ) =>
+                                this._updateConfig({
+                                    tooltip_format: e.detail
+                                        .value as InsightLineConfig["tooltip_format"],
+                                })}
+                        ></ha-control-select>
+                    </div>
+                    <div class="control-row">
+                        <span class="control-label"
+                            >${localize(
+                                "editor.field.time_format",
+                                this._lang,
+                            )}</span
+                        >
+                        <ha-control-select
+                            .options=${timeFormatOptions}
+                            .value=${cfg.time_format ?? "auto"}
+                            @value-changed=${(
+                                e: CustomEvent<{ value: string }>,
+                            ) =>
+                                this._updateConfig({
+                                    time_format: e.detail
+                                        .value as InsightLineConfig["time_format"],
+                                })}
+                        ></ha-control-select>
+                    </div>
                     <ha-form
                         .hass=${this.hass}
                         .schema=${buildChartStyleSchema(cfg)}
                         .data=${data}
                         .computeLabel=${this._computeLabel}
                         @value-changed=${(
-                            e: CustomEvent<{
-                                value: typeof data & { show_points: string };
-                            }>,
-                        ) => {
-                            const v = e.detail.value;
-                            const showPoints =
-                                v.show_points === "true"
-                                    ? true
-                                    : v.show_points === "hover"
-                                      ? "hover"
-                                      : false;
-                            this._updateConfig({
-                                ...v,
-                                show_points:
-                                    showPoints as InsightLineConfig["show_points"],
-                            } as Partial<InsightLineConfig>);
-                        }}
+                            e: CustomEvent<{ value: typeof data }>,
+                        ) =>
+                            this._updateConfig(
+                                e.detail.value as Partial<InsightLineConfig>,
+                            )}
                     ></ha-form>
                 </div>
             </ha-expansion-panel>
@@ -782,8 +844,6 @@ export class InsightLineCardEditor extends InsightBaseEditor {
         const cfg = this._lineConfig;
         const data = {
             grid_opacity: cfg.grid_opacity ?? 1,
-            tooltip_format: cfg.tooltip_format ?? "datetime",
-            time_format: cfg.time_format ?? "auto",
         };
 
         return html`
@@ -1159,23 +1219,24 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                 flex-wrap: wrap;
                 justify-content: space-evenly;
                 gap: 8px;
-                padding-bottom: 8px;
+                padding: 20px 0px;
             }
 
-            .toggle-row insight-toggle-button {
+            /*.toggle-row insight-toggle-button {
                 flex: 0 0 auto;
-            }
+            }*/
 
             .control-row {
                 display: flex;
                 flex-direction: column;
                 gap: 4px;
+                padding: 20px 0px;
             }
 
             .control-label {
-                font-size: 0.75rem;
+                /*font-size: 0.75rem;*/
                 font-weight: 500;
-                color: var(--secondary-text-color);
+                /*color: var(--secondary-text-color);*/
             }
 
             ha-control-select {
