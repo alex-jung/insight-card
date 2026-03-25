@@ -98,21 +98,6 @@ export function buildEntitySchema(style: string): HaFormSchema[] {
           },
         },
         {
-          name: "aggregate",
-          selector: {
-            select: {
-              options: [
-                { value: "", label: "None (use card default)" },
-                { value: "mean", label: "Mean" },
-                { value: "min", label: "Min" },
-                { value: "max", label: "Max" },
-                { value: "sum", label: "Sum" },
-                { value: "last", label: "Last" },
-              ],
-            },
-          },
-        },
-        {
           name: "statistics",
           selector: {
             select: {

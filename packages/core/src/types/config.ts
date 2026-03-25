@@ -68,11 +68,6 @@ export interface InsightEntityConfig {
    * @default false
    */
   invert?: boolean;
-  /**
-   * Aggregation method for this entity. Overrides the card-level `aggregate`.
-   * Applied client-side after fetching raw history data.
-   */
-  aggregate?: "mean" | "min" | "max" | "sum" | "last";
 }
 
 // ---------------------------------------------------------------------------

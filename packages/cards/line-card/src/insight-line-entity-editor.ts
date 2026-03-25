@@ -106,7 +106,6 @@ export class InsightLineEntityEditor extends LitElement {
                 scale: ec.scale,
                 invert: ec.invert ?? false,
                 transform: ec.transform ?? "none",
-                aggregate: ec.aggregate ?? "",
                 statistics: ec.statistics ?? "",
             },
         };
@@ -144,9 +143,6 @@ export class InsightLineEntityEditor extends LitElement {
                 invert: data["invert"] as boolean | undefined,
                 transform:
                     (data["transform"] as InsightEntityConfig["transform"]) ||
-                    undefined,
-                aggregate:
-                    (data["aggregate"] as InsightEntityConfig["aggregate"]) ||
                     undefined,
                 statistics:
                     (data["statistics"] as InsightEntityConfig["statistics"]) ||

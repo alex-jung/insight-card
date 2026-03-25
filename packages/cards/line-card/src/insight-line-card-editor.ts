@@ -219,7 +219,7 @@ function buildAggregationSchema(cfg: InsightLineConfig): HaFormSchema[] {
             selector: {
                 select: {
                     options: [
-                        { value: "", label: "None" },
+                        { value: "none", label: "None" },
                         { value: "mean", label: "Mean" },
                         { value: "min", label: "Min" },
                         { value: "max", label: "Max" },
@@ -229,11 +229,24 @@ function buildAggregationSchema(cfg: InsightLineConfig): HaFormSchema[] {
                 },
             },
         },
-        ...(cfg.aggregate
+        ...(cfg.aggregate && cfg.aggregate !== "none"
             ? [
                   {
                       name: "aggregate_period",
-                      selector: { text: {} },
+                      selector: {
+                          select: {
+                              options: [
+                                  { value: "5m",  label: "5 min" },
+                                  { value: "15m", label: "15 min" },
+                                  { value: "30m", label: "30 min" },
+                                  { value: "1h",  label: "1 h" },
+                                  { value: "3h",  label: "3 h" },
+                                  { value: "6h",  label: "6 h" },
+                                  { value: "12h", label: "12 h" },
+                                  { value: "1d",  label: "1 day" },
+                              ],
+                          },
+                      },
                   } satisfies HaFormField,
               ]
             : []),
@@ -829,7 +842,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     private _renderAggregationSection(): TemplateResult {
         const cfg = this._lineConfig;
         const data = {
-            aggregate: cfg.aggregate ?? "",
+            aggregate: cfg.aggregate ?? "none",
             aggregate_period: cfg.aggregate_period ?? "",
         };
 
@@ -853,12 +866,22 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                         .computeLabel=${this._computeLabel}
                         @value-changed=${(
                             e: CustomEvent<{ value: Record<string, unknown> }>,
-                        ) =>
-                            this._updateConfig(
-                                dropEmpty(
-                                    e.detail.value,
-                                ) as Partial<InsightLineConfig>,
-                            )}
+                        ) => {
+                            const v = e.detail.value;
+                            const next = { ...this._lineConfig, ...dropEmpty(v) };
+                            if (!v["aggregate"] || v["aggregate"] === "none") {
+                                delete next.aggregate;
+                                delete next.aggregate_period;
+                            } else if (!v["aggregate_period"]) {
+                                delete next.aggregate_period;
+                            }
+                            this._config = next;
+                            this.dispatchEvent(new CustomEvent("config-changed", {
+                                detail: { config: next },
+                                bubbles: true,
+                                composed: true,
+                            }));
+                        }}
                     ></ha-form>
                 </div>
             </ha-expansion-panel>

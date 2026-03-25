@@ -6208,8 +6208,7 @@ const ENTITY_OPTION_KEYS = /* @__PURE__ */ new Set([
   "attribute",
   "unit",
   "scale",
-  "invert",
-  "aggregate"
+  "invert"
 ]);
 function normaliseEntityConfig(e) {
   if (typeof e === "string") return { entity: e };
@@ -7744,7 +7743,7 @@ let InsightLineCard = class extends InsightBaseCard {
     const cardMethod = config.aggregate;
     const datasets = this._data.map((dataset, i) => {
       const ec = this.entityConfigs[i];
-      const method = ec?.aggregate ?? cardMethod;
+      const method = cardMethod;
       const periodMs = cardPeriodMs;
       let data = dataset.data;
       if (method && isFinite(periodMs)) {
@@ -8205,6 +8204,10 @@ let InsightLineCard = class extends InsightBaseCard {
     super.updated(changedProps);
     console.log("[line-card] updated, data", this._data);
     console.log("[line-card] updated, uPlot", this._uplot);
+    if (this._needsRebuild && this._uplot) {
+      this._syncUplot();
+      return;
+    }
     if (this._uplot && this._data !== this._lastDataRef) {
       const previouslyEmpty = !this._lastDataRef || this._lastDataRef.every((d) => d.data.length === 0);
       this._cachedUData = this._buildUplotData();
@@ -8587,21 +8590,6 @@ function buildEntitySchema(style) {
           }
         },
         {
-          name: "aggregate",
-          selector: {
-            select: {
-              options: [
-                { value: "", label: "None (use card default)" },
-                { value: "mean", label: "Mean" },
-                { value: "min", label: "Min" },
-                { value: "max", label: "Max" },
-                { value: "sum", label: "Sum" },
-                { value: "last", label: "Last" }
-              ]
-            }
-          }
-        },
-        {
           name: "statistics",
           selector: {
             select: {
@@ -8704,7 +8692,6 @@ let InsightLineEntityEditor = class extends i$2 {
         scale: ec.scale,
         invert: ec.invert ?? false,
         transform: ec.transform ?? "none",
-        aggregate: ec.aggregate ?? "",
         statistics: ec.statistics ?? ""
       }
     };
@@ -8728,7 +8715,6 @@ let InsightLineEntityEditor = class extends i$2 {
         scale: data["scale"],
         invert: data["invert"],
         transform: data["transform"] || void 0,
-        aggregate: data["aggregate"] || void 0,
         statistics: data["statistics"] || void 0
       }).filter(([, v]) => v !== void 0)
     );
@@ -8956,7 +8942,7 @@ function buildAggregationSchema(cfg) {
       selector: {
         select: {
           options: [
-            { value: "", label: "None" },
+            { value: "none", label: "None" },
             { value: "mean", label: "Mean" },
             { value: "min", label: "Min" },
             { value: "max", label: "Max" },
@@ -8966,10 +8952,23 @@ function buildAggregationSchema(cfg) {
         }
       }
     },
-    ...cfg.aggregate ? [
+    ...cfg.aggregate && cfg.aggregate !== "none" ? [
       {
         name: "aggregate_period",
-        selector: { text: {} }
+        selector: {
+          select: {
+            options: [
+              { value: "5m", label: "5 min" },
+              { value: "15m", label: "15 min" },
+              { value: "30m", label: "30 min" },
+              { value: "1h", label: "1 h" },
+              { value: "3h", label: "3 h" },
+              { value: "6h", label: "6 h" },
+              { value: "12h", label: "12 h" },
+              { value: "1d", label: "1 day" }
+            ]
+          }
+        }
       }
     ] : []
   ];
@@ -9510,7 +9509,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   _renderAggregationSection() {
     const cfg = this._lineConfig;
     const data = {
-      aggregate: cfg.aggregate ?? "",
+      aggregate: cfg.aggregate ?? "none",
       aggregate_period: cfg.aggregate_period ?? ""
     };
     return b`
@@ -9531,11 +9530,22 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                         .schema=${buildAggregationSchema(cfg)}
                         .data=${data}
                         .computeLabel=${this._computeLabel}
-                        @value-changed=${(e) => this._updateConfig(
-      dropEmpty(
-        e.detail.value
-      )
-    )}
+                        @value-changed=${(e) => {
+      const v = e.detail.value;
+      const next = { ...this._lineConfig, ...dropEmpty(v) };
+      if (!v["aggregate"] || v["aggregate"] === "none") {
+        delete next.aggregate;
+        delete next.aggregate_period;
+      } else if (!v["aggregate_period"]) {
+        delete next.aggregate_period;
+      }
+      this._config = next;
+      this.dispatchEvent(new CustomEvent("config-changed", {
+        detail: { config: next },
+        bubbles: true,
+        composed: true
+      }));
+    }}
                     ></ha-form>
                 </div>
             </ha-expansion-panel>

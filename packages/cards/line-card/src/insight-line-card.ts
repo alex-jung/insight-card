@@ -433,10 +433,10 @@ export class InsightLineCard extends InsightBaseCard {
             : NaN;
         const cardMethod = config.aggregate;
 
-        // Apply per-entity (or card-level) aggregation, then transformation
+        // Apply card-level aggregation and per-entity transformation
         const datasets = this._data.map((dataset, i) => {
             const ec = this.entityConfigs[i];
-            const method = ec?.aggregate ?? cardMethod;
+            const method = cardMethod;
             const periodMs = cardPeriodMs;
             let data = dataset.data;
             if (method && isFinite(periodMs)) {
@@ -1030,6 +1030,12 @@ export class InsightLineCard extends InsightBaseCard {
 
         console.log("[line-card] updated, data", this._data);
         console.log("[line-card] updated, uPlot", this._uplot);
+
+        // Config/theme change → full rebuild even if data hasn't changed yet
+        if (this._needsRebuild && this._uplot) {
+            this._syncUplot();
+            return;
+        }
 
         if (this._uplot && this._data !== this._lastDataRef) {
             // If uPlot was built with no data (initial render before fetch completed),

@@ -14,7 +14,7 @@ import type { InsightEntityConfig } from "../types/index.js";
 /** Keys that are valid InsightEntityConfig options (not entity IDs) */
 const ENTITY_OPTION_KEYS = new Set<string>([
   "name", "color", "y_axis", "line_width", "fill_opacity", "stroke_dash",
-  "hidden", "transform", "statistics", "attribute", "unit", "scale", "invert", "aggregate",
+  "hidden", "transform", "statistics", "attribute", "unit", "scale", "invert",
 ]);
 
 /**
