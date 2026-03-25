@@ -5,6 +5,7 @@
 [![HACS](https://img.shields.io/badge/HACS-Custom-orange?style=flat-square)](https://hacs.xyz)
 [![Home Assistant](https://img.shields.io/badge/HA-2025.5%2B-blue?style=flat-square&logo=home-assistant)](https://www.home-assistant.io)
 [![License](https://img.shields.io/github/license/alex-jung/insight-card?style=flat-square)](LICENSE)
+[![Downloads](https://img.shields.io/github/downloads/alex-jung/insight-card/total?style=flat-square)](https://github.com/alex-jung/insight-card/releases)
 
 A modular collection of Lovelace visualisation cards for Home Assistant, installable via HACS.
 
