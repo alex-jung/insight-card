@@ -84,7 +84,7 @@ export class InsightLineCard extends InsightBaseCard {
                 border-radius: 6px;
                 background: var(--card-background-color, #fff);
                 color: var(--primary-text-color);
-                box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
                 cursor: pointer;
                 opacity: 0.85;
                 transition: opacity 0.15s;
@@ -249,7 +249,7 @@ export class InsightLineCard extends InsightBaseCard {
         `,
     ];
     static readonly cardType = "custom:insight-line-card";
-    static readonly cardName = "InsightChart Line";
+    static readonly cardName = "Insight-line";
     static readonly cardDescription =
         "Interactive time-series line & area chart with zoom";
 
@@ -701,7 +701,9 @@ export class InsightLineCard extends InsightBaseCard {
                         const curMin = u.scales.x?.min ?? fullMin;
                         const curMax = u.scales.x?.max ?? fullMax;
                         const zoomed = curMin > fullMin || curMax < fullMax;
-                        this._zoomedRange = zoomed ? [curMin, curMax] : undefined;
+                        this._zoomedRange = zoomed
+                            ? [curMin, curMax]
+                            : undefined;
                         this._isZoomed = zoomed;
                     },
                 ],
@@ -739,10 +741,10 @@ export class InsightLineCard extends InsightBaseCard {
                 ],
             },
             padding: [
-                config.padding_top    ?? 8,
-                config.padding_right  ?? 16,
+                config.padding_top ?? 8,
+                config.padding_right ?? 16,
                 config.padding_bottom ?? 8,
-                config.padding_left   ?? 16,
+                config.padding_left ?? 16,
             ],
         };
     }
@@ -957,7 +959,12 @@ export class InsightLineCard extends InsightBaseCard {
         over.addEventListener("touchmove", onMove, { passive: false });
         over.addEventListener("touchend", onEnd, { passive: true });
 
-        this._touchHandlers = { start: onStart, move: onMove, end: onEnd, target: over };
+        this._touchHandlers = {
+            start: onStart,
+            move: onMove,
+            end: onEnd,
+            target: over,
+        };
     }
 
     private _detachPinchHandlers(): void {
@@ -983,8 +990,14 @@ export class InsightLineCard extends InsightBaseCard {
             <div class="chart-wrapper">
                 <div id="chart"></div>
                 ${this._isZoomed
-                    ? html`<button class="zoom-reset-btn" @click=${this._resetZoom} title="Reset zoom">
-                          <ha-svg-icon .path=${"M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"}></ha-svg-icon>
+                    ? html`<button
+                          class="zoom-reset-btn"
+                          @click=${this._resetZoom}
+                          title="Reset zoom"
+                      >
+                          <ha-svg-icon
+                              .path=${"M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"}
+                          ></ha-svg-icon>
                       </button>`
                     : ""}
             </div>

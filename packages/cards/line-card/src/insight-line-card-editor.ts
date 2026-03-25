@@ -14,7 +14,6 @@ import {
 } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import {
-    mdiPalette,
     mdiFormatListBulleted,
     mdiPlus,
     mdiChartLine,
@@ -133,28 +132,16 @@ function buildGeneralSchema(
                         {
                             value: "line",
                             label: localize("editor.option.style.line", lang),
-                            // description: localize(
-                            //     "editor.option.style.line_desc",
-                            //     lang,
-                            // ),
                             image: IMG_CHART_LINE,
                         },
                         {
                             value: "area",
                             label: localize("editor.option.style.area", lang),
-                            // description: localize(
-                            //     "editor.option.style.area_desc",
-                            //     lang,
-                            // ),
                             image: IMG_CHART_AREA,
                         },
                         {
                             value: "step",
                             label: localize("editor.option.style.step", lang),
-                            // description: localize(
-                            //     "editor.option.style.step_desc",
-                            //     lang,
-                            // ),
                             image: IMG_CHART_STEP,
                         },
                     ],
@@ -229,21 +216,21 @@ function buildAggregationSchema(cfg: InsightLineConfig): HaFormSchema[] {
                 },
             },
         },
-        ...(cfg.aggregate && cfg.aggregate !== "none"
+        ...(cfg.aggregate && (cfg.aggregate as string) !== "none"
             ? [
                   {
                       name: "aggregate_period",
                       selector: {
                           select: {
                               options: [
-                                  { value: "5m",  label: "5 min" },
+                                  { value: "5m", label: "5 min" },
                                   { value: "15m", label: "15 min" },
                                   { value: "30m", label: "30 min" },
-                                  { value: "1h",  label: "1 h" },
-                                  { value: "3h",  label: "3 h" },
-                                  { value: "6h",  label: "6 h" },
+                                  { value: "1h", label: "1 h" },
+                                  { value: "3h", label: "3 h" },
+                                  { value: "6h", label: "6 h" },
                                   { value: "12h", label: "12 h" },
-                                  { value: "1d",  label: "1 day" },
+                                  { value: "1d", label: "1 day" },
                               ],
                           },
                       },
@@ -868,7 +855,10 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                             e: CustomEvent<{ value: Record<string, unknown> }>,
                         ) => {
                             const v = e.detail.value;
-                            const next = { ...this._lineConfig, ...dropEmpty(v) };
+                            const next = {
+                                ...this._lineConfig,
+                                ...dropEmpty(v),
+                            };
                             if (!v["aggregate"] || v["aggregate"] === "none") {
                                 delete next.aggregate;
                                 delete next.aggregate_period;
@@ -876,11 +866,13 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                                 delete next.aggregate_period;
                             }
                             this._config = next;
-                            this.dispatchEvent(new CustomEvent("config-changed", {
-                                detail: { config: next },
-                                bubbles: true,
-                                composed: true,
-                            }));
+                            this.dispatchEvent(
+                                new CustomEvent("config-changed", {
+                                    detail: { config: next },
+                                    bubbles: true,
+                                    composed: true,
+                                }),
+                            );
                         }}
                     ></ha-form>
                 </div>
@@ -1084,7 +1076,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     // ---------------------------------------------------------------------------
 
     private readonly _computeLabel = (schema: HaFormSchema): string => {
-        if ("title" in schema) return schema.title;
+        if ("title" in schema) return schema.title as string;
         return localize(`editor.field.${schema.name}`, this._lang);
     };
 

@@ -7008,7 +7008,7 @@ var editor = {
 		fill_opacity: "Fülldeckkraft",
 		y_min: "Weiches Minimum",
 		y_max: "Weiches Maximum",
-		decimals: "Dezimalstellen",
+		decimals: "Nachkommastellen",
 		logarithmic: "Logarithmische Skala (Basis 10)",
 		y_min_secondary: "Sekundärachse Minimum",
 		y_max_secondary: "Sekundärachse Maximum",
@@ -8148,7 +8148,12 @@ let InsightLineCard = class extends InsightBaseCard {
     over.addEventListener("touchstart", onStart, { passive: true });
     over.addEventListener("touchmove", onMove, { passive: false });
     over.addEventListener("touchend", onEnd, { passive: true });
-    this._touchHandlers = { start: onStart, move: onMove, end: onEnd, target: over };
+    this._touchHandlers = {
+      start: onStart,
+      move: onMove,
+      end: onEnd,
+      target: over
+    };
   }
   _detachPinchHandlers() {
     if (!this._touchHandlers) return;
@@ -8168,8 +8173,14 @@ let InsightLineCard = class extends InsightBaseCard {
     return b`
             <div class="chart-wrapper">
                 <div id="chart"></div>
-                ${this._isZoomed ? b`<button class="zoom-reset-btn" @click=${this._resetZoom} title="Reset zoom">
-                          <ha-svg-icon .path=${"M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"}></ha-svg-icon>
+                ${this._isZoomed ? b`<button
+                          class="zoom-reset-btn"
+                          @click=${this._resetZoom}
+                          title="Reset zoom"
+                      >
+                          <ha-svg-icon
+                              .path=${"M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"}
+                          ></ha-svg-icon>
                       </button>` : ""}
             </div>
         `;
@@ -8319,7 +8330,7 @@ InsightLineCard.styles = [
                 border-radius: 6px;
                 background: var(--card-background-color, #fff);
                 color: var(--primary-text-color);
-                box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
                 cursor: pointer;
                 opacity: 0.85;
                 transition: opacity 0.15s;
@@ -8484,7 +8495,7 @@ InsightLineCard.styles = [
         `
 ];
 InsightLineCard.cardType = "custom:insight-line-card";
-InsightLineCard.cardName = "InsightChart Line";
+InsightLineCard.cardName = "Insight-line";
 InsightLineCard.cardDescription = "Interactive time-series line & area chart with zoom";
 __decorateClass$6([
   r()
@@ -8523,91 +8534,75 @@ class InsightEntityTab {
   }
 }
 
-function buildEntitySchema(style) {
+const ENTITY_BASE_SCHEMA = [
+  { name: "entity", selector: { entity: {} } },
+  { name: "name", selector: { text: {} } },
+  {
+    name: "y_axis",
+    selector: {
+      select: {
+        mode: "list",
+        options: [
+          { value: "left", label: "Left axis" },
+          { value: "right", label: "Right axis" }
+        ]
+      }
+    }
+  },
+  { name: "hidden", selector: { boolean: {} } }
+];
+function buildAppearanceSchema(style) {
   const isArea = style === "area";
   return [
     {
-      name: "entity",
-      selector: { entity: {} }
-    },
-    {
-      name: "name",
-      selector: { text: {} }
-    },
-    {
-      name: "y_axis",
+      name: "line_width",
       selector: {
-        select: {
-          mode: "list",
-          options: [
-            { value: "left", label: "Left axis" },
-            { value: "right", label: "Right axis" }
-          ]
-        }
+        number: { min: 0.5, max: 10, step: 0.5, mode: "slider", unit_of_measurement: "px" }
       }
     },
-    { name: "hidden", selector: { boolean: {} } },
-    {
-      type: "expandable",
-      name: "appearance",
-      title: "Appearance",
-      schema: [
-        {
-          name: "line_width",
-          selector: {
-            number: { min: 0.5, max: 10, step: 0.5, mode: "slider", unit_of_measurement: "px" }
-          }
-        },
-        ...isArea ? [
-          {
-            name: "fill_opacity",
-            selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
-          }
-        ] : [],
-        { name: "stroke_dash", selector: { text: {} } }
-      ]
-    },
-    {
-      type: "expandable",
-      name: "data",
-      title: "Data",
-      schema: [
-        { name: "attribute", selector: { text: {} } },
-        { name: "unit", selector: { text: {} } },
-        { name: "scale", selector: { number: { step: 1e-3, mode: "box" } } },
-        { name: "invert", selector: { boolean: {} } },
-        {
-          name: "transform",
-          selector: {
-            select: {
-              options: [
-                { value: "none", label: "None" },
-                { value: "diff", label: "Difference" },
-                { value: "normalize", label: "Normalize (0\u20131)" },
-                { value: "cumulative", label: "Cumulative" }
-              ]
-            }
-          }
-        },
-        {
-          name: "statistics",
-          selector: {
-            select: {
-              options: [
-                { value: "", label: "None (use History API)" },
-                { value: "5minute", label: "5 minutes" },
-                { value: "hour", label: "Hour" },
-                { value: "day", label: "Day" },
-                { value: "week", label: "Week" },
-                { value: "month", label: "Month" }
-              ]
-            }
-          }
-        }
-      ]
-    }
+    ...isArea ? [
+      {
+        name: "fill_opacity",
+        selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
+      }
+    ] : [],
+    { name: "stroke_dash", selector: { text: {} } }
   ];
 }
+const DATA_SCHEMA = [
+  { name: "attribute", selector: { text: {} } },
+  { name: "unit", selector: { text: {} } },
+  { name: "scale", selector: { number: { step: 1e-3, mode: "box" } } },
+  { name: "invert", selector: { boolean: {} } },
+  {
+    name: "transform",
+    selector: {
+      select: {
+        options: [
+          { value: "none", label: "None" },
+          { value: "diff", label: "Difference" },
+          { value: "normalize", label: "Normalize (0\u20131)" },
+          { value: "cumulative", label: "Cumulative" }
+        ]
+      }
+    }
+  },
+  {
+    name: "statistics",
+    selector: {
+      select: {
+        options: [
+          { value: "", label: "None (use History API)" },
+          { value: "5minute", label: "5 minutes" },
+          { value: "hour", label: "Hour" },
+          { value: "day", label: "Day" },
+          { value: "week", label: "Week" },
+          { value: "month", label: "Month" }
+        ]
+      }
+    }
+  }
+];
 
 var __defProp$1 = Object.defineProperty;
 var __getOwnPropDesc$5 = Object.getOwnPropertyDescriptor;
@@ -8636,7 +8631,26 @@ let InsightLineEntityEditor = class extends i$2 {
   render() {
     if (!this.tab) return b`${A}`;
     const ec = this.tab.config;
-    const schema = buildEntitySchema(this.chartStyle ?? "area");
+    const dashStr = Array.isArray(ec.stroke_dash) ? ec.stroke_dash.join(",") : ec.stroke_dash != null ? String(ec.stroke_dash) : "";
+    const baseData = {
+      entity: ec.entity ?? "",
+      name: ec.name ?? "",
+      y_axis: ec.y_axis ?? "left",
+      hidden: ec.hidden ?? false
+    };
+    const appearanceData = {
+      line_width: ec.line_width,
+      fill_opacity: ec.fill_opacity,
+      stroke_dash: dashStr
+    };
+    const dataData = {
+      attribute: ec.attribute ?? "",
+      unit: ec.unit ?? "",
+      scale: ec.scale,
+      invert: ec.invert ?? false,
+      transform: ec.transform ?? "none",
+      statistics: ec.statistics ?? ""
+    };
     return b`
             <div class="entity-editor-content">
                 <div class="entity-top-row">
@@ -8662,68 +8676,75 @@ let InsightLineEntityEditor = class extends i$2 {
 
                 <ha-form
                     .hass=${this.hass}
-                    .schema=${schema}
-                    .data=${this._formData(ec)}
+                    .schema=${ENTITY_BASE_SCHEMA}
+                    .data=${baseData}
                     .computeLabel=${this._computeLabel}
-                    @value-changed=${(e) => this._onFormChanged(e.detail.value)}
+                    @value-changed=${(e) => this._onBaseChanged(e.detail.value)}
+                ></ha-form>
+
+                <div class="section-title">
+                    ${localize("editor.field.appearance", this._lang)}
+                </div>
+                <ha-form
+                    .hass=${this.hass}
+                    .schema=${buildAppearanceSchema(this.chartStyle ?? "area")}
+                    .data=${appearanceData}
+                    .computeLabel=${this._computeLabel}
+                    @value-changed=${(e) => this._onAppearanceChanged(e.detail.value)}
+                ></ha-form>
+
+                <div class="section-title">
+                    ${localize("editor.field.data", this._lang)}
+                </div>
+                <ha-form
+                    .hass=${this.hass}
+                    .schema=${DATA_SCHEMA}
+                    .data=${dataData}
+                    .computeLabel=${this._computeLabel}
+                    @value-changed=${(e) => this._onDataChanged(e.detail.value)}
                 ></ha-form>
             </div>
         `;
   }
   // ---------------------------------------------------------------------------
-  // Helpers
+  // Handlers
   // ---------------------------------------------------------------------------
-  _formData(ec) {
-    const dashStr = Array.isArray(ec.stroke_dash) ? ec.stroke_dash.join(",") : ec.stroke_dash != null ? String(ec.stroke_dash) : "";
-    return {
-      entity: ec.entity ?? "",
-      name: ec.name ?? "",
-      y_axis: ec.y_axis ?? "left",
-      hidden: ec.hidden ?? false,
-      // ha-form-expandable nests data under the group name key
-      appearance: {
-        line_width: ec.line_width,
-        fill_opacity: ec.fill_opacity,
-        stroke_dash: dashStr
-      },
-      data: {
-        attribute: ec.attribute ?? "",
-        unit: ec.unit ?? "",
-        scale: ec.scale,
-        invert: ec.invert ?? false,
-        transform: ec.transform ?? "none",
-        statistics: ec.statistics ?? ""
-      }
-    };
+  _onBaseChanged(raw) {
+    const detail = { ...this.tab.config };
+    detail.entity = raw["entity"] ?? detail.entity;
+    detail.y_axis = raw["y_axis"] ?? detail.y_axis;
+    detail.hidden = raw["hidden"];
+    if (raw["name"]) {
+      detail.name = raw["name"];
+    } else {
+      delete detail.name;
+    }
+    this.dispatchEvent(new CustomEvent("onChange", { detail }));
   }
-  _onFormChanged(raw) {
-    const appearance = raw["appearance"] ?? {};
-    const data = raw["data"] ?? {};
-    const dashStr = appearance["stroke_dash"];
+  _onAppearanceChanged(raw) {
+    const dashStr = raw["stroke_dash"];
     const parsedDash = dashStr ? dashStr.includes(",") ? dashStr.split(",").map(Number).filter((n) => !isNaN(n)) : Number(dashStr) || void 0 : void 0;
-    const patch = Object.fromEntries(
-      Object.entries({
-        entity: raw["entity"] ?? "",
-        name: raw["name"] || void 0,
-        y_axis: raw["y_axis"] ?? void 0,
-        hidden: raw["hidden"],
-        line_width: appearance["line_width"],
-        fill_opacity: appearance["fill_opacity"],
-        stroke_dash: parsedDash,
-        attribute: data["attribute"] || void 0,
-        unit: data["unit"] || void 0,
-        scale: data["scale"],
-        invert: data["invert"],
-        transform: data["transform"] || void 0,
-        statistics: data["statistics"] || void 0
-      }).filter(([, v]) => v !== void 0)
-    );
-    const detail = { ...this.tab.config, ...patch };
-    if (!raw["name"]) delete detail.name;
-    if (!dashStr) delete detail.stroke_dash;
-    if (!data["attribute"]) delete detail.attribute;
-    if (!data["unit"]) delete detail.unit;
-    if (data["scale"] == null) delete detail.scale;
+    const detail = { ...this.tab.config };
+    detail.line_width = raw["line_width"];
+    detail.fill_opacity = raw["fill_opacity"];
+    if (parsedDash != null) {
+      detail.stroke_dash = parsedDash;
+    } else {
+      delete detail.stroke_dash;
+    }
+    this.dispatchEvent(new CustomEvent("onChange", { detail }));
+  }
+  _onDataChanged(raw) {
+    const detail = { ...this.tab.config };
+    if (raw["attribute"]) detail.attribute = raw["attribute"];
+    else delete detail.attribute;
+    if (raw["unit"]) detail.unit = raw["unit"];
+    else delete detail.unit;
+    if (raw["scale"] != null) detail.scale = raw["scale"];
+    else delete detail.scale;
+    detail.invert = raw["invert"];
+    detail.transform = raw["transform"] || void 0;
+    detail.statistics = raw["statistics"] || void 0;
     this.dispatchEvent(new CustomEvent("onChange", { detail }));
   }
   _patch(patch) {
@@ -8772,6 +8793,16 @@ InsightLineEntityEditor.styles = i$5`
             cursor: pointer;
             padding: 2px;
             background: transparent;
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--secondary-text-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding-top: 4px;
+            border-top: 1px solid var(--divider-color, #e0e0e0);
         }
     `;
 __decorateClass$5([
@@ -8860,28 +8891,16 @@ function buildGeneralSchema(lang, cfg) {
             {
               value: "line",
               label: localize("editor.option.style.line", lang),
-              // description: localize(
-              //     "editor.option.style.line_desc",
-              //     lang,
-              // ),
               image: IMG_CHART_LINE
             },
             {
               value: "area",
               label: localize("editor.option.style.area", lang),
-              // description: localize(
-              //     "editor.option.style.area_desc",
-              //     lang,
-              // ),
               image: IMG_CHART_AREA
             },
             {
               value: "step",
               label: localize("editor.option.style.step", lang),
-              // description: localize(
-              //     "editor.option.style.step_desc",
-              //     lang,
-              // ),
               image: IMG_CHART_STEP
             }
           ]
@@ -9532,7 +9551,10 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                         .computeLabel=${this._computeLabel}
                         @value-changed=${(e) => {
       const v = e.detail.value;
-      const next = { ...this._lineConfig, ...dropEmpty(v) };
+      const next = {
+        ...this._lineConfig,
+        ...dropEmpty(v)
+      };
       if (!v["aggregate"] || v["aggregate"] === "none") {
         delete next.aggregate;
         delete next.aggregate_period;
@@ -9540,11 +9562,13 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
         delete next.aggregate_period;
       }
       this._config = next;
-      this.dispatchEvent(new CustomEvent("config-changed", {
-        detail: { config: next },
-        bubbles: true,
-        composed: true
-      }));
+      this.dispatchEvent(
+        new CustomEvent("config-changed", {
+          detail: { config: next },
+          bubbles: true,
+          composed: true
+        })
+      );
     }}
                     ></ha-form>
                 </div>
