@@ -75,7 +75,7 @@ export class InsightLineCard extends InsightBaseCard {
                 position: absolute;
                 top: 6px;
                 right: 6px;
-                z-index: 10;
+                z-index: 1;
                 display: flex;
                 align-items: center;
                 justify-content: center;
