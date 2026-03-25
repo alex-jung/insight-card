@@ -84,7 +84,7 @@ export const DATA_SCHEMA: HaFormField[] = [
     selector: {
       select: {
         options: [
-          { value: "",        label: "None (use History API)" },
+          { value: "none",    label: "None (use History API)" },
           { value: "5minute", label: "5 minutes" },
           { value: "hour",    label: "Hour" },
           { value: "day",     label: "Day" },

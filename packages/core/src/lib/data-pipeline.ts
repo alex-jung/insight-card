@@ -266,10 +266,7 @@ export async function getEntityData(
     rawPoints = await fetchHistory(hass, entityId, startTime, endTime, attribute);
   }
 
-  // Apply optional transforms
-  const transformedData = applyTransform(rawPoints, cfg.transform ?? "none");
-
-  const dataset: EntityDataSet = { entityId, friendlyName, unit, data: transformedData };
+  const dataset: EntityDataSet = { entityId, friendlyName, unit, data: rawPoints };
   toCache(entityId, hours, dataset, attribute);
 
   // Apply scale/invert/unit after caching so the cache stays unmodified and reusable

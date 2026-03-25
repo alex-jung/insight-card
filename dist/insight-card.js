@@ -6350,7 +6350,7 @@ function aggregateTimeSeries(data, periodMs, method) {
   }
   return result.sort((a, b) => a.t - b.t);
 }
-function applyTransform$1(data, transform) {
+function applyTransform(data, transform) {
   if (transform === "none" || data.length === 0) return data;
   switch (transform) {
     case "diff": {
@@ -6508,39 +6508,12 @@ async function getEntityData(hass, entityConfig, hours) {
   } else {
     rawPoints = await fetchHistory(hass, entityId, startTime, endTime, attribute);
   }
-  const transformedData = applyTransform(rawPoints, cfg.transform ?? "none");
-  const dataset = { entityId, friendlyName, unit, data: transformedData };
+  const dataset = { entityId, friendlyName, unit, data: rawPoints };
   toCache(entityId, hours, dataset, attribute);
   return applyValueModifiers(dataset, cfg);
 }
 async function getMultiEntityData(hass, entities, hours) {
   return Promise.all(entities.map((e) => getEntityData(hass, e, hours)));
-}
-function applyTransform(data, transform) {
-  if (!transform || transform === "none" || data.length === 0) return data;
-  if (transform === "diff") {
-    const out = [];
-    for (let i = 1; i < data.length; i++) {
-      out.push({ t: data[i].t, v: data[i].v - data[i - 1].v });
-    }
-    return out;
-  }
-  if (transform === "cumulative") {
-    let sum = 0;
-    return data.map((p) => ({ t: p.t, v: sum += p.v }));
-  }
-  if (transform === "normalize") {
-    let min = Infinity;
-    let max = -Infinity;
-    for (const p of data) {
-      if (p.v < min) min = p.v;
-      if (p.v > max) max = p.v;
-    }
-    const range = max - min;
-    if (range === 0) return data.map((p) => ({ ...p, v: 0 }));
-    return data.map((p) => ({ t: p.t, v: (p.v - min) / range }));
-  }
-  return data;
 }
 
 /**
@@ -7956,7 +7929,7 @@ let InsightLineCard = class extends InsightBaseCard {
         data = aggregateTimeSeries(data, periodMs, method);
       }
       if (ec?.transform && ec.transform !== "none") {
-        data = applyTransform$1(data, ec.transform);
+        data = applyTransform(data, ec.transform);
       }
       return data;
     });
@@ -8798,7 +8771,7 @@ const DATA_SCHEMA = [
     selector: {
       select: {
         options: [
-          { value: "", label: "None (use History API)" },
+          { value: "none", label: "None (use History API)" },
           { value: "5minute", label: "5 minutes" },
           { value: "hour", label: "Hour" },
           { value: "day", label: "Day" },
@@ -8855,7 +8828,7 @@ let InsightLineEntityEditor = class extends i$2 {
       scale: ec.scale,
       invert: ec.invert ?? false,
       transform: ec.transform ?? "none",
-      statistics: ec.statistics ?? ""
+      statistics: ec.statistics ?? "none"
     };
     return b`
             <div class="entity-editor-content">
@@ -8942,7 +8915,8 @@ let InsightLineEntityEditor = class extends i$2 {
   }
   _onDataChanged(raw) {
     const detail = { ...this.tab.config };
-    if (raw["attribute"]) detail.attribute = raw["attribute"];
+    if (raw["attribute"])
+      detail.attribute = raw["attribute"];
     else delete detail.attribute;
     if (raw["unit"]) detail.unit = raw["unit"];
     else delete detail.unit;
@@ -8950,7 +8924,12 @@ let InsightLineEntityEditor = class extends i$2 {
     else delete detail.scale;
     detail.invert = raw["invert"];
     detail.transform = raw["transform"] || void 0;
-    detail.statistics = raw["statistics"] || void 0;
+    const statsRaw = raw["statistics"];
+    if (statsRaw && statsRaw !== "none") {
+      detail.statistics = statsRaw;
+    } else {
+      delete detail.statistics;
+    }
     this.dispatchEvent(new CustomEvent("onChange", { detail }));
   }
   _patch(patch) {
@@ -8990,6 +8969,7 @@ InsightLineEntityEditor.styles = i$5`
             display: flex;
             flex-direction: column;
             gap: 8px;
+            padding-bottom: 16px;
         }
 
         .color-swatch {
@@ -9007,8 +8987,9 @@ InsightLineEntityEditor.styles = i$5`
             color: var(--secondary-text-color);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding-top: 4px;
-            border-top: 1px solid var(--divider-color, #e0e0e0);
+            margin: 8px 0px 16px 0px;
+            padding: 8px 0px;
+            border-bottom: 1px solid var(--divider-color, #e0e0e0);
         }
     `;
 __decorateClass$5([
