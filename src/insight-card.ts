@@ -7,8 +7,10 @@
  *   - custom:insight-heatmap-card
  */
 
+import pkg from "../package.json" assert { type: "json" };
+
 console.info(
-    "%c InsightChart %c v0.1.0 ",
+    `%c InsightChart %c v${pkg.version} `,
     "background:#4AAFFF;color:#fff;font-weight:bold;border-radius:4px 0 0 4px;padding:2px 6px",
     "background:#1a1a2e;color:#4AAFFF;font-weight:bold;border-radius:0 4px 4px 0;padding:2px 6px",
 );
