@@ -53,7 +53,7 @@ describe("normaliseEntityConfig", () => {
 
   it("entity-as-key: nested options are overridden by sibling options", () => {
     const input = { "sensor.temp": { color: "#000" }, color: "#f00" };
-    const result = normaliseEntityConfig(input) as Record<string, unknown>;
+    const result = normaliseEntityConfig(input) as unknown as Record<string, unknown>;
     expect(result.entity).toBe("sensor.temp");
     expect(result.color).toBe("#f00"); // sibling wins
   });
@@ -451,8 +451,8 @@ describe("applyTransform", () => {
 // ---------------------------------------------------------------------------
 
 describe("debounce", () => {
-  beforeEach(() => vi.useFakeTimers());
-  afterEach(() => vi.useRealTimers());
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); });
 
   it("delays function execution", () => {
     const fn = vi.fn();

@@ -95,7 +95,7 @@ describe("getEntityData cache", () => {
     invalidateCache();
     vi.useFakeTimers();
   });
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => { vi.useRealTimers(); });
 
   it("returns cached result on second call", async () => {
     const hass = makeHass(() =>

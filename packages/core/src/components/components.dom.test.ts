@@ -191,7 +191,7 @@ describe("InsightToggleButton", () => {
     await (el as unknown as { updateComplete: Promise<boolean> }).updateComplete;
 
     const events: CustomEvent[] = [];
-    el.addEventListener("toggle", (e) => events.push(e as CustomEvent));
+    el.addEventListener("toggle", (e) => events.push(e as unknown as CustomEvent));
 
     el.shadowRoot!.querySelector("button")!.click();
 
@@ -206,7 +206,7 @@ describe("InsightToggleButton", () => {
     await (el as unknown as { updateComplete: Promise<boolean> }).updateComplete;
 
     const events: CustomEvent[] = [];
-    el.addEventListener("toggle", (e) => events.push(e as CustomEvent));
+    el.addEventListener("toggle", (e) => events.push(e as unknown as CustomEvent));
     el.shadowRoot!.querySelector("button")!.click();
 
     expect(events[0].detail).toEqual({ active: false });
