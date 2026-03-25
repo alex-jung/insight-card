@@ -1,0 +1,80 @@
+name: Bug Report
+description: Report a problem with an Insight Card
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before submitting, please check the [open issues](https://github.com/alex-jung/insight-card/issues) to avoid duplicates.
+
+  - type: dropdown
+    id: card
+    attributes:
+      label: Card
+      description: Which card is affected?
+      options:
+        - Insight Line Card
+        - Insight Bar Card
+        - Insight Heatmap Card
+        - Other / General
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? What did you expect instead?
+      placeholder: |
+        Expected: …
+        Actual: …
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Add card with config …
+        2. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Card configuration (YAML)
+      render: yaml
+      placeholder: |
+        type: custom:insight-line-card
+        entities:
+          - sensor.example
+
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      placeholder: "e.g. 2025.6.0"
+    validations:
+      required: true
+
+  - type: input
+    id: card_version
+    attributes:
+      label: Insight Cards version
+      placeholder: "e.g. 0.1.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Browser console errors (if any)
+      render: text
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Screenshots, related issues, etc.

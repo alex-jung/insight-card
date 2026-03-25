@@ -75,7 +75,7 @@ export class InsightLineCard extends InsightBaseCard {
                 position: absolute;
                 top: 6px;
                 right: 6px;
-                z-index: 10;
+                z-index: 1;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -250,7 +250,7 @@ export class InsightLineCard extends InsightBaseCard {
         `,
     ];
     static readonly cardType = "custom:insight-line-card";
-    static readonly cardName = "Insight line chart";
+    static readonly cardName = "Insight Line Card";
     static readonly cardDescription =
         "Interactive time-series line & area chart with zoom";
 
@@ -582,17 +582,22 @@ export class InsightLineCard extends InsightBaseCard {
                 v == null ? "" : formatValue(v, undefined, decimals),
             );
 
-        // Dynamic axis width: vals are already-formatted strings passed by uPlot
+        // Dynamic axis width: vals are already-formatted strings passed by uPlot.
+        // ctx.save/restore is required: without it, setting ctx.font here leaks
+        // into uPlot's X-axis draw (which expects the DPR-scaled font) and causes
+        // the X-axis labels to shrink on every redraw after the first zoom.
         const yAxisSize = (
             u: uPlot,
             vals: (string | number | null)[],
         ): number => {
             if (!vals?.length) return 40;
+            u.ctx.save();
             u.ctx.font = "12px sans-serif";
             const maxW = vals.reduce<number>((m, v) => {
                 if (v == null) return m;
                 return Math.max(m, u.ctx.measureText(String(v)).width);
             }, 0);
+            u.ctx.restore();
             return Math.max(32, Math.ceil(maxW) + 14); // 14px for tick + gap
         };
 

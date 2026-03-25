@@ -101,7 +101,7 @@ async function fetchHistory(
   type HistoryResponseArray = HassHistoryEntry[][];
   type HistoryResponseDict = Record<string, HassHistoryEntry[]>;
 
-  console.debug("[InsightChart] history request", { entityId, startTime, endTime, attribute });
+  console.debug("[InsightCards] history request", { entityId, startTime, endTime, attribute });
 
   const response = await hass.callWS<HistoryResponseArray | HistoryResponseDict>({
     type: "history/history_during_period",
@@ -115,7 +115,7 @@ async function fetchHistory(
 
   const isArray = Array.isArray(response);
   const responseKeys = !isArray ? Object.keys(response as object) : [];
-  console.debug("[InsightChart] history response", { entityId, isArray, responseKeys, firstEntry: !isArray ? (response as HistoryResponseDict)[responseKeys[0]]?.[0] : (response as HistoryResponseArray)[0]?.[0] });
+  console.debug("[InsightCards] history response", { entityId, isArray, responseKeys, firstEntry: !isArray ? (response as HistoryResponseDict)[responseKeys[0]]?.[0] : (response as HistoryResponseArray)[0]?.[0] });
 
   let entries: HassHistoryEntry[];
   if (isArray) {
@@ -150,7 +150,7 @@ async function fetchHistory(
     if (!isFinite(t)) continue;
     points.push({ t, v });
   }
-  console.debug("[InsightChart] history parsed", { entityId, attribute, points: points.length });
+  console.debug("[InsightCards] history parsed", { entityId, attribute, points: points.length });
   return points;
 }
 
@@ -174,7 +174,7 @@ async function fetchStatistics(
 ): Promise<DataPoint[]> {
   type StatisticsResponse = Record<string, HassStatisticsEntry[]>;
 
-  console.debug("[InsightChart] statistics request", { entityId, period, startTime, endTime });
+  console.debug("[InsightCards] statistics request", { entityId, period, startTime, endTime });
 
   const response = await hass.callWS<StatisticsResponse>({
     type: "recorder/statistics_during_period",
@@ -193,7 +193,7 @@ async function fetchStatistics(
     if (v == null || !isFinite(v)) continue;
     points.push({ t: new Date(entry.start).getTime(), v });
   }
-  console.debug("[InsightChart] statistics parsed", { entityId, period, points: points.length });
+  console.debug("[InsightCards] statistics parsed", { entityId, period, points: points.length });
   return points;
 }
 
@@ -260,7 +260,7 @@ export async function getEntityData(
   let rawPoints: DataPoint[];
 
   const useStatistics = cfg.statistics != null || hours > HISTORY_THRESHOLD_HOURS;
-  console.debug("[InsightChart] data source", { entityId, useStatistics, hours, explicit: cfg.statistics });
+  console.debug("[InsightCards] data source", { entityId, useStatistics, hours, explicit: cfg.statistics });
 
   if (useStatistics) {
     const period = cfg.statistics ?? choosePeriod(hours);

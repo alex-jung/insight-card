@@ -204,7 +204,7 @@ function buildWeekdayHourGrid(
 @customElement("insight-heatmap-card")
 export class InsightHeatmapCard extends InsightBaseCard {
   static readonly cardType = "custom:insight-heatmap-card";
-  static readonly cardName = "InsightChart Heatmap";
+  static readonly cardName = "Insight Heatmap Card";
   static readonly cardDescription =
     "Heatmap visualisation of a sensor over time";
 

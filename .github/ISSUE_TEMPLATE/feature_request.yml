@@ -1,0 +1,51 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before submitting, please check the [open issues](https://github.com/alex-jung/insight-card/issues) to avoid duplicates.
+
+  - type: dropdown
+    id: card
+    attributes:
+      label: Card
+      description: Which card should this feature be added to?
+      options:
+        - Insight Line Card
+        - Insight Bar Card
+        - Insight Heatmap Card
+        - All cards / General
+        - New card
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What problem does this feature solve? What is the use case?
+      placeholder: "As a user I want to … so that …"
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How should it work? Include a YAML example if applicable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Did you consider any workarounds or alternative approaches?
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Screenshots, mockups, links to similar implementations, etc.
