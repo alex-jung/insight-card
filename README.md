@@ -13,7 +13,7 @@ A modular collection of Lovelace visualisation cards for Home Assistant, install
 Existing graph cards each have critical weaknesses:
 
 - **mini-graph-card**: Simple but limited — no zoom, no visual editor, max 10 days history
-- **ApexCharts-card**: Powerful but severe performance problems, 1 000+ open issues, YAML-only
+- **ApexCharts-card**: Powerful but performance problems with many entities, YAML-only
 - **Plotly-graph-card**: Interactive but steep learning curve, YAML-only.
 
 Insight Cards solves the paradox: **simplicity of mini-graph-card + performance of uPlot + visual editor**.
@@ -66,6 +66,38 @@ type: custom:insight-line-card
 entities:
   - sensor.living_room_temperature
 ```
+
+## Screenshots
+
+### Hero — multi-entity area chart with zoom
+
+<!-- screenshot: docs/screenshots/line-card-hero.png -->
+> 📸 *Screenshot coming soon*
+
+### Chart styles — Line · Area · Step
+
+<!-- screenshot: docs/screenshots/line-card-styles.png -->
+> 📸 *Screenshot coming soon*
+
+### Dual Y axes
+
+<!-- screenshot: docs/screenshots/line-card-dual-axis.png -->
+> 📸 *Screenshot coming soon*
+
+### Color thresholds (gradient fill)
+
+<!-- screenshot: docs/screenshots/line-card-color-thresholds.png -->
+> 📸 *Screenshot coming soon*
+
+### Threshold lines
+
+<!-- screenshot: docs/screenshots/line-card-thresholds.png -->
+> 📸 *Screenshot coming soon*
+
+### Visual editor
+
+<!-- screenshot: docs/screenshots/line-card-editor.png -->
+> 📸 *Screenshot coming soon*
 
 ## Features
 

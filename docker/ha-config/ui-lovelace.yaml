@@ -1,4 +1,4 @@
-title: InsightChart Dev
+title: Insight Cards Dev
 
 resources:
     - url: /local/insight-card/insight-card.js
@@ -465,6 +465,129 @@ views:
                 - entity: sensor.test_energy
                   name: Energy
                   color: "#FFB84A"
+            hours: 24
+            style: area
+            show_stats: true
+
+    # ---------------------------------------------------------------------------
+    # SHOWCASE — clean cards for README screenshots
+    # Screenshot size: 800×400 px, dark mode preferred
+    # ---------------------------------------------------------------------------
+    - title: Showcase
+      icon: mdi:camera
+      cards:
+          # screenshot: docs/screenshots/line-card-hero.png
+          - type: custom:insight-line-card
+            title: Temperature — Living Room & Bedroom
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom
+                  color: "#4AAFFF"
+            hours: 24
+            style: area
+            show_stats: true
+            zoom: true
+
+          # screenshot: docs/screenshots/line-card-styles.png
+          # → three cards side by side showing line / area / step
+          - type: custom:insight-line-card
+            title: Style — Line
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#6BDB6B"
+            hours: 12
+            style: line
+
+          - type: custom:insight-line-card
+            title: Style — Area
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#6BDB6B"
+            hours: 12
+            style: area
+
+          - type: custom:insight-line-card
+            title: Style — Step
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#6BDB6B"
+            hours: 12
+            style: step
+
+          # screenshot: docs/screenshots/line-card-dual-axis.png
+          - type: custom:insight-line-card
+            title: Dual Y Axes — Temperature & Humidity
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Temperature (°C)
+                  color: "#FF6B4A"
+                - entity: sensor.test_humidity
+                  name: Humidity (%)
+                  color: "#4AAFFF"
+                  y_axis: right
+            hours: 24
+            style: line
+            show_stats: true
+
+          # screenshot: docs/screenshots/line-card-color-thresholds.png
+          - type: custom:insight-line-card
+            title: Color Thresholds — Temperature gradient
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Temperature
+            hours: 24
+            style: area
+            y_min: 10
+            color_thresholds:
+                - value: 15
+                  color: "#4AAFFF"
+                - value: 20
+                  color: "#6BDB6B"
+                - value: 25
+                  color: "#FFB84A"
+                - value: 28
+                  color: "#FF6B4A"
+
+          # screenshot: docs/screenshots/line-card-thresholds.png
+          - type: custom:insight-line-card
+            title: Threshold Lines — Comfort range
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Temperature
+                  color: "#FF6B4A"
+            hours: 24
+            style: area
+            y_min: 10
+            thresholds:
+                - value: 22
+                  color: "#FF6B4A"
+                  label: "Max comfort"
+                - value: 18
+                  color: "#4AAFFF"
+                  label: "Min comfort"
+                  dash: [8, 4]
+
+          # screenshot: docs/screenshots/line-card-multi-entity.png
+          - type: custom:insight-line-card
+            title: Multi-entity — styled independently
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room (area, thick)
+                  color: "#FF6B4A"
+                  line_width: 3
+                  fill_opacity: 0.3
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom (dashed, no fill)
+                  color: "#4AAFFF"
+                  line_width: 1
+                  fill_opacity: 0
+                  stroke_dash: [8, 4]
             hours: 24
             style: area
             show_stats: true
