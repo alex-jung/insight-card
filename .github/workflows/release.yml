@@ -66,21 +66,21 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "InsightChart ${{ github.ref_name }}"
+          name: "Insight Cards ${{ github.ref_name }}"
           body: |
-            ## InsightChart ${{ github.ref_name }}
+            ## Insight Cards ${{ github.ref_name }}
 
-            Install via HACS, or download the `.js` files below and copy them
-            to your Home Assistant `config/www/` folder, then add the resources
+            Install via HACS, or download `insight-card.js` below and copy it
+            to your Home Assistant `config/www/` folder, then add it as a resource
             in Settings → Dashboards → Resources.
 
             ### Included cards
 
-            | File | Card |
-            |------|------|
-            | `insight-line-card.js` | `custom:insight-line-card` |
-            | `insight-bar-card.js` | `custom:insight-bar-card` |
-            | `insight-heatmap-card.js` | `custom:insight-heatmap-card` |
+            | Card | Element |
+            |------|---------|
+            | Insight Line Card | `custom:insight-line-card` |
+            | Insight Bar Card | `custom:insight-bar-card` |
+            | Insight Heatmap Card | `custom:insight-heatmap-card` |
 
             See the [README](https://github.com/${{ github.repository }}#readme)
             for configuration options.

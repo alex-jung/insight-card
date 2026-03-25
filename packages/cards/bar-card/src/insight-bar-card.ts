@@ -93,7 +93,7 @@ function bucketLabel(key: string, groupBy: InsightBarConfig["group_by"] = "day")
 @customElement("insight-bar-card")
 export class InsightBarCard extends InsightBaseCard {
   static readonly cardType = "custom:insight-bar-card";
-  static readonly cardName = "InsightChart Bar";
+  static readonly cardName = "Insight Bar Card";
   static readonly cardDescription = "Bar chart with grouping and aggregation";
 
   private _canvas?: HTMLCanvasElement;

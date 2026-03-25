@@ -164,7 +164,7 @@ export abstract class InsightBaseCard extends LitElement {
         console.debug("[base-card] setConfig");
 
         if (!config) {
-            throw new Error("InsightChart: setConfig called without a config object");
+            throw new Error("Insight Cards: setConfig called without a config object");
         }
 
         // Work on a copy — HA may pass a frozen object
@@ -178,7 +178,7 @@ export abstract class InsightBaseCard extends LitElement {
         const resolved = cfg as unknown as InsightBaseConfig;
         if (!resolved.entities || !Array.isArray(resolved.entities) || resolved.entities.length === 0) {
             throw new Error(
-                "InsightChart: config must contain at least one entity in the 'entities' array",
+                "Insight Cards: config must contain at least one entity in the 'entities' array",
             );
         }
 
@@ -190,7 +190,7 @@ export abstract class InsightBaseCard extends LitElement {
         // Cache entity IDs for fast state-change detection in updated()
         this._entityIds = this._config.entities.map((e) => normaliseEntityConfig(e).entity);
 
-        console.debug("[InsightChart] setConfig", this.tagName, this._config);
+        console.debug("[InsightCards] setConfig", this.tagName, this._config);
 
         // If card is already connected, fetch data immediately
         if (this.hass) {
@@ -217,7 +217,7 @@ export abstract class InsightBaseCard extends LitElement {
         if (!this._config || !this.hass) return;
 
         const entities = this._config.entities.map((e) => normaliseEntityConfig(e).entity);
-        console.debug("[InsightChart] fetchData start", this.tagName, { entities, hours: this._config.hours });
+        console.debug("[InsightCards] fetchData start", this.tagName, { entities, hours: this._config.hours });
 
         this._loading = true;
         this._error = undefined;
@@ -236,14 +236,14 @@ export abstract class InsightBaseCard extends LitElement {
             // simulate error state
             // throw new Error("Dummy error");
             console.debug(
-                "[InsightChart] fetchData done",
+                "[InsightCards] fetchData done",
                 this.tagName,
                 this._data.map((d) => ({ entity: d.entityId, points: d.data.length })),
             );
         } catch (err) {
             this._error =
                 err instanceof Error ? err.message : "Failed to fetch data";
-            console.error("[InsightChart] fetchData error", this.tagName, err);
+            console.error("[InsightCards] fetchData error", this.tagName, err);
         } finally {
             this._loading = false;
         }

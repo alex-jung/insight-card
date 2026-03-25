@@ -250,7 +250,7 @@ export class InsightLineCard extends InsightBaseCard {
         `,
     ];
     static readonly cardType = "custom:insight-line-card";
-    static readonly cardName = "Insight line chart";
+    static readonly cardName = "Insight Line Card";
     static readonly cardDescription =
         "Interactive time-series line & area chart with zoom";
 
