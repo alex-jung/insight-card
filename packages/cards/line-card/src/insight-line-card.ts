@@ -250,7 +250,7 @@ export class InsightLineCard extends InsightBaseCard {
         `,
     ];
     static readonly cardType = "custom:insight-line-card";
-    static readonly cardName = "Insight line";
+    static readonly cardName = "Insight line chart";
     static readonly cardDescription =
         "Interactive time-series line & area chart with zoom";
 
@@ -768,7 +768,9 @@ export class InsightLineCard extends InsightBaseCard {
      * Execute a tap / double-tap action from the card config.
      * Supports: more-info, navigate, url, perform-action, none.
      */
-    private _handleAction(actionType: "tap_action" | "double_tap_action"): void {
+    private _handleAction(
+        actionType: "tap_action" | "double_tap_action",
+    ): void {
         const cfg = this._config as InsightLineConfig | undefined;
         const action = cfg?.[actionType];
 
@@ -802,7 +804,8 @@ export class InsightLineCard extends InsightBaseCard {
                 }
                 break;
             case "perform-action": {
-                const serviceStr = action.perform_action ?? action.service ?? "";
+                const serviceStr =
+                    action.perform_action ?? action.service ?? "";
                 const [domain, service] = serviceStr.split(".", 2);
                 if (domain && service) {
                     this.hass?.callService(
@@ -1093,7 +1096,8 @@ export class InsightLineCard extends InsightBaseCard {
         `;
     }
 
-    private _resetZoom(): void {
+    private _resetZoom(e: Event): void {
+        e.stopPropagation();
         if (!this._uplot) return;
         const xs = this._uplot.data[0];
         if (!xs?.length) return;

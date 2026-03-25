@@ -1,35 +1,35 @@
 {
-  "name": "insight-chart",
-  "version": "0.1.0",
-  "private": true,
-  "workspaces": [
-    "packages/core"
-  ],
-  "scripts": {
-    "build": "node tools/release.mjs",
-    "build:core": "tsc -p packages/core/tsconfig.json",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "lint": "tsc --noEmit",
-    "validate": "node tools/hacs-validate.mjs",
-    "dev": "rollup -c rollup.config.mjs --watch"
-  },
-  "devDependencies": {
-    "@rollup/plugin-alias": "^6.0.0",
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^15.2.3",
-    "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^11.1.6",
-    "lit": "^3.1.4",
-    "rollup": "^4.18.0",
-    "rollup-plugin-copy": "^3.5.0",
-    "rollup-plugin-esbuild": "^6.2.1",
-    "typescript": "^5.4.5",
-    "vitest": "^1.6.0"
-  },
-  "dependencies": {
-    "@mdi/js": "^7.4.47",
-    "tslib": "^2.8.1",
-    "uplot": "^1.6.31"
-  }
+    "name": "insight-chart",
+    "version": "0.1.0",
+    "private": true,
+    "workspaces": [
+        "packages/core"
+    ],
+    "scripts": {
+        "build": "node tools/release.mjs",
+        "build:core": "tsc -p packages/core/tsconfig.json",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "lint": "tsc --noEmit",
+        "validate": "node tools/hacs-validate.mjs",
+        "dev": "rollup -c rollup.config.mjs --watch"
+    },
+    "devDependencies": {
+        "@rollup/plugin-alias": "^6.0.0",
+        "@rollup/plugin-json": "^6.1.0",
+        "@rollup/plugin-node-resolve": "^15.2.3",
+        "@rollup/plugin-terser": "^0.4.4",
+        "@rollup/plugin-typescript": "^11.1.6",
+        "lit": "^3.1.4",
+        "rollup": "^4.18.0",
+        "rollup-plugin-copy": "^3.5.0",
+        "rollup-plugin-esbuild": "^6.2.1",
+        "typescript": "^5.4.5",
+        "vitest": "^1.6.0"
+    },
+    "dependencies": {
+        "@mdi/js": "^7.4.47",
+        "tslib": "^2.8.1",
+        "uplot": "^1.6.31"
+    }
 }
