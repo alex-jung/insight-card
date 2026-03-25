@@ -40,7 +40,15 @@ export default {
       target: "es2020",
       tsconfig: resolve(__dirname, "tsconfig.json"),
     }),
-    production && terser({ format: { comments: false } }),
+    terser({
+      compress: {
+        // Remove console.debug and console.log — keep console.info (version banner)
+        pure_funcs: ["console.debug", "console.log", "console.warn"],
+        passes: 1,
+      },
+      mangle: false,
+      format: { comments: false, beautify: false },
+    }),
   ].filter(Boolean),
 
   onwarn(warning, warn) {
