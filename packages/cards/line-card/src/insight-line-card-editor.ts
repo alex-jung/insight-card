@@ -26,6 +26,7 @@ import {
 import {
     InsightBaseEditor,
     InsightToggleButton,
+    InsightBoxModel,
     SVG_ZOOM_DRAG,
     SVG_SHOW_LEGEND,
     SVG_SHOW_X_AXIS,
@@ -39,8 +40,9 @@ import {
     type LovelaceCardConfig,
 } from "@insight-chart/core";
 
-// Ensure custom element is registered
+// Ensure custom elements are registered
 InsightToggleButton;
+InsightBoxModel;
 
 import { InsightEntityTab } from "./insight-line-entity-tab.js";
 import "./insight-line-entity-editor.js";
@@ -250,102 +252,6 @@ const ADVANCED_SCHEMA: HaFormSchema[] = [
                 step: 10,
                 mode: "box",
                 unit_of_measurement: "s",
-            },
-        },
-    },
-    {
-        name: "margin_top",
-        selector: {
-            number: {
-                min: 0,
-                max: 100,
-                step: 1,
-                mode: "box",
-                unit_of_measurement: "px",
-            },
-        },
-    },
-    {
-        name: "margin_bottom",
-        selector: {
-            number: {
-                min: 0,
-                max: 100,
-                step: 1,
-                mode: "box",
-                unit_of_measurement: "px",
-            },
-        },
-    },
-    {
-        name: "margin_left",
-        selector: {
-            number: {
-                min: 0,
-                max: 100,
-                step: 1,
-                mode: "box",
-                unit_of_measurement: "px",
-            },
-        },
-    },
-    {
-        name: "margin_right",
-        selector: {
-            number: {
-                min: 0,
-                max: 100,
-                step: 1,
-                mode: "box",
-                unit_of_measurement: "px",
-            },
-        },
-    },
-    {
-        name: "padding_top",
-        selector: {
-            number: {
-                min: 0,
-                max: 100,
-                step: 1,
-                mode: "box",
-                unit_of_measurement: "px",
-            },
-        },
-    },
-    {
-        name: "padding_bottom",
-        selector: {
-            number: {
-                min: 0,
-                max: 100,
-                step: 1,
-                mode: "box",
-                unit_of_measurement: "px",
-            },
-        },
-    },
-    {
-        name: "padding_left",
-        selector: {
-            number: {
-                min: 0,
-                max: 100,
-                step: 1,
-                mode: "box",
-                unit_of_measurement: "px",
-            },
-        },
-    },
-    {
-        name: "padding_right",
-        selector: {
-            number: {
-                min: 0,
-                max: 100,
-                step: 1,
-                mode: "box",
-                unit_of_measurement: "px",
             },
         },
     },
@@ -773,6 +679,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                                 e.detail.value as Partial<InsightLineConfig>,
                             )}
                     ></ha-form>
+                    ${this._renderBoxModel()}
                 </div>
             </ha-expansion-panel>
         `;
@@ -899,7 +806,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                     >${localize("editor.section.overlays", this._lang)}</span
                 >
                 <div class="panel-content">
-                    <div class="subsection-label">
+                    <div class="section-title">
                         ${localize(
                             "editor.subsection.threshold_lines",
                             this._lang,
@@ -963,7 +870,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                         )}</ha-button
                     >
 
-                    <div class="subsection-label" style="margin-top:12px">
+                    <div class="section-title" style="margin-top:24px">
                         ${localize(
                             "editor.subsection.color_thresholds",
                             this._lang,
@@ -1037,14 +944,6 @@ export class InsightLineCardEditor extends InsightBaseEditor {
         const cfg = this._lineConfig;
         const data = {
             update_interval: cfg.update_interval ?? 60,
-            margin_top: cfg.margin_top ?? 0,
-            margin_bottom: cfg.margin_bottom ?? 0,
-            margin_left: cfg.margin_left ?? 0,
-            margin_right: cfg.margin_right ?? 0,
-            padding_top: cfg.padding_top ?? 8,
-            padding_bottom: cfg.padding_bottom ?? 8,
-            padding_left: cfg.padding_left ?? 16,
-            padding_right: cfg.padding_right ?? 16,
         };
 
         return html`
@@ -1068,6 +967,43 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                     ></ha-form>
                 </div>
             </ha-expansion-panel>
+        `;
+    }
+
+    private _renderBoxModel(): TemplateResult {
+        const cfg = this._lineConfig;
+        return html`
+            <div class="layout-section">
+                <div class="section-title">
+                    ${localize("editor.subsection.layout", this._lang)}
+                </div>
+                <insight-box-model
+                    .labelOuter=${localize(
+                        "editor.subsection.margin",
+                        this._lang,
+                    )}
+                    .labelInner=${localize(
+                        "editor.subsection.padding",
+                        this._lang,
+                    )}
+                    keyOuter="margin"
+                    keyInner="padding"
+                    .outerTop=${cfg.margin_top ?? 0}
+                    .outerRight=${cfg.margin_right ?? 0}
+                    .outerBottom=${cfg.margin_bottom ?? 0}
+                    .outerLeft=${cfg.margin_left ?? 0}
+                    .innerTop=${cfg.padding_top ?? 8}
+                    .innerRight=${cfg.padding_right ?? 16}
+                    .innerBottom=${cfg.padding_bottom ?? 8}
+                    .innerLeft=${cfg.padding_left ?? 16}
+                    @value-changed=${(
+                        e: CustomEvent<{ key: string; value: number }>,
+                    ) =>
+                        this._updateConfig({
+                            [e.detail.key]: e.detail.value,
+                        } as Partial<InsightLineConfig>)}
+                ></insight-box-model>
+            </div>
         `;
     }
 
@@ -1180,6 +1116,17 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                 padding: 8px 0;
             }
 
+            .section-title {
+                font-size: 0.8rem;
+                font-weight: 500;
+                color: var(--secondary-text-color);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin: 8px 0px 16px 0px;
+                padding: 8px 0px;
+                border-bottom: 1px solid var(--divider-color, #e0e0e0);
+            }
+
             .toggle-row {
                 display: flex;
                 flex-wrap: wrap;
@@ -1256,6 +1203,10 @@ export class InsightLineCardEditor extends InsightBaseEditor {
 
             .overlay-row ha-form {
                 flex: 1;
+            }
+
+            .layout-section {
+                margin: 16px 0;
             }
         `,
     ];

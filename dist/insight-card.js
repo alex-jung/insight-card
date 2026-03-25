@@ -6556,13 +6556,13 @@ const t={ATTRIBUTE:1},e=t=>(...e)=>({_$litDirective$:t,values:e});let i$1 = clas
  * SPDX-License-Identifier: BSD-3-Clause
  */const n="important",i=" !"+n,o=e(class extends i$1{constructor(t$1){if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||t$1.strings?.length>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.includes("-")?r:r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`},"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.ft)return this.ft=new Set(Object.keys(r)),this.render(r);for(const t of this.ft)null==r[t]&&(this.ft.delete(t),t.includes("-")?s.removeProperty(t):s[t]=null);for(const t in r){const e=r[t];if(null!=e){this.ft.add(t);const r="string"==typeof e&&e.endsWith(i);t.includes("-")||r?s.setProperty(t,r?e.slice(0,-11):e,r?n:""):s[t]=e;}}return E}});
 
-var __defProp$5 = Object.defineProperty;
-var __decorateClass$9 = (decorators, target, key, kind) => {
+var __defProp$6 = Object.defineProperty;
+var __decorateClass$a = (decorators, target, key, kind) => {
   var result = void 0 ;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (decorator(target, key, result) ) || result;
-  if (result) __defProp$5(target, key, result);
+  if (result) __defProp$6(target, key, result);
   return result;
 };
 class InsightBaseCard extends i$2 {
@@ -6844,25 +6844,25 @@ InsightBaseCard.styles = i$5`
         font-size: 0.875rem;
       }
       `;
-__decorateClass$9([
+__decorateClass$a([
   n$1({ attribute: false })
 ], InsightBaseCard.prototype, "hass");
-__decorateClass$9([
+__decorateClass$a([
   r()
 ], InsightBaseCard.prototype, "_config");
-__decorateClass$9([
+__decorateClass$a([
   r()
 ], InsightBaseCard.prototype, "_data");
-__decorateClass$9([
+__decorateClass$a([
   r()
 ], InsightBaseCard.prototype, "_loading");
-__decorateClass$9([
+__decorateClass$a([
   r()
 ], InsightBaseCard.prototype, "_error");
-__decorateClass$9([
+__decorateClass$a([
   r()
 ], InsightBaseCard.prototype, "_cardWidth");
-__decorateClass$9([
+__decorateClass$a([
   e$1(".card-header")
 ], InsightBaseCard.prototype, "_header");
 
@@ -6967,7 +6967,10 @@ var editor$1 = {
 	},
 	subsection: {
 		threshold_lines: "Threshold lines",
-		color_thresholds: "Color thresholds (gradient)"
+		color_thresholds: "Color thresholds (gradient)",
+		layout: "Layout",
+		margin: "Margin",
+		padding: "Padding"
 	}
 };
 var card$1 = {
@@ -7082,7 +7085,10 @@ var editor = {
 	},
 	subsection: {
 		threshold_lines: "Schwellenwertlinien",
-		color_thresholds: "Farbschwellenwerte (Gradient)"
+		color_thresholds: "Farbschwellenwerte (Gradient)",
+		layout: "Layout",
+		margin: "Außenabstand",
+		padding: "Innenabstand"
 	}
 };
 var card = {
@@ -7114,13 +7120,13 @@ function localize(key, lang = "en", vars) {
   return template;
 }
 
-var __defProp$4 = Object.defineProperty;
-var __decorateClass$8 = (decorators, target, key, kind) => {
+var __defProp$5 = Object.defineProperty;
+var __decorateClass$9 = (decorators, target, key, kind) => {
   var result = void 0 ;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (decorator(target, key, result) ) || result;
-  if (result) __defProp$4(target, key, result);
+  if (result) __defProp$5(target, key, result);
   return result;
 };
 i$5`
@@ -7399,21 +7405,21 @@ InsightBaseEditor.styles = i$5`
       text-align: center;
     }
   `;
-__decorateClass$8([
+__decorateClass$9([
   n$1({ attribute: false })
 ], InsightBaseEditor.prototype, "hass");
-__decorateClass$8([
+__decorateClass$9([
   r()
 ], InsightBaseEditor.prototype, "_config");
 
-var __defProp$3 = Object.defineProperty;
-var __getOwnPropDesc$7 = Object.getOwnPropertyDescriptor;
-var __decorateClass$7 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$7(target, key) : target;
+var __defProp$4 = Object.defineProperty;
+var __getOwnPropDesc$8 = Object.getOwnPropertyDescriptor;
+var __decorateClass$8 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$8(target, key) : target;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp$3(target, key, result);
+  if (kind && result) __defProp$4(target, key, result);
   return result;
 };
 let InsightToggleButton = class extends i$2 {
@@ -7510,24 +7516,224 @@ InsightToggleButton.styles = i$5`
             font-weight: 600;
         }
     `;
-__decorateClass$7([
+__decorateClass$8([
   n$1()
 ], InsightToggleButton.prototype, "svg", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1()
 ], InsightToggleButton.prototype, "label", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1({ type: Boolean, reflect: true })
 ], InsightToggleButton.prototype, "active", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1({ type: Number })
 ], InsightToggleButton.prototype, "width", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1({ type: Number })
 ], InsightToggleButton.prototype, "height", 2);
-InsightToggleButton = __decorateClass$7([
+InsightToggleButton = __decorateClass$8([
   t$1("insight-toggle-button")
 ], InsightToggleButton);
+
+var __defProp$3 = Object.defineProperty;
+var __getOwnPropDesc$7 = Object.getOwnPropertyDescriptor;
+var __decorateClass$7 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$7(target, key) : target;
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result) __defProp$3(target, key, result);
+  return result;
+};
+let InsightBoxModel = class extends i$2 {
+  constructor() {
+    super(...arguments);
+    this.labelOuter = "Margin";
+    this.labelInner = "Padding";
+    this.keyOuter = "margin";
+    this.keyInner = "padding";
+    this.outerTop = 0;
+    this.outerRight = 0;
+    this.outerBottom = 0;
+    this.outerLeft = 0;
+    this.innerTop = 8;
+    this.innerRight = 16;
+    this.innerBottom = 8;
+    this.innerLeft = 16;
+  }
+  render() {
+    return b`
+            <div class="bm-outer">
+                <span class="bm-label">${this.labelOuter}</span>
+                <div class="bm-top">
+                    ${this._input(`${this.keyOuter}_top`, this.outerTop)}
+                </div>
+                <div class="bm-middle">
+                    ${this._input(`${this.keyOuter}_left`, this.outerLeft)}
+                    <div class="bm-inner">
+                        <span class="bm-label bm-label--inner">${this.labelInner}</span>
+                        <div class="bm-top">
+                            ${this._input(`${this.keyInner}_top`, this.innerTop)}
+                        </div>
+                        <div class="bm-middle">
+                            ${this._input(`${this.keyInner}_left`, this.innerLeft)}
+                            <div class="bm-chart-area"></div>
+                            ${this._input(`${this.keyInner}_right`, this.innerRight)}
+                        </div>
+                        <div class="bm-top">
+                            ${this._input(`${this.keyInner}_bottom`, this.innerBottom)}
+                        </div>
+                    </div>
+                    ${this._input(`${this.keyOuter}_right`, this.outerRight)}
+                </div>
+                <div class="bm-top">
+                    ${this._input(`${this.keyOuter}_bottom`, this.outerBottom)}
+                </div>
+            </div>
+        `;
+  }
+  _input(key, value) {
+    return b`
+            <input
+                class="bm-input"
+                type="number"
+                min="0"
+                max="100"
+                .value=${String(value)}
+                @change=${(e) => this._fire(key, parseInt(e.target.value) || 0)}
+            />
+        `;
+  }
+  _fire(key, value) {
+    this.dispatchEvent(
+      new CustomEvent("value-changed", {
+        detail: { key, value },
+        bubbles: true,
+        composed: true
+      })
+    );
+  }
+};
+InsightBoxModel.styles = i$5`
+        :host {
+            display: block;
+            margin: 24px 0px;
+        }
+
+        .bm-outer {
+            border: 2px dashed var(--divider-color, #ccc);
+            border-radius: 6px;
+            padding: 4px 6px;
+            position: relative;
+        }
+
+        .bm-inner {
+            border: 2px dashed var(--primary-color, #03a9f4);
+            border-radius: 4px;
+            padding: 4px 6px;
+            flex: 1;
+            min-width: 0;
+            position: relative;
+        }
+
+        .bm-label {
+            position: absolute;
+            top: -9px;
+            left: 8px;
+            background: var(--card-background-color, #fff);
+            padding: 0 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--secondary-text-color);
+        }
+
+        .bm-label--inner {
+            color: var(--primary-color, #03a9f4);
+        }
+
+        .bm-top {
+            display: flex;
+            justify-content: center;
+            padding: 2px 0;
+        }
+
+        .bm-middle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 0;
+        }
+
+        .bm-chart-area {
+            flex: 1;
+            min-height: 28px;
+            background: color-mix(in srgb, var(--primary-color, #03a9f4) 15%, transparent);
+            border-radius: 3px;
+        }
+
+        .bm-input {
+            width: 44px;
+            text-align: center;
+            border: 1px solid var(--divider-color, #e0e0e0);
+            border-radius: 4px;
+            padding: 3px 2px;
+            font-size: 0.8rem;
+            background: var(--card-background-color, #fff);
+            color: var(--primary-text-color);
+            -moz-appearance: textfield;
+        }
+
+        .bm-input::-webkit-inner-spin-button,
+        .bm-input::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+
+        .bm-input:focus {
+            outline: 2px solid var(--primary-color, #03a9f4);
+            outline-offset: -1px;
+        }
+    `;
+__decorateClass$7([
+  n$1({ attribute: "label-outer" })
+], InsightBoxModel.prototype, "labelOuter", 2);
+__decorateClass$7([
+  n$1({ attribute: "label-inner" })
+], InsightBoxModel.prototype, "labelInner", 2);
+__decorateClass$7([
+  n$1()
+], InsightBoxModel.prototype, "keyOuter", 2);
+__decorateClass$7([
+  n$1()
+], InsightBoxModel.prototype, "keyInner", 2);
+__decorateClass$7([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "outerTop", 2);
+__decorateClass$7([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "outerRight", 2);
+__decorateClass$7([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "outerBottom", 2);
+__decorateClass$7([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "outerLeft", 2);
+__decorateClass$7([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "innerTop", 2);
+__decorateClass$7([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "innerRight", 2);
+__decorateClass$7([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "innerBottom", 2);
+__decorateClass$7([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "innerLeft", 2);
+InsightBoxModel = __decorateClass$7([
+  t$1("insight-box-model")
+], InsightBoxModel);
 
 function svgToDataUrl(svg) {
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
@@ -9004,102 +9210,6 @@ const ADVANCED_SCHEMA = [
         unit_of_measurement: "s"
       }
     }
-  },
-  {
-    name: "margin_top",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
-  },
-  {
-    name: "margin_bottom",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
-  },
-  {
-    name: "margin_left",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
-  },
-  {
-    name: "margin_right",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
-  },
-  {
-    name: "padding_top",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
-  },
-  {
-    name: "padding_bottom",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
-  },
-  {
-    name: "padding_left",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
-  },
-  {
-    name: "padding_right",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
   }
 ];
 const THRESHOLD_SCHEMA = [
@@ -9480,6 +9590,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       e.detail.value
     )}
                     ></ha-form>
+                    ${this._renderBoxModel()}
                 </div>
             </ha-expansion-panel>
         `;
@@ -9592,7 +9703,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                     >${localize("editor.section.overlays", this._lang)}</span
                 >
                 <div class="panel-content">
-                    <div class="subsection-label">
+                    <div class="section-title">
                         ${localize(
       "editor.subsection.threshold_lines",
       this._lang
@@ -9648,7 +9759,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     )}</ha-button
                     >
 
-                    <div class="subsection-label" style="margin-top:12px">
+                    <div class="section-title" style="margin-top:24px">
                         ${localize(
       "editor.subsection.color_thresholds",
       this._lang
@@ -9707,15 +9818,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   _renderAdvancedSection() {
     const cfg = this._lineConfig;
     const data = {
-      update_interval: cfg.update_interval ?? 60,
-      margin_top: cfg.margin_top ?? 0,
-      margin_bottom: cfg.margin_bottom ?? 0,
-      margin_left: cfg.margin_left ?? 0,
-      margin_right: cfg.margin_right ?? 0,
-      padding_top: cfg.padding_top ?? 8,
-      padding_bottom: cfg.padding_bottom ?? 8,
-      padding_left: cfg.padding_left ?? 16,
-      padding_right: cfg.padding_right ?? 16
+      update_interval: cfg.update_interval ?? 60
     };
     return b`
             <ha-expansion-panel outlined>
@@ -9735,6 +9838,39 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                     ></ha-form>
                 </div>
             </ha-expansion-panel>
+        `;
+  }
+  _renderBoxModel() {
+    const cfg = this._lineConfig;
+    return b`
+            <div class="layout-section">
+                <div class="section-title">
+                    ${localize("editor.subsection.layout", this._lang)}
+                </div>
+                <insight-box-model
+                    .labelOuter=${localize(
+      "editor.subsection.margin",
+      this._lang
+    )}
+                    .labelInner=${localize(
+      "editor.subsection.padding",
+      this._lang
+    )}
+                    keyOuter="margin"
+                    keyInner="padding"
+                    .outerTop=${cfg.margin_top ?? 0}
+                    .outerRight=${cfg.margin_right ?? 0}
+                    .outerBottom=${cfg.margin_bottom ?? 0}
+                    .outerLeft=${cfg.margin_left ?? 0}
+                    .innerTop=${cfg.padding_top ?? 8}
+                    .innerRight=${cfg.padding_right ?? 16}
+                    .innerBottom=${cfg.padding_bottom ?? 8}
+                    .innerLeft=${cfg.padding_left ?? 16}
+                    @value-changed=${(e) => this._updateConfig({
+      [e.detail.key]: e.detail.value
+    })}
+                ></insight-box-model>
+            </div>
         `;
   }
   // ---------------------------------------------------------------------------
@@ -9799,6 +9935,17 @@ InsightLineCardEditor.styles = [
 
             .panel-content {
                 padding: 8px 0;
+            }
+
+            .section-title {
+                font-size: 0.8rem;
+                font-weight: 500;
+                color: var(--secondary-text-color);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin: 8px 0px 16px 0px;
+                padding: 8px 0px;
+                border-bottom: 1px solid var(--divider-color, #e0e0e0);
             }
 
             .toggle-row {
@@ -9877,6 +10024,10 @@ InsightLineCardEditor.styles = [
 
             .overlay-row ha-form {
                 flex: 1;
+            }
+
+            .layout-section {
+                margin: 16px 0;
             }
         `
 ];

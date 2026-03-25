@@ -100,7 +100,10 @@
     },
     "subsection": {
       "threshold_lines": "Schwellenwertlinien",
-      "color_thresholds": "Farbschwellenwerte (Gradient)"
+      "color_thresholds": "Farbschwellenwerte (Gradient)",
+      "layout": "Layout",
+      "margin": "Außenabstand",
+      "padding": "Innenabstand"
     }
   },
   "card": {

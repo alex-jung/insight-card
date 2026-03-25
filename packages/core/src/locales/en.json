@@ -100,7 +100,10 @@
     },
     "subsection": {
       "threshold_lines": "Threshold lines",
-      "color_thresholds": "Color thresholds (gradient)"
+      "color_thresholds": "Color thresholds (gradient)",
+      "layout": "Layout",
+      "margin": "Margin",
+      "padding": "Padding"
     }
   },
   "card": {
