@@ -659,6 +659,7 @@ export class InsightLineCard extends InsightBaseCard {
                 ...(hasSecondaryAxis
                     ? [
                           {
+                              show: config.show_y_axis !== false,
                               scale: "y2",
                               side: 1, // right side
                               stroke: axisStroke,
