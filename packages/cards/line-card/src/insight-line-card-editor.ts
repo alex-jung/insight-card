@@ -628,13 +628,16 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                                 e: CustomEvent<{ value: string }>,
                             ) => {
                                 const v = e.detail.value;
-                                this._updateConfig({
-                                    show_points: (v === "true"
-                                        ? true
-                                        : v === "hover"
-                                          ? "hover"
-                                          : false) as InsightLineConfig["show_points"],
-                                } as Partial<InsightLineConfig>);
+                                const newCfg = { ...this._config } as InsightLineConfig;
+                                if (v === "true") newCfg.show_points = true;
+                                else if (v === "hover") newCfg.show_points = "hover";
+                                else delete newCfg.show_points; // false is the default — omit from config
+                                this._config = newCfg;
+                                this.dispatchEvent(new CustomEvent("config-changed", {
+                                    detail: { config: newCfg },
+                                    bubbles: true,
+                                    composed: true,
+                                }));
                             }}
                         ></ha-control-select>
                     </div>

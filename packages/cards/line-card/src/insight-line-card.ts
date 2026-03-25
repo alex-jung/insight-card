@@ -249,7 +249,7 @@ export class InsightLineCard extends InsightBaseCard {
         `,
     ];
     static readonly cardType = "custom:insight-line-card";
-    static readonly cardName = "Insight-line";
+    static readonly cardName = "Insight line";
     static readonly cardDescription =
         "Interactive time-series line & area chart with zoom";
 
@@ -312,7 +312,7 @@ export class InsightLineCard extends InsightBaseCard {
             hours: 24,
             style: "area",
             zoom: true,
-            line_width: 1,
+            line_width: 2,
             show_legend: true,
             margin_bottom: 16,
             margin_top: 16,
@@ -333,8 +333,8 @@ export class InsightLineCard extends InsightBaseCard {
             zoom: true,
             line_width: 2,
             fill_opacity: 0.15,
-            y_range: "auto",
             update_interval: 60,
+            show_legend: true,
             show_x_axis: true,
             show_y_axis: true,
         };

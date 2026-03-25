@@ -7934,7 +7934,7 @@ let InsightLineCard = class extends InsightBaseCard {
       hours: 24,
       style: "area",
       zoom: true,
-      line_width: 1,
+      line_width: 2,
       show_legend: true,
       margin_bottom: 16,
       margin_top: 16,
@@ -7953,8 +7953,8 @@ let InsightLineCard = class extends InsightBaseCard {
       zoom: true,
       line_width: 2,
       fill_opacity: 0.15,
-      y_range: "auto",
       update_interval: 60,
+      show_legend: true,
       show_x_axis: true,
       show_y_axis: true
     };
@@ -8770,7 +8770,7 @@ InsightLineCard.styles = [
         `
 ];
 InsightLineCard.cardType = "custom:insight-line-card";
-InsightLineCard.cardName = "Insight-line";
+InsightLineCard.cardName = "Insight line";
 InsightLineCard.cardDescription = "Interactive time-series line & area chart with zoom";
 __decorateClass$6([
   r()
@@ -9629,9 +9629,16 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                             .value=${showPointsStr}
                             @value-changed=${(e) => {
       const v = e.detail.value;
-      this._updateConfig({
-        show_points: v === "true" ? true : v === "hover" ? "hover" : false
-      });
+      const newCfg = { ...this._config };
+      if (v === "true") newCfg.show_points = true;
+      else if (v === "hover") newCfg.show_points = "hover";
+      else delete newCfg.show_points;
+      this._config = newCfg;
+      this.dispatchEvent(new CustomEvent("config-changed", {
+        detail: { config: newCfg },
+        bubbles: true,
+        composed: true
+      }));
     }}
                         ></ha-control-select>
                     </div>
