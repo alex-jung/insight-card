@@ -9,6 +9,7 @@
       "y_axis": "Y axis",
       "data_aggregation": "Data aggregation",
       "overlays": "Overlays",
+      "interactions": "Interactions",
       "advanced": "Advanced"
     },
     "field": {
@@ -56,6 +57,9 @@
       "unit": "Unit override",
       "scale": "Scale factor",
       "invert": "Invert values",
+      "tap_action": "Tap action",
+      "double_tap_action": "Double tap action",
+      "hold_action": "Hold action",
       "value": "Value",
       "label": "Label",
       "dash": "Dash pattern (e.g. 4,3)",
@@ -66,7 +70,8 @@
       "add_entity": "+ Add entity",
       "remove_entity": "Remove entity",
       "add_threshold": "+ Add threshold",
-      "add_color_threshold": "+ Add color threshold"
+      "add_color_threshold": "+ Add color threshold",
+      "add_interaction": "Add interaction"
     },
     "option": {
       "style": {

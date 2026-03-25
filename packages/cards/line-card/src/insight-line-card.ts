@@ -31,6 +31,7 @@ import {
     parsePeriod,
     aggregateTimeSeries,
     applyTransform,
+    normaliseEntityConfig,
 } from "@insight-chart/core";
 
 // ---------------------------------------------------------------------------
@@ -273,6 +274,7 @@ export class InsightLineCard extends InsightBaseCard {
     /** Whether the chart is currently zoomed — controls reset-button visibility */
     @state() private _isZoomed = false;
     /** Pinch gesture state — snapshot taken on touchstart with 2 fingers */
+    private _tapTimer?: ReturnType<typeof setTimeout>;
     private _pinch?: { dist: number; scaleMin: number; scaleMax: number };
     /** Bound touch handlers — stored so they can be removed on destroy */
     private _touchHandlers?: {
@@ -725,11 +727,16 @@ export class InsightLineCard extends InsightBaseCard {
                         this._overTop = u.over.offsetTop;
                         // Attach pinch-to-zoom touch handlers
                         this._attachPinchHandlers(u);
-                        // Suppress uPlot's built-in dblclick-to-reset-zoom —
-                        // we have our own reset button for that.
+                        // Intercept dblclick before uPlot's zoom-reset handler.
+                        // stopImmediatePropagation prevents uPlot from resetting zoom;
+                        // we handle double_tap_action here directly.
                         u.over.addEventListener(
                             "dblclick",
-                            (e) => e.stopImmediatePropagation(),
+                            (e) => {
+                                e.stopImmediatePropagation();
+                                clearTimeout(this._tapTimer);
+                                this._handleAction("double_tap_action");
+                            },
                             { capture: true },
                         );
                     },
@@ -755,6 +762,72 @@ export class InsightLineCard extends InsightBaseCard {
                 config.padding_left ?? 16,
             ],
         };
+    }
+
+    /**
+     * Execute a tap / double-tap action from the card config.
+     * Supports: more-info, navigate, url, perform-action, none.
+     */
+    private _handleAction(actionType: "tap_action" | "double_tap_action"): void {
+        const cfg = this._config as InsightLineConfig | undefined;
+        const action = cfg?.[actionType];
+
+        // tap_action defaults to "more-info" when not explicitly configured
+        if (!action) {
+            if (actionType === "tap_action") {
+                this._fireMoreInfo(cfg);
+            }
+            return;
+        }
+        if (action.action === "none") return;
+
+        switch (action.action) {
+            case "more-info":
+                this._fireMoreInfo(cfg);
+                break;
+            case "navigate":
+                if (action.navigation_path) {
+                    history.pushState(null, "", action.navigation_path);
+                    this.dispatchEvent(
+                        new CustomEvent("location-changed", {
+                            bubbles: true,
+                            composed: true,
+                        }),
+                    );
+                }
+                break;
+            case "url":
+                if (action.url_path) {
+                    window.open(action.url_path, "_blank");
+                }
+                break;
+            case "perform-action": {
+                const serviceStr = action.perform_action ?? action.service ?? "";
+                const [domain, service] = serviceStr.split(".", 2);
+                if (domain && service) {
+                    this.hass?.callService(
+                        domain,
+                        service,
+                        action.data ?? action.service_data ?? {},
+                    );
+                }
+                break;
+            }
+        }
+    }
+
+    private _fireMoreInfo(cfg: InsightLineConfig | undefined): void {
+        const first = cfg?.entities?.[0];
+        if (!first) return;
+        const entityId = normaliseEntityConfig(first).entity;
+        if (!entityId) return;
+        this.dispatchEvent(
+            new CustomEvent("hass-more-info", {
+                detail: { entityId },
+                bubbles: true,
+                composed: true,
+            }),
+        );
     }
 
     /**
@@ -995,7 +1068,15 @@ export class InsightLineCard extends InsightBaseCard {
         if (!config) return html``;
 
         return html`
-            <div class="chart-wrapper">
+            <div
+                class="chart-wrapper"
+                @click=${() => {
+                    this._tapTimer = setTimeout(
+                        () => this._handleAction("tap_action"),
+                        250,
+                    );
+                }}
+            >
                 <div id="chart"></div>
                 ${this._isZoomed
                     ? html`<button

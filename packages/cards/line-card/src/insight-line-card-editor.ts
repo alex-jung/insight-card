@@ -21,6 +21,7 @@ import {
     mdiDatabaseClock,
     mdiLayersOutline,
     mdiCog,
+    mdiGestureTap,
 } from "@mdi/js";
 
 import {
@@ -320,6 +321,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                 ${this._renderChartStyleSection()} ${this._renderYAxisSection()}
                 ${this._renderAggregationSection()}
                 ${this._renderOverlaysSection()}
+                ${this._renderInteractionsSection()}
                 ${this._renderAdvancedSection()}
             </div>
         `;
@@ -628,16 +630,21 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                                 e: CustomEvent<{ value: string }>,
                             ) => {
                                 const v = e.detail.value;
-                                const newCfg = { ...this._config } as InsightLineConfig;
+                                const newCfg = {
+                                    ...this._config,
+                                } as InsightLineConfig;
                                 if (v === "true") newCfg.show_points = true;
-                                else if (v === "hover") newCfg.show_points = "hover";
+                                else if (v === "hover")
+                                    newCfg.show_points = "hover";
                                 else delete newCfg.show_points; // false is the default — omit from config
                                 this._config = newCfg;
-                                this.dispatchEvent(new CustomEvent("config-changed", {
-                                    detail: { config: newCfg },
-                                    bubbles: true,
-                                    composed: true,
-                                }));
+                                this.dispatchEvent(
+                                    new CustomEvent("config-changed", {
+                                        detail: { config: newCfg },
+                                        bubbles: true,
+                                        composed: true,
+                                    }),
+                                );
                             }}
                         ></ha-control-select>
                     </div>
@@ -990,6 +997,82 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                             this._lang,
                         )}</ha-button
                     >
+                </div>
+            </ha-expansion-panel>
+        `;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Interactions
+    // ---------------------------------------------------------------------------
+
+    private readonly _interactionsSchema = [
+        {
+            name: "tap_action",
+            selector: {
+                ui_action: {
+                    actions: [
+                        "perform-action",
+                        "assist",
+                        "url",
+                        "navigate",
+                        "none",
+                    ],
+                    default_action: "more-info" as const,
+                },
+            },
+        },
+        {
+            name: "",
+            type: "optional_actions",
+            flatten: true,
+            schema: (["double_tap_action", "hold_action"] as const).map(
+                (action) => ({
+                    name: action,
+                    selector: {
+                        ui_action: {
+                            actions: [
+                                "more-info",
+                                "perform-action",
+                                "assist",
+                                "navigate",
+                                "url",
+                                "none",
+                            ],
+                            default_action: "none" as const,
+                        },
+                    },
+                }),
+            ),
+        },
+    ];
+
+    private _renderInteractionsSection(): TemplateResult {
+        return html`
+            <ha-expansion-panel outlined>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiGestureTap}
+                ></ha-svg-icon>
+                <span slot="header"
+                    >${localize(
+                        "editor.section.interactions",
+                        this._lang,
+                    )}</span
+                >
+                <div class="panel-content">
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${this._interactionsSchema}
+                        .data=${this._config}
+                        .computeLabel=${this._computeLabel}
+                        @value-changed=${(
+                            e: CustomEvent<{ value: Record<string, unknown> }>,
+                        ) =>
+                            this._updateConfig(
+                                e.detail.value as Partial<InsightLineConfig>,
+                            )}
+                    ></ha-form>
                 </div>
             </ha-expansion-panel>
         `;

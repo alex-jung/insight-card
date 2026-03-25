@@ -6852,6 +6852,7 @@ var editor$1 = {
 		y_axis: "Y axis",
 		data_aggregation: "Data aggregation",
 		overlays: "Overlays",
+		interactions: "Interactions",
 		advanced: "Advanced"
 	},
 	field: {
@@ -6899,6 +6900,9 @@ var editor$1 = {
 		unit: "Unit override",
 		scale: "Scale factor",
 		invert: "Invert values",
+		tap_action: "Tap action",
+		double_tap_action: "Double tap action",
+		hold_action: "Hold action",
 		value: "Value",
 		label: "Label",
 		dash: "Dash pattern (e.g. 4,3)",
@@ -6909,7 +6913,8 @@ var editor$1 = {
 		add_entity: "+ Add entity",
 		remove_entity: "Remove entity",
 		add_threshold: "+ Add threshold",
-		add_color_threshold: "+ Add color threshold"
+		add_color_threshold: "+ Add color threshold",
+		add_interaction: "Add interaction"
 	},
 	option: {
 		style: {
@@ -6987,6 +6992,7 @@ var editor = {
 		y_axis: "Y-Achse",
 		data_aggregation: "Datenaggregation",
 		overlays: "Überlagerungen",
+		interactions: "Interaktionen",
 		advanced: "Erweitert"
 	},
 	field: {
@@ -7034,6 +7040,9 @@ var editor = {
 		unit: "Einheit (überschreiben)",
 		scale: "Skalierungsfaktor",
 		invert: "Werte invertieren",
+		tap_action: "Tipp-Aktion",
+		double_tap_action: "Doppeltipp-Aktion",
+		hold_action: "Halten-Aktion",
 		value: "Wert",
 		label: "Bezeichnung",
 		dash: "Strichmuster (z.B. 4,3)",
@@ -7044,7 +7053,8 @@ var editor = {
 		add_entity: "+ Entität hinzufügen",
 		remove_entity: "Entität entfernen",
 		add_threshold: "+ Schwellenwert hinzufügen",
-		add_color_threshold: "+ Farbschwellenwert hinzufügen"
+		add_color_threshold: "+ Farbschwellenwert hinzufügen",
+		add_interaction: "Interaktion hinzufügen"
 	},
 	option: {
 		style: {
@@ -8246,7 +8256,11 @@ let InsightLineCard = class extends InsightBaseCard {
             this._attachPinchHandlers(u);
             u.over.addEventListener(
               "dblclick",
-              (e) => e.stopImmediatePropagation(),
+              (e) => {
+                e.stopImmediatePropagation();
+                clearTimeout(this._tapTimer);
+                this._handleAction("double_tap_action");
+              },
               { capture: true }
             );
           }
@@ -8272,6 +8286,67 @@ let InsightLineCard = class extends InsightBaseCard {
         config.padding_left ?? 16
       ]
     };
+  }
+  /**
+   * Execute a tap / double-tap action from the card config.
+   * Supports: more-info, navigate, url, perform-action, none.
+   */
+  _handleAction(actionType) {
+    const cfg = this._config;
+    const action = cfg?.[actionType];
+    if (!action) {
+      if (actionType === "tap_action") {
+        this._fireMoreInfo(cfg);
+      }
+      return;
+    }
+    if (action.action === "none") return;
+    switch (action.action) {
+      case "more-info":
+        this._fireMoreInfo(cfg);
+        break;
+      case "navigate":
+        if (action.navigation_path) {
+          history.pushState(null, "", action.navigation_path);
+          this.dispatchEvent(
+            new CustomEvent("location-changed", {
+              bubbles: true,
+              composed: true
+            })
+          );
+        }
+        break;
+      case "url":
+        if (action.url_path) {
+          window.open(action.url_path, "_blank");
+        }
+        break;
+      case "perform-action": {
+        const serviceStr = action.perform_action ?? action.service ?? "";
+        const [domain, service] = serviceStr.split(".", 2);
+        if (domain && service) {
+          this.hass?.callService(
+            domain,
+            service,
+            action.data ?? action.service_data ?? {}
+          );
+        }
+        break;
+      }
+    }
+  }
+  _fireMoreInfo(cfg) {
+    const first = cfg?.entities?.[0];
+    if (!first) return;
+    const entityId = normaliseEntityConfig(first).entity;
+    if (!entityId) return;
+    this.dispatchEvent(
+      new CustomEvent("hass-more-info", {
+        detail: { entityId },
+        bubbles: true,
+        composed: true
+      })
+    );
   }
   /**
    * Build a vertical CanvasGradient from color_thresholds.
@@ -8452,7 +8527,15 @@ let InsightLineCard = class extends InsightBaseCard {
     const config = this._config;
     if (!config) return b``;
     return b`
-            <div class="chart-wrapper">
+            <div
+                class="chart-wrapper"
+                @click=${() => {
+      this._tapTimer = setTimeout(
+        () => this._handleAction("tap_action"),
+        250
+      );
+    }}
+            >
                 <div id="chart"></div>
                 ${this._isZoomed ? b`<button
                           class="zoom-reset-btn"
@@ -8805,6 +8888,7 @@ var mdiCog = "M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 1
 var mdiDatabaseClock = "M16.5 16.25L19.36 17.94L18.61 19.16L15 17V12H16.5V16.25M23 16C23 19.87 19.87 23 16 23C13.61 23 11.5 21.8 10.25 20C6.18 19.79 3 18.08 3 16V13C3 14.88 5.58 16.44 9.06 16.88C9.03 16.59 9 16.3 9 16C9 15.62 9.04 15.25 9.1 14.88C5.6 14.45 3 12.88 3 11V8C3 10.09 6.2 11.8 10.27 12C10.87 11.14 11.64 10.44 12.53 9.93C12.04 9.97 11.5 10 11 10C6.58 10 3 8.21 3 6S6.58 2 11 2 19 3.79 19 6C19 7.2 17.93 8.28 16.25 9C17 9.04 17.75 9.19 18.44 9.45C18.79 9 19 8.5 19 8V9.68C21.36 10.81 23 13.21 23 16M21 16C21 13.24 18.76 11 16 11S11 13.24 11 16 13.24 21 16 21 21 18.76 21 16Z";
 var mdiDelete = "M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z";
 var mdiFormatListBulleted = "M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z";
+var mdiGestureTap = "M10,9A1,1 0 0,1 11,8A1,1 0 0,1 12,9V13.47L13.21,13.6L18.15,15.79C18.68,16.03 19,16.56 19,17.14V21.5C18.97,22.32 18.32,22.97 17.5,23H11C10.62,23 10.26,22.85 10,22.57L5.1,18.37L5.84,17.6C6.03,17.39 6.3,17.28 6.58,17.28H6.8L10,19V9M11,5A4,4 0 0,1 15,9C15,10.5 14.2,11.77 13,12.46V11.24C13.61,10.69 14,9.89 14,9A3,3 0 0,0 11,6A3,3 0 0,0 8,9C8,9.89 8.39,10.69 9,11.24V12.46C7.8,11.77 7,10.5 7,9A4,4 0 0,1 11,5Z";
 var mdiLayersOutline = "M12,18.54L19.37,12.8L21,14.07L12,21.07L3,14.07L4.62,12.81L12,18.54M12,16L3,9L12,2L21,9L12,16M12,4.53L6.26,9L12,13.47L17.74,9L12,4.53Z";
 var mdiPlus = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
 
@@ -9324,6 +9408,49 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       this._syncEntitiesToConfig();
     };
     // ---------------------------------------------------------------------------
+    // Interactions
+    // ---------------------------------------------------------------------------
+    this._interactionsSchema = [
+      {
+        name: "tap_action",
+        selector: {
+          ui_action: {
+            actions: [
+              "perform-action",
+              "assist",
+              "url",
+              "navigate",
+              "none"
+            ],
+            default_action: "more-info"
+          }
+        }
+      },
+      {
+        name: "",
+        type: "optional_actions",
+        flatten: true,
+        schema: ["double_tap_action", "hold_action"].map(
+          (action) => ({
+            name: action,
+            selector: {
+              ui_action: {
+                actions: [
+                  "more-info",
+                  "perform-action",
+                  "assist",
+                  "navigate",
+                  "url",
+                  "none"
+                ],
+                default_action: "none"
+              }
+            }
+          })
+        )
+      }
+    ];
+    // ---------------------------------------------------------------------------
     // computeLabel
     // ---------------------------------------------------------------------------
     this._computeLabel = (schema) => {
@@ -9383,6 +9510,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                 ${this._renderChartStyleSection()} ${this._renderYAxisSection()}
                 ${this._renderAggregationSection()}
                 ${this._renderOverlaysSection()}
+                ${this._renderInteractionsSection()}
                 ${this._renderAdvancedSection()}
             </div>
         `;
@@ -9635,16 +9763,21 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                             .value=${showPointsStr}
                             @value-changed=${(e) => {
       const v = e.detail.value;
-      const newCfg = { ...this._config };
+      const newCfg = {
+        ...this._config
+      };
       if (v === "true") newCfg.show_points = true;
-      else if (v === "hover") newCfg.show_points = "hover";
+      else if (v === "hover")
+        newCfg.show_points = "hover";
       else delete newCfg.show_points;
       this._config = newCfg;
-      this.dispatchEvent(new CustomEvent("config-changed", {
-        detail: { config: newCfg },
-        bubbles: true,
-        composed: true
-      }));
+      this.dispatchEvent(
+        new CustomEvent("config-changed", {
+          detail: { config: newCfg },
+          bubbles: true,
+          composed: true
+        })
+      );
     }}
                         ></ha-control-select>
                     </div>
@@ -9946,6 +10079,33 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       this._lang
     )}</ha-button
                     >
+                </div>
+            </ha-expansion-panel>
+        `;
+  }
+  _renderInteractionsSection() {
+    return b`
+            <ha-expansion-panel outlined>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiGestureTap}
+                ></ha-svg-icon>
+                <span slot="header"
+                    >${localize(
+      "editor.section.interactions",
+      this._lang
+    )}</span
+                >
+                <div class="panel-content">
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${this._interactionsSchema}
+                        .data=${this._config}
+                        .computeLabel=${this._computeLabel}
+                        @value-changed=${(e) => this._updateConfig(
+      e.detail.value
+    )}
+                    ></ha-form>
                 </div>
             </ha-expansion-panel>
         `;

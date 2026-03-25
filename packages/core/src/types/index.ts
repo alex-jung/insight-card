@@ -12,6 +12,7 @@ export type {
   LovelaceCardEditor,
   LovelaceCardConfig,
   LovelaceGridOptions,
+  ActionConfig,
 } from "./ha.js";
 
 export type {

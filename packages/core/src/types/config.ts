@@ -5,7 +5,7 @@
  * plain entity-id string (shorthand) or as a full InsightEntityConfig object.
  */
 
-import type { HassStatisticsPeriod } from "./ha.js";
+import type { ActionConfig, HassStatisticsPeriod } from "./ha.js";
 
 // ---------------------------------------------------------------------------
 // Shared entity config
@@ -292,6 +292,10 @@ export interface InsightLineConfig extends InsightBaseConfig {
    * @default 16
    */
   padding_left?: number;
+  /** Action triggered by a single tap/click on the chart. */
+  tap_action?: ActionConfig;
+  /** Action triggered by a double-tap/double-click on the chart. */
+  double_tap_action?: ActionConfig;
 }
 
 // ---------------------------------------------------------------------------

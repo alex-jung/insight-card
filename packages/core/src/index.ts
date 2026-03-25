@@ -31,6 +31,7 @@ export type {
   ThresholdConfig,
   ColorThresholdConfig,
   GridOptionsConfig,
+  ActionConfig,
 } from "./types/index.js";
 
 // Data pipeline

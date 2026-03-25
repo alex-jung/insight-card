@@ -9,6 +9,7 @@
       "y_axis": "Y-Achse",
       "data_aggregation": "Datenaggregation",
       "overlays": "Überlagerungen",
+      "interactions": "Interaktionen",
       "advanced": "Erweitert"
     },
     "field": {
@@ -56,6 +57,9 @@
       "unit": "Einheit (überschreiben)",
       "scale": "Skalierungsfaktor",
       "invert": "Werte invertieren",
+      "tap_action": "Tipp-Aktion",
+      "double_tap_action": "Doppeltipp-Aktion",
+      "hold_action": "Halten-Aktion",
       "value": "Wert",
       "label": "Bezeichnung",
       "dash": "Strichmuster (z.B. 4,3)",
@@ -66,7 +70,8 @@
       "add_entity": "+ Entität hinzufügen",
       "remove_entity": "Entität entfernen",
       "add_threshold": "+ Schwellenwert hinzufügen",
-      "add_color_threshold": "+ Farbschwellenwert hinzufügen"
+      "add_color_threshold": "+ Farbschwellenwert hinzufügen",
+      "add_interaction": "Interaktion hinzufügen"
     },
     "option": {
       "style": {
