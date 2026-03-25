@@ -8732,6 +8732,9 @@ let InsightLineEntityEditor = class extends i$2 {
     );
     const detail = { ...this.tab.config, ...patch };
     if (!dashStr) delete detail.stroke_dash;
+    if (!data["attribute"]) delete detail.attribute;
+    if (!data["unit"]) delete detail.unit;
+    if (data["scale"] == null) delete detail.scale;
     this.dispatchEvent(new CustomEvent("onChange", { detail }));
   }
   _patch(patch) {

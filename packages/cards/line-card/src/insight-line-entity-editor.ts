@@ -155,6 +155,9 @@ export class InsightLineEntityEditor extends LitElement {
         const detail: InsightEntityConfig = { ...this.tab.config, ...patch };
         // Explicitly remove optional fields when the user clears them
         if (!dashStr) delete detail.stroke_dash;
+        if (!(data["attribute"] as string)) delete detail.attribute;
+        if (!(data["unit"] as string)) delete detail.unit;
+        if (data["scale"] == null) delete detail.scale;
 
         this.dispatchEvent(new CustomEvent("onChange", { detail }));
     }
