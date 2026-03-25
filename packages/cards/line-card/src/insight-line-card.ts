@@ -1161,11 +1161,14 @@ export class InsightLineCard extends InsightBaseCard {
                 this._syncUplot();
             } else {
                 this._uplot.setData(this._cachedUData, false);
+                const xs = this._cachedUData[0] as number[];
                 if (this._zoomedRange) {
                     this._uplot.setScale("x", {
                         min: this._zoomedRange[0],
                         max: this._zoomedRange[1],
                     });
+                } else if (xs.length > 0) {
+                    this._uplot.setScale("x", { min: xs[0], max: xs[xs.length - 1] });
                 }
             }
         }
@@ -1229,12 +1232,14 @@ export class InsightLineCard extends InsightBaseCard {
             const chartHeight = this._chartHeight;
             if (dataChanged) {
                 this._uplot!.setData(uData, false);
-                // Restore zoom after data refresh
+                const xs = uData[0] as number[];
                 if (this._zoomedRange) {
                     this._uplot!.setScale("x", {
                         min: this._zoomedRange[0],
                         max: this._zoomedRange[1],
                     });
+                } else if (xs.length > 0) {
+                    this._uplot!.setScale("x", { min: xs[0], max: xs[xs.length - 1] });
                 }
             }
             this._uplot!.setSize({ width: chartWidth, height: chartHeight });
