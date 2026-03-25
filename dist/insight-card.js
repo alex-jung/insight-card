@@ -6350,7 +6350,7 @@ function aggregateTimeSeries(data, periodMs, method) {
   }
   return result.sort((a, b) => a.t - b.t);
 }
-function applyTransform$1(data, transform) {
+function applyTransform(data, transform) {
   if (transform === "none" || data.length === 0) return data;
   switch (transform) {
     case "diff": {
@@ -6867,12 +6867,12 @@ var editor$1 = {
 		show_points: "Data points",
 		line_width: "Line width",
 		fill_opacity: "Fill opacity",
-		y_min: "Soft minimum",
-		y_max: "Soft maximum",
+		y_min: "Minimum",
+		y_max: "Maximum",
 		decimals: "Decimal places",
 		logarithmic: "Logarithmic scale (base 10)",
-		y_min_secondary: "Secondary axis minimum",
-		y_max_secondary: "Secondary axis maximum",
+		y_min_secondary: "Minimum",
+		y_max_secondary: "Maximum",
 		show_legend: "Show legend",
 		show_x_axis: "Show X axis",
 		show_y_axis: "Show Y axis",
@@ -6948,6 +6948,8 @@ var editor$1 = {
 		attribute: "Use a numeric entity attribute as the data source instead of the state. Set the unit manually if needed.",
 		y_min: "The axis only goes below this value if data points require it.",
 		y_max: "The axis only goes above this value if data points require it.",
+		y_min_secondary: "The axis only goes below this value if data points require it.",
+		y_max_secondary: "The axis only goes above this value if data points require it.",
 		logarithmic: "All data values must be greater than 0.",
 		aggregate: "Groups raw data into equal time buckets on the client.",
 		aggregate_period: "Bucket size for aggregation, e.g. 30m, 1h, 6h, 1d.",
@@ -7000,12 +7002,12 @@ var editor = {
 		show_points: "Datenpunkte",
 		line_width: "Linienbreite",
 		fill_opacity: "Fülldeckkraft",
-		y_min: "Weiches Minimum",
-		y_max: "Weiches Maximum",
+		y_min: "Minimum",
+		y_max: "Maximum",
 		decimals: "Nachkommastellen",
 		logarithmic: "Logarithmische Skala (Basis 10)",
-		y_min_secondary: "Sekundärachse Minimum",
-		y_max_secondary: "Sekundärachse Maximum",
+		y_min_secondary: "Minimum",
+		y_max_secondary: "Maximum",
 		show_legend: "Legende anzeigen",
 		show_x_axis: "X-Achse anzeigen",
 		show_y_axis: "Y-Achse anzeigen",
@@ -7081,6 +7083,8 @@ var editor = {
 		attribute: "Numerisches Attribut statt des Entity-States als Datenpunkt verwenden. Einheit ggf. manuell setzen.",
 		y_min: "Die Achse unterschreitet diesen Wert nur, wenn Datenpunkte darunter liegen.",
 		y_max: "Die Achse überschreitet diesen Wert nur, wenn Datenpunkte darüber liegen.",
+		y_min_secondary: "Die Achse unterschreitet diesen Wert nur, wenn Datenpunkte darunter liegen.",
+		y_max_secondary: "Die Achse überschreitet diesen Wert nur, wenn Datenpunkte darüber liegen.",
 		logarithmic: "Alle Datenwerte müssen größer 0 sein.",
 		aggregate: "Fasst Rohdaten clientseitig in gleichmäßige Zeitfenster zusammen.",
 		aggregate_period: "Größe der Zeitfenster für die Aggregation, z.B. 30m, 1h, 6h, 1d.",
@@ -8021,7 +8025,7 @@ let InsightLineCard = class extends InsightBaseCard {
         data = aggregateTimeSeries(data, periodMs, method);
       }
       if (ec?.transform && ec.transform !== "none") {
-        data = applyTransform$1(data, ec.transform);
+        data = applyTransform(data, ec.transform);
       }
       return data;
     });
@@ -8814,8 +8818,8 @@ const ENTITY_BASE_SCHEMA = [
       select: {
         mode: "list",
         options: [
-          { value: "left", label: "Left axis" },
-          { value: "right", label: "Right axis" }
+          { value: "left", label: "Primary axis" },
+          { value: "right", label: "Secondary axis" }
         ]
       }
     }
@@ -10056,7 +10060,7 @@ InsightLineCardEditor.styles = [
             }
 
             .panel-content {
-                padding: 8px 0;
+                padding: 16px 0px 16px 0px;
             }
 
             .toggle-row {

@@ -31,8 +31,8 @@ export const ENTITY_BASE_SCHEMA: HaFormField[] = [
       select: {
         mode: "list",
         options: [
-          { value: "left",  label: "Left axis" },
-          { value: "right", label: "Right axis" },
+          { value: "left",  label: "Primary axis" },
+          { value: "right", label: "Secondary axis" },
         ],
       },
     },

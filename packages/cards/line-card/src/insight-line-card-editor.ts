@@ -1176,7 +1176,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
             }
 
             .panel-content {
-                padding: 8px 0;
+                padding: 16px 0px 16px 0px;
             }
 
             .toggle-row {
