@@ -8244,6 +8244,11 @@ let InsightLineCard = class extends InsightBaseCard {
             this._overLeft = u.over.offsetLeft;
             this._overTop = u.over.offsetTop;
             this._attachPinchHandlers(u);
+            u.over.addEventListener(
+              "dblclick",
+              (e) => e.stopImmediatePropagation(),
+              { capture: true }
+            );
           }
         ],
         setSize: [

@@ -725,6 +725,13 @@ export class InsightLineCard extends InsightBaseCard {
                         this._overTop = u.over.offsetTop;
                         // Attach pinch-to-zoom touch handlers
                         this._attachPinchHandlers(u);
+                        // Suppress uPlot's built-in dblclick-to-reset-zoom —
+                        // we have our own reset button for that.
+                        u.over.addEventListener(
+                            "dblclick",
+                            (e) => e.stopImmediatePropagation(),
+                            { capture: true },
+                        );
                     },
                 ],
                 setSize: [
