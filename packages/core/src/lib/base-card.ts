@@ -105,7 +105,9 @@ export abstract class InsightBaseCard extends LitElement {
             clearInterval(this._refreshTimer);
         }
         const interval = (this._config?.update_interval ?? 60) * 1_000;
+        console.log("[base-card] _startRefreshTimer — interval:", interval, "ms");
         this._refreshTimer = setInterval(() => {
+            console.log("[base-card] timer fired — config:", !!this._config, "hass:", !!this.hass);
             if (this._config && this.hass) {
                 invalidateCache();
                 this._fetchData();
@@ -217,7 +219,8 @@ export abstract class InsightBaseCard extends LitElement {
         if (!this._config || !this.hass) return;
 
         const entities = this._config.entities.map((e) => normaliseEntityConfig(e).entity);
-        console.debug("[InsightCards] fetchData start", this.tagName, { entities, hours: this._config.hours });
+        const prevDataRef = this._data;
+        console.log("[base-card] fetchData START", this.tagName, { entities, hours: this._config.hours });
 
         this._loading = true;
         this._error = undefined;
@@ -230,20 +233,14 @@ export abstract class InsightBaseCard extends LitElement {
                 this._config.entities,
                 hours,
             );
-            // simulate loading state
-            // await new Promise(resolve => setTimeout(resolve, 20000));
-
-            // simulate error state
-            // throw new Error("Dummy error");
-            console.debug(
-                "[InsightCards] fetchData done",
-                this.tagName,
-                this._data.map((d) => ({ entity: d.entityId, points: d.data.length })),
+            console.log("[base-card] fetchData DONE", this.tagName,
+                "| sameRef:", this._data === prevDataRef,
+                "| points:", this._data.map((d) => ({ entity: d.entityId, points: d.data.length })),
             );
         } catch (err) {
             this._error =
                 err instanceof Error ? err.message : "Failed to fetch data";
-            console.error("[InsightCards] fetchData error", this.tagName, err);
+            console.error("[base-card] fetchData ERROR", this.tagName, err);
         } finally {
             this._loading = false;
         }

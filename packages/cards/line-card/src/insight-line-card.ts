@@ -1139,11 +1139,18 @@ export class InsightLineCard extends InsightBaseCard {
     updated(changedProps: Map<string, unknown>): void {
         super.updated(changedProps);
 
-        console.log("[line-card] updated, data", this._data);
-        console.log("[line-card] updated, uPlot", this._uplot);
+        const changedKeys = [...changedProps.keys()];
+        console.log("[line-card] updated — changedProps:", changedKeys,
+            "| _uplot:", !!this._uplot,
+            "| _needsRebuild:", this._needsRebuild,
+            "| dataChanged:", this._data !== this._lastDataRef,
+            "| _data.length:", this._data.length,
+            "| _lastDataRef:", this._lastDataRef ? `[${this._lastDataRef.length} entities]` : "undefined",
+        );
 
         // Config/theme change → full rebuild even if data hasn't changed yet
         if (this._needsRebuild && this._uplot) {
+            console.log("[line-card] → full rebuild (needsRebuild)");
             this._syncUplot();
             return;
         }
@@ -1154,20 +1161,33 @@ export class InsightLineCard extends InsightBaseCard {
             const previouslyEmpty =
                 !this._lastDataRef ||
                 this._lastDataRef.every((d) => d.data.length === 0);
+            console.log("[line-card] → data changed, previouslyEmpty:", previouslyEmpty,
+                "| old points:", this._lastDataRef?.map(d => d.data.length),
+                "| new points:", this._data.map(d => d.data.length),
+            );
             this._cachedUData = this._buildUplotData();
             this._lastDataRef = this._data;
             if (previouslyEmpty) {
+                console.log("[line-card] → full rebuild (was empty)");
                 this._needsRebuild = true;
                 this._syncUplot();
             } else {
-                this._uplot.setData(this._cachedUData, false);
                 if (this._zoomedRange) {
+                    console.log("[line-card] → setData (zoomed, preserving range)");
+                    this._uplot.setData(this._cachedUData, false);
                     this._uplot.setScale("x", {
                         min: this._zoomedRange[0],
                         max: this._zoomedRange[1],
                     });
+                } else {
+                    console.log("[line-card] → setData(true) — auto-scale X+Y");
+                    this._uplot.setData(this._cachedUData, true);
                 }
             }
+        } else if (!this._uplot) {
+            console.log("[line-card] → _uplot is null, skipping (waiting for _syncUplot from connectedCallback)");
+        } else {
+            console.log("[line-card] → _data unchanged (same reference), no chart update");
         }
     }
 
@@ -1228,13 +1248,14 @@ export class InsightLineCard extends InsightBaseCard {
             );
             const chartHeight = this._chartHeight;
             if (dataChanged) {
-                this._uplot!.setData(uData, false);
-                // Restore zoom after data refresh
                 if (this._zoomedRange) {
+                    this._uplot!.setData(uData, false);
                     this._uplot!.setScale("x", {
                         min: this._zoomedRange[0],
                         max: this._zoomedRange[1],
                     });
+                } else {
+                    this._uplot!.setData(uData, true);
                 }
             }
             this._uplot!.setSize({ width: chartWidth, height: chartHeight });
