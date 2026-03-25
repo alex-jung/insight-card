@@ -6377,11 +6377,14 @@ function applyTransform(data, transform) {
 
 const CACHE_TTL_MS = 3e4;
 const cache = /* @__PURE__ */ new Map();
-function cacheKey(entityId, hours, attribute) {
-  return attribute ? `${entityId}:${hours}:${attribute}` : `${entityId}:${hours}`;
+function cacheKey(entityId, hours, attribute, statistics) {
+  const parts = [entityId, hours];
+  if (attribute) parts.push(attribute);
+  if (statistics) parts.push(statistics);
+  return parts.join(":");
 }
-function fromCache(entityId, hours, attribute) {
-  const key = cacheKey(entityId, hours, attribute);
+function fromCache(entityId, hours, attribute, statistics) {
+  const key = cacheKey(entityId, hours, attribute, statistics);
   const entry = cache.get(key);
   if (!entry) return null;
   if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
@@ -6390,8 +6393,8 @@ function fromCache(entityId, hours, attribute) {
   }
   return entry.dataset;
 }
-function toCache(entityId, hours, dataset, attribute) {
-  cache.set(cacheKey(entityId, hours, attribute), { dataset, timestamp: Date.now() });
+function toCache(entityId, hours, dataset, attribute, statistics) {
+  cache.set(cacheKey(entityId, hours, attribute, statistics), { dataset, timestamp: Date.now() });
 }
 function invalidateCache(entityId) {
   {
@@ -6490,7 +6493,7 @@ async function getEntityData(hass, entityConfig, hours) {
   const cfg = normaliseEntityConfig(entityConfig);
   const entityId = cfg.entity;
   const attribute = cfg.attribute;
-  const cached = fromCache(entityId, hours, attribute);
+  const cached = fromCache(entityId, hours, attribute, cfg.statistics);
   if (cached) {
     return applyValueModifiers(cached, cfg);
   }
@@ -6509,7 +6512,7 @@ async function getEntityData(hass, entityConfig, hours) {
     rawPoints = await fetchHistory(hass, entityId, startTime, endTime, attribute);
   }
   const dataset = { entityId, friendlyName, unit, data: rawPoints };
-  toCache(entityId, hours, dataset, attribute);
+  toCache(entityId, hours, dataset, attribute, cfg.statistics);
   return applyValueModifiers(dataset, cfg);
 }
 async function getMultiEntityData(hass, entities, hours) {

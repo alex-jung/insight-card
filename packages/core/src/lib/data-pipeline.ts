@@ -51,12 +51,15 @@ interface CacheEntry {
 const CACHE_TTL_MS = 30_000;
 const cache = new Map<string, CacheEntry>();
 
-function cacheKey(entityId: string, hours: number, attribute?: string): string {
-  return attribute ? `${entityId}:${hours}:${attribute}` : `${entityId}:${hours}`;
+function cacheKey(entityId: string, hours: number, attribute?: string, statistics?: string): string {
+  const parts = [entityId, hours];
+  if (attribute) parts.push(attribute);
+  if (statistics) parts.push(statistics);
+  return parts.join(":");
 }
 
-function fromCache(entityId: string, hours: number, attribute?: string): EntityDataSet | null {
-  const key = cacheKey(entityId, hours, attribute);
+function fromCache(entityId: string, hours: number, attribute?: string, statistics?: string): EntityDataSet | null {
+  const key = cacheKey(entityId, hours, attribute, statistics);
   const entry = cache.get(key);
   if (!entry) return null;
   if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
@@ -66,8 +69,8 @@ function fromCache(entityId: string, hours: number, attribute?: string): EntityD
   return entry.dataset;
 }
 
-function toCache(entityId: string, hours: number, dataset: EntityDataSet, attribute?: string): void {
-  cache.set(cacheKey(entityId, hours, attribute), { dataset, timestamp: Date.now() });
+function toCache(entityId: string, hours: number, dataset: EntityDataSet, attribute?: string, statistics?: string): void {
+  cache.set(cacheKey(entityId, hours, attribute, statistics), { dataset, timestamp: Date.now() });
 }
 
 /** Invalidate the cache for a specific entity, or flush everything. */
@@ -240,7 +243,7 @@ export async function getEntityData(
   const entityId = cfg.entity;
   const attribute = cfg.attribute;
 
-  const cached = fromCache(entityId, hours, attribute);
+  const cached = fromCache(entityId, hours, attribute, cfg.statistics);
   if (cached) {
     return applyValueModifiers(cached, cfg);
   }
@@ -267,7 +270,7 @@ export async function getEntityData(
   }
 
   const dataset: EntityDataSet = { entityId, friendlyName, unit, data: rawPoints };
-  toCache(entityId, hours, dataset, attribute);
+  toCache(entityId, hours, dataset, attribute, cfg.statistics);
 
   // Apply scale/invert/unit after caching so the cache stays unmodified and reusable
   return applyValueModifiers(dataset, cfg);
