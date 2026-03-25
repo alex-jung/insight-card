@@ -27,6 +27,7 @@ import {
     InsightBaseEditor,
     InsightToggleButton,
     InsightBoxModel,
+    InsightSectionTitle,
     SVG_ZOOM_DRAG,
     SVG_SHOW_LEGEND,
     SVG_SHOW_X_AXIS,
@@ -43,6 +44,7 @@ import {
 // Ensure custom elements are registered
 InsightToggleButton;
 InsightBoxModel;
+InsightSectionTitle;
 
 import { InsightEntityTab } from "./insight-line-entity-tab.js";
 import "./insight-line-entity-editor.js";
@@ -735,12 +737,12 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                                 ) as Partial<InsightLineConfig>,
                             )}
                     ></ha-form>
-                    <div class="section-title" style="padding-top:24px">
-                        ${localize(
+                    <insight-section-title
+                        .label=${localize(
                             "editor.subsection.primary_axis",
                             this._lang,
                         )}
-                    </div>
+                    ></insight-section-title>
                     <ha-form
                         .hass=${this.hass}
                         .schema=${Y_AXIS_PRIMARY_SCHEMA}
@@ -756,12 +758,12 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                                 ) as Partial<InsightLineConfig>,
                             )}
                     ></ha-form>
-                    <div class="section-title" style="padding-top:24px">
-                        ${localize(
+                    <insight-section-title
+                        .label=${localize(
                             "editor.subsection.secondary_axis",
                             this._lang,
                         )}
-                    </div>
+                    ></insight-section-title>
                     <ha-form
                         .hass=${this.hass}
                         .schema=${Y_AXIS_SECONDARY_SCHEMA}
@@ -860,12 +862,12 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                     >${localize("editor.section.overlays", this._lang)}</span
                 >
                 <div class="panel-content">
-                    <div class="section-title">
-                        ${localize(
+                    <insight-section-title
+                        .label=${localize(
                             "editor.subsection.threshold_lines",
                             this._lang,
                         )}
-                    </div>
+                    ></insight-section-title>
                     ${thresholds.map(
                         (t, idx) => html`
                             <div class="overlay-row">
@@ -924,12 +926,12 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                         )}</ha-button
                     >
 
-                    <div class="section-title" style="margin-top:24px">
-                        ${localize(
+                    <insight-section-title
+                        .label=${localize(
                             "editor.subsection.color_thresholds",
                             this._lang,
                         )}
-                    </div>
+                    ></insight-section-title>
                     ${colorThresholds.map(
                         (ct, idx) => html`
                             <div class="overlay-row">
@@ -1029,9 +1031,9 @@ export class InsightLineCardEditor extends InsightBaseEditor {
         const cfg = this._lineConfig;
         return html`
             <div class="layout-section">
-                <div class="section-title">
-                    ${localize("editor.subsection.layout", this._lang)}
-                </div>
+                <insight-section-title
+                    .label=${localize("editor.subsection.layout", this._lang)}
+                ></insight-section-title>
                 <insight-box-model
                     .labelOuter=${localize(
                         "editor.subsection.margin",
@@ -1177,17 +1179,6 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                 padding: 8px 0;
             }
 
-            .section-title {
-                font-size: 0.8rem;
-                font-weight: 500;
-                /*color: var(--secondary-text-color);*/
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                margin: 8px 0px 16px 0px;
-                padding: 8px 0px;
-                border-bottom: 1px solid var(--divider-color, #e0e0e0);
-            }
-
             .toggle-row {
                 display: flex;
                 flex-wrap: wrap;
@@ -1235,13 +1226,6 @@ export class InsightLineCardEditor extends InsightBaseEditor {
             .add-entity-btn {
                 align-self: flex-start;
                 margin-top: 4px;
-            }
-
-            .subsection-label {
-                font-size: 0.8rem;
-                font-weight: 500;
-                color: var(--secondary-text-color);
-                margin-bottom: 4px;
             }
 
             .overlay-row {

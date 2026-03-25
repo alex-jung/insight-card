@@ -18,6 +18,8 @@ import {
 } from "@insight-chart/core";
 
 import { InsightEntityTab } from "./insight-line-entity-tab.js";
+import { InsightSectionTitle } from "@insight-chart/core";
+InsightSectionTitle;
 import {
     ENTITY_BASE_SCHEMA,
     buildAppearanceSchema,
@@ -107,9 +109,9 @@ export class InsightLineEntityEditor extends LitElement {
                     ) => this._onBaseChanged(e.detail.value)}
                 ></ha-form>
 
-                <div class="section-title">
-                    ${localize("editor.field.appearance", this._lang)}
-                </div>
+                <insight-section-title
+                    .label=${localize("editor.field.appearance", this._lang)}
+                ></insight-section-title>
                 <ha-form
                     .hass=${this.hass}
                     .schema=${buildAppearanceSchema(this.chartStyle ?? "area")}
@@ -121,9 +123,9 @@ export class InsightLineEntityEditor extends LitElement {
                     ) => this._onAppearanceChanged(e.detail.value)}
                 ></ha-form>
 
-                <div class="section-title">
-                    ${localize("editor.field.data", this._lang)}
-                </div>
+                <insight-section-title
+                    .label=${localize("editor.field.data", this._lang)}
+                ></insight-section-title>
                 <ha-form
                     .hass=${this.hass}
                     .schema=${DATA_SCHEMA}
@@ -261,17 +263,6 @@ export class InsightLineEntityEditor extends LitElement {
             cursor: pointer;
             padding: 2px;
             background: transparent;
-        }
-
-        .section-title {
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: var(--secondary-text-color);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin: 8px 0px 16px 0px;
-            padding: 8px 0px;
-            border-bottom: 1px solid var(--divider-color, #e0e0e0);
         }
     `;
 }

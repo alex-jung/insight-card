@@ -100,7 +100,7 @@ export class InsightBoxModel extends LitElement {
     static styles: CSSResultGroup = css`
         :host {
             display: block;
-            margin: 24px 0px;
+            margin: 8px 0px;
         }
 
         .bm-outer {

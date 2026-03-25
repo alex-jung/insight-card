@@ -6532,13 +6532,13 @@ const t={ATTRIBUTE:1},e=t=>(...e)=>({_$litDirective$:t,values:e});let i$1 = clas
  * SPDX-License-Identifier: BSD-3-Clause
  */const n="important",i=" !"+n,o=e(class extends i$1{constructor(t$1){if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||t$1.strings?.length>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.includes("-")?r:r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`},"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.ft)return this.ft=new Set(Object.keys(r)),this.render(r);for(const t of this.ft)null==r[t]&&(this.ft.delete(t),t.includes("-")?s.removeProperty(t):s[t]=null);for(const t in r){const e=r[t];if(null!=e){this.ft.add(t);const r="string"==typeof e&&e.endsWith(i);t.includes("-")||r?s.setProperty(t,r?e.slice(0,-11):e,r?n:""):s[t]=e;}}return E}});
 
-var __defProp$6 = Object.defineProperty;
-var __decorateClass$a = (decorators, target, key, kind) => {
+var __defProp$7 = Object.defineProperty;
+var __decorateClass$b = (decorators, target, key, kind) => {
   var result = void 0 ;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (decorator(target, key, result) ) || result;
-  if (result) __defProp$6(target, key, result);
+  if (result) __defProp$7(target, key, result);
   return result;
 };
 class InsightBaseCard extends i$2 {
@@ -6820,25 +6820,25 @@ InsightBaseCard.styles = i$5`
         font-size: 0.875rem;
       }
       `;
-__decorateClass$a([
+__decorateClass$b([
   n$1({ attribute: false })
 ], InsightBaseCard.prototype, "hass");
-__decorateClass$a([
+__decorateClass$b([
   r()
 ], InsightBaseCard.prototype, "_config");
-__decorateClass$a([
+__decorateClass$b([
   r()
 ], InsightBaseCard.prototype, "_data");
-__decorateClass$a([
+__decorateClass$b([
   r()
 ], InsightBaseCard.prototype, "_loading");
-__decorateClass$a([
+__decorateClass$b([
   r()
 ], InsightBaseCard.prototype, "_error");
-__decorateClass$a([
+__decorateClass$b([
   r()
 ], InsightBaseCard.prototype, "_cardWidth");
-__decorateClass$a([
+__decorateClass$b([
   e$1(".card-header")
 ], InsightBaseCard.prototype, "_header");
 
@@ -7126,13 +7126,13 @@ function localize(key, lang = "en", vars) {
   return template;
 }
 
-var __defProp$5 = Object.defineProperty;
-var __decorateClass$9 = (decorators, target, key, kind) => {
+var __defProp$6 = Object.defineProperty;
+var __decorateClass$a = (decorators, target, key, kind) => {
   var result = void 0 ;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (decorator(target, key, result) ) || result;
-  if (result) __defProp$5(target, key, result);
+  if (result) __defProp$6(target, key, result);
   return result;
 };
 i$5`
@@ -7411,21 +7411,21 @@ InsightBaseEditor.styles = i$5`
       text-align: center;
     }
   `;
-__decorateClass$9([
+__decorateClass$a([
   n$1({ attribute: false })
 ], InsightBaseEditor.prototype, "hass");
-__decorateClass$9([
+__decorateClass$a([
   r()
 ], InsightBaseEditor.prototype, "_config");
 
-var __defProp$4 = Object.defineProperty;
-var __getOwnPropDesc$8 = Object.getOwnPropertyDescriptor;
-var __decorateClass$8 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$8(target, key) : target;
+var __defProp$5 = Object.defineProperty;
+var __getOwnPropDesc$9 = Object.getOwnPropertyDescriptor;
+var __decorateClass$9 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$9(target, key) : target;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp$4(target, key, result);
+  if (kind && result) __defProp$5(target, key, result);
   return result;
 };
 let InsightToggleButton = class extends i$2 {
@@ -7522,33 +7522,33 @@ InsightToggleButton.styles = i$5`
             font-weight: 600;
         }
     `;
-__decorateClass$8([
+__decorateClass$9([
   n$1()
 ], InsightToggleButton.prototype, "svg", 2);
-__decorateClass$8([
+__decorateClass$9([
   n$1()
 ], InsightToggleButton.prototype, "label", 2);
-__decorateClass$8([
+__decorateClass$9([
   n$1({ type: Boolean, reflect: true })
 ], InsightToggleButton.prototype, "active", 2);
-__decorateClass$8([
+__decorateClass$9([
   n$1({ type: Number })
 ], InsightToggleButton.prototype, "width", 2);
-__decorateClass$8([
+__decorateClass$9([
   n$1({ type: Number })
 ], InsightToggleButton.prototype, "height", 2);
-InsightToggleButton = __decorateClass$8([
+InsightToggleButton = __decorateClass$9([
   t$1("insight-toggle-button")
 ], InsightToggleButton);
 
-var __defProp$3 = Object.defineProperty;
-var __getOwnPropDesc$7 = Object.getOwnPropertyDescriptor;
-var __decorateClass$7 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$7(target, key) : target;
+var __defProp$4 = Object.defineProperty;
+var __getOwnPropDesc$8 = Object.getOwnPropertyDescriptor;
+var __decorateClass$8 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$8(target, key) : target;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp$3(target, key, result);
+  if (kind && result) __defProp$4(target, key, result);
   return result;
 };
 let InsightBoxModel = class extends i$2 {
@@ -7623,7 +7623,7 @@ let InsightBoxModel = class extends i$2 {
 InsightBoxModel.styles = i$5`
         :host {
             display: block;
-            margin: 24px 0px;
+            margin: 8px 0px;
         }
 
         .bm-outer {
@@ -7701,45 +7701,104 @@ InsightBoxModel.styles = i$5`
             outline-offset: -1px;
         }
     `;
-__decorateClass$7([
+__decorateClass$8([
   n$1({ attribute: "label-outer" })
 ], InsightBoxModel.prototype, "labelOuter", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1({ attribute: "label-inner" })
 ], InsightBoxModel.prototype, "labelInner", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1()
 ], InsightBoxModel.prototype, "keyOuter", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1()
 ], InsightBoxModel.prototype, "keyInner", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1({ type: Number })
 ], InsightBoxModel.prototype, "outerTop", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1({ type: Number })
 ], InsightBoxModel.prototype, "outerRight", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1({ type: Number })
 ], InsightBoxModel.prototype, "outerBottom", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1({ type: Number })
 ], InsightBoxModel.prototype, "outerLeft", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1({ type: Number })
 ], InsightBoxModel.prototype, "innerTop", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1({ type: Number })
 ], InsightBoxModel.prototype, "innerRight", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1({ type: Number })
 ], InsightBoxModel.prototype, "innerBottom", 2);
-__decorateClass$7([
+__decorateClass$8([
   n$1({ type: Number })
 ], InsightBoxModel.prototype, "innerLeft", 2);
-InsightBoxModel = __decorateClass$7([
+InsightBoxModel = __decorateClass$8([
   t$1("insight-box-model")
 ], InsightBoxModel);
+
+var __defProp$3 = Object.defineProperty;
+var __getOwnPropDesc$7 = Object.getOwnPropertyDescriptor;
+var __decorateClass$7 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$7(target, key) : target;
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result) __defProp$3(target, key, result);
+  return result;
+};
+let InsightSectionTitle = class extends i$2 {
+  constructor() {
+    super(...arguments);
+    this.label = "";
+  }
+  render() {
+    return b`
+            <div class="section-title">
+                <span class="line"></span>
+                <span class="label">${this.label}</span>
+                <span class="line"></span>
+            </div>
+        `;
+  }
+};
+InsightSectionTitle.styles = i$5`
+        :host {
+            display: block;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 24px 0px 8px 0px;
+        }
+
+        .line {
+            flex: 1;
+            height: 1px;
+            background: var(--divider-color, #e0e0e0);
+        }
+
+        .label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--secondary-text-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+    `;
+__decorateClass$7([
+  n$1()
+], InsightSectionTitle.prototype, "label", 2);
+InsightSectionTitle = __decorateClass$7([
+  t$1("insight-section-title")
+], InsightSectionTitle);
 
 function svgToDataUrl(svg) {
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
@@ -8900,9 +8959,9 @@ let InsightLineEntityEditor = class extends i$2 {
                     @value-changed=${(e) => this._onBaseChanged(e.detail.value)}
                 ></ha-form>
 
-                <div class="section-title">
-                    ${localize("editor.field.appearance", this._lang)}
-                </div>
+                <insight-section-title
+                    .label=${localize("editor.field.appearance", this._lang)}
+                ></insight-section-title>
                 <ha-form
                     .hass=${this.hass}
                     .schema=${buildAppearanceSchema(this.chartStyle ?? "area")}
@@ -8912,9 +8971,9 @@ let InsightLineEntityEditor = class extends i$2 {
                     @value-changed=${(e) => this._onAppearanceChanged(e.detail.value)}
                 ></ha-form>
 
-                <div class="section-title">
-                    ${localize("editor.field.data", this._lang)}
-                </div>
+                <insight-section-title
+                    .label=${localize("editor.field.data", this._lang)}
+                ></insight-section-title>
                 <ha-form
                     .hass=${this.hass}
                     .schema=${DATA_SCHEMA}
@@ -9020,17 +9079,6 @@ InsightLineEntityEditor.styles = i$5`
             cursor: pointer;
             padding: 2px;
             background: transparent;
-        }
-
-        .section-title {
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: var(--secondary-text-color);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin: 8px 0px 16px 0px;
-            padding: 8px 0px;
-            border-bottom: 1px solid var(--divider-color, #e0e0e0);
         }
     `;
 __decorateClass$5([
@@ -9665,12 +9713,12 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       )
     )}
                     ></ha-form>
-                    <div class="section-title" style="padding-top:24px">
-                        ${localize(
+                    <insight-section-title
+                        .label=${localize(
       "editor.subsection.primary_axis",
       this._lang
     )}
-                    </div>
+                    ></insight-section-title>
                     <ha-form
                         .hass=${this.hass}
                         .schema=${Y_AXIS_PRIMARY_SCHEMA}
@@ -9683,12 +9731,12 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       )
     )}
                     ></ha-form>
-                    <div class="section-title" style="padding-top:24px">
-                        ${localize(
+                    <insight-section-title
+                        .label=${localize(
       "editor.subsection.secondary_axis",
       this._lang
     )}
-                    </div>
+                    ></insight-section-title>
                     <ha-form
                         .hass=${this.hass}
                         .schema=${Y_AXIS_SECONDARY_SCHEMA}
@@ -9776,12 +9824,12 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                     >${localize("editor.section.overlays", this._lang)}</span
                 >
                 <div class="panel-content">
-                    <div class="section-title">
-                        ${localize(
+                    <insight-section-title
+                        .label=${localize(
       "editor.subsection.threshold_lines",
       this._lang
     )}
-                    </div>
+                    ></insight-section-title>
                     ${thresholds.map(
       (t, idx) => b`
                             <div class="overlay-row">
@@ -9832,12 +9880,12 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     )}</ha-button
                     >
 
-                    <div class="section-title" style="margin-top:24px">
-                        ${localize(
+                    <insight-section-title
+                        .label=${localize(
       "editor.subsection.color_thresholds",
       this._lang
     )}
-                    </div>
+                    ></insight-section-title>
                     ${colorThresholds.map(
       (ct, idx) => b`
                             <div class="overlay-row">
@@ -9918,9 +9966,9 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     const cfg = this._lineConfig;
     return b`
             <div class="layout-section">
-                <div class="section-title">
-                    ${localize("editor.subsection.layout", this._lang)}
-                </div>
+                <insight-section-title
+                    .label=${localize("editor.subsection.layout", this._lang)}
+                ></insight-section-title>
                 <insight-box-model
                     .labelOuter=${localize(
       "editor.subsection.margin",
@@ -10011,17 +10059,6 @@ InsightLineCardEditor.styles = [
                 padding: 8px 0;
             }
 
-            .section-title {
-                font-size: 0.8rem;
-                font-weight: 500;
-                /*color: var(--secondary-text-color);*/
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                margin: 8px 0px 16px 0px;
-                padding: 8px 0px;
-                border-bottom: 1px solid var(--divider-color, #e0e0e0);
-            }
-
             .toggle-row {
                 display: flex;
                 flex-wrap: wrap;
@@ -10069,13 +10106,6 @@ InsightLineCardEditor.styles = [
             .add-entity-btn {
                 align-self: flex-start;
                 margin-top: 4px;
-            }
-
-            .subsection-label {
-                font-size: 0.8rem;
-                font-weight: 500;
-                color: var(--secondary-text-color);
-                margin-bottom: 4px;
             }
 
             .overlay-row {

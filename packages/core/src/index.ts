@@ -74,6 +74,7 @@ export type { Stats } from "./utils/index.js";
 // Components
 export { InsightToggleButton } from "./components/insight-toggle-button.js";
 export { InsightBoxModel } from "./components/insight-box-model.js";
+export { InsightSectionTitle } from "./components/insight-section-title.js";
 export {
     svgToDataUrl,
     IMG_CHART_LINE,
