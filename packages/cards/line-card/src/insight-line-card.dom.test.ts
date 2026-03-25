@@ -30,7 +30,7 @@ vi.mock("uplot", () => {
             getBoundingClientRect: vi.fn(() => ({ left: 0, top: 0 })),
         },
     }));
-    (MockUPlot as Record<string, unknown>).paths = {
+    (MockUPlot as unknown as Record<string, unknown>).paths = {
         stepped: vi.fn(() => () => null),
         spline: vi.fn(() => () => null),
     };
@@ -131,32 +131,32 @@ describe("setConfig — line-card defaults", () => {
 
     it("applies style=area by default", () => {
         card.setConfig(makeConfig() as never);
-        expect((card["_config"] as Record<string, unknown>).style).toBe("area");
+        expect((card["_config"] as unknown as Record<string, unknown>).style).toBe("area");
     });
 
     it("applies curve=smooth by default", () => {
         card.setConfig(makeConfig() as never);
-        expect((card["_config"] as Record<string, unknown>).curve).toBe("smooth");
+        expect((card["_config"] as unknown as Record<string, unknown>).curve).toBe("smooth");
     });
 
     it("applies zoom=true by default", () => {
         card.setConfig(makeConfig() as never);
-        expect((card["_config"] as Record<string, unknown>).zoom).toBe(true);
+        expect((card["_config"] as unknown as Record<string, unknown>).zoom).toBe(true);
     });
 
     it("applies line_width=2 by default", () => {
         card.setConfig(makeConfig() as never);
-        expect((card["_config"] as Record<string, unknown>).line_width).toBe(2);
+        expect((card["_config"] as unknown as Record<string, unknown>).line_width).toBe(2);
     });
 
     it("applies fill_opacity=0.15 by default", () => {
         card.setConfig(makeConfig() as never);
-        expect((card["_config"] as Record<string, unknown>).fill_opacity).toBe(0.15);
+        expect((card["_config"] as unknown as Record<string, unknown>).fill_opacity).toBe(0.15);
     });
 
     it("applies show_legend=true by default", () => {
         card.setConfig(makeConfig() as never);
-        expect((card["_config"] as Record<string, unknown>).show_legend).toBe(true);
+        expect((card["_config"] as unknown as Record<string, unknown>).show_legend).toBe(true);
     });
 
     it("applies hours=24 by default", () => {
@@ -171,22 +171,22 @@ describe("setConfig — line-card defaults", () => {
 
     it("explicit style overrides default", () => {
         card.setConfig(makeConfig({ style: "line" }) as never);
-        expect((card["_config"] as Record<string, unknown>).style).toBe("line");
+        expect((card["_config"] as unknown as Record<string, unknown>).style).toBe("line");
     });
 
     it("explicit curve overrides default", () => {
         card.setConfig(makeConfig({ curve: "linear" }) as never);
-        expect((card["_config"] as Record<string, unknown>).curve).toBe("linear");
+        expect((card["_config"] as unknown as Record<string, unknown>).curve).toBe("linear");
     });
 
     it("zoom=false overrides default", () => {
         card.setConfig(makeConfig({ zoom: false }) as never);
-        expect((card["_config"] as Record<string, unknown>).zoom).toBe(false);
+        expect((card["_config"] as unknown as Record<string, unknown>).zoom).toBe(false);
     });
 
     it("explicit line_width overrides default", () => {
         card.setConfig(makeConfig({ line_width: 4 }) as never);
-        expect((card["_config"] as Record<string, unknown>).line_width).toBe(4);
+        expect((card["_config"] as unknown as Record<string, unknown>).line_width).toBe(4);
     });
 });
 
@@ -353,13 +353,13 @@ describe("_buildSeries", () => {
 
     it("returns 2 series for 1 entity (x placeholder + entity)", () => {
         card.setConfig(makeConfig() as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series).toHaveLength(2);
     });
 
     it("first series is x-axis placeholder (empty object, no label)", () => {
         card.setConfig(makeConfig() as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series[0].label).toBeUndefined();
         expect(Object.keys(series[0])).toHaveLength(0);
     });
@@ -367,31 +367,31 @@ describe("_buildSeries", () => {
     it("entity series uses friendlyName as label when available", () => {
         card["_data"] = [{ ...makeDataset("sensor.temp"), friendlyName: "Wohnzimmer" }];
         card.setConfig(makeConfig() as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series[1].label).toBe("Wohnzimmer");
     });
 
     it("entity series uses ec.name when explicitly configured", () => {
         card.setConfig(makeConfig({ entities: [{ entity: "sensor.temp", name: "Mein Sensor" }] }) as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series[1].label).toBe("Mein Sensor");
     });
 
     it("style=area: fill property is defined", () => {
         card.setConfig(makeConfig({ style: "area" }) as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series[1].fill).toBeDefined();
     });
 
     it("style=line: fill property is undefined", () => {
         card.setConfig(makeConfig({ style: "line" }) as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series[1].fill).toBeUndefined();
     });
 
     it("style=step: fill property is undefined", () => {
         card.setConfig(makeConfig({ style: "step" }) as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series[1].fill).toBeUndefined();
     });
 
@@ -399,13 +399,13 @@ describe("_buildSeries", () => {
         card.setConfig(makeConfig({
             entities: [{ entity: "sensor.temp", hidden: true }],
         }) as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series[1].show).toBe(false);
     });
 
     it("non-hidden entity has show=true", () => {
         card.setConfig(makeConfig() as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series[1].show).toBe(true);
     });
 
@@ -413,13 +413,13 @@ describe("_buildSeries", () => {
         card.setConfig(makeConfig({
             entities: [{ entity: "sensor.temp", color: "#ff0000" }],
         }) as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series[1].stroke).toBe("#ff0000");
     });
 
     it("card-level line_width is applied to entity series", () => {
         card.setConfig(makeConfig({ line_width: 4 }) as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series[1].width).toBe(4);
     });
 
@@ -428,7 +428,7 @@ describe("_buildSeries", () => {
             line_width: 2,
             entities: [{ entity: "sensor.temp", line_width: 5 }],
         }) as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series[1].width).toBe(5);
     });
 
@@ -439,7 +439,7 @@ describe("_buildSeries", () => {
             makeDataset("sensor.b"),
             makeDataset("sensor.c"),
         ];
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series).toHaveLength(4);
     });
 
@@ -447,19 +447,19 @@ describe("_buildSeries", () => {
         card.setConfig(makeConfig({
             entities: [{ entity: "sensor.temp", y_axis: "right" }],
         }) as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series[1].scale).toBe("y2");
     });
 
     it("entity on left y-axis has scale=y", () => {
         card.setConfig(makeConfig() as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect(series[1].scale).toBe("y");
     });
 
     it("show_points=true sets points.show=true", () => {
         card.setConfig(makeConfig({ show_points: true }) as never);
-        const series = card["_buildSeries"](card["_config"]);
+        const series = card["_buildSeries"](card["_config"] as never);
         expect((series[1] as Record<string, unknown>).points).toMatchObject({ show: true });
     });
 });
