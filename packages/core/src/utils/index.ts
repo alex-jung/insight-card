@@ -105,7 +105,10 @@ export function hexToRgba(hex: string, alpha: number): string {
     g = parseInt(clean.slice(2, 4), 16);
     b = parseInt(clean.slice(4, 6), 16);
   } else {
-    // Fallback: return opaque black
+    return `rgba(0,0,0,${alpha})`;
+  }
+
+  if (isNaN(r) || isNaN(g) || isNaN(b)) {
     return `rgba(0,0,0,${alpha})`;
   }
 
