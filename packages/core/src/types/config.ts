@@ -186,11 +186,6 @@ export interface InsightBaseConfig {
    * @default 0
    */
   margin_bottom?: number;
-  /**
-   * Force a colour theme. "auto" follows the HA theme.
-   * @default "auto"
-   */
-  theme?: "auto" | "dark" | "light";
   /** Override grid placement in Sections View */
   grid_options?: GridOptionsConfig;
 }

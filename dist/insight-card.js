@@ -6717,8 +6717,6 @@ class InsightBaseCard extends i$2 {
   }
   get isDarkTheme() {
     if (!this.hass) return false;
-    if (this._config?.theme === "dark") return true;
-    if (this._config?.theme === "light") return false;
     return this.hass.themes?.darkMode ?? false;
   }
   _getEntityColor(index, overrideColor) {
@@ -6909,7 +6907,6 @@ var editor$1 = {
 		aggregate: "Aggregation method",
 		aggregate_period: "Aggregation period (e.g. 30m, 1h, 6h, 1d)",
 		update_interval: "Update interval",
-		theme: "Theme",
 		margin_top: "Margin top",
 		margin_bottom: "Margin bottom",
 		margin_left: "Margin left",
@@ -7025,7 +7022,6 @@ var editor = {
 		aggregate: "Aggregationsmethode",
 		aggregate_period: "Aggregationszeitraum (z.B. 30m, 1h, 6h, 1d)",
 		update_interval: "Aktualisierungsintervall",
-		theme: "Thema",
 		margin_top: "Außenabstand oben",
 		margin_bottom: "Außenabstand unten",
 		margin_left: "Außenabstand links",
@@ -8532,6 +8528,10 @@ function buildEntitySchema(style) {
       selector: { entity: {} }
     },
     {
+      name: "name",
+      selector: { text: {} }
+    },
+    {
       name: "y_axis",
       selector: {
         select: {
@@ -8689,6 +8689,7 @@ let InsightLineEntityEditor = class extends i$2 {
     const dashStr = Array.isArray(ec.stroke_dash) ? ec.stroke_dash.join(",") : ec.stroke_dash != null ? String(ec.stroke_dash) : "";
     return {
       entity: ec.entity ?? "",
+      name: ec.name ?? "",
       y_axis: ec.y_axis ?? "left",
       hidden: ec.hidden ?? false,
       // ha-form-expandable nests data under the group name key
@@ -8716,6 +8717,7 @@ let InsightLineEntityEditor = class extends i$2 {
     const patch = Object.fromEntries(
       Object.entries({
         entity: raw["entity"] ?? "",
+        name: raw["name"] || void 0,
         y_axis: raw["y_axis"] ?? void 0,
         hidden: raw["hidden"],
         line_width: appearance["line_width"],
@@ -8731,6 +8733,7 @@ let InsightLineEntityEditor = class extends i$2 {
       }).filter(([, v]) => v !== void 0)
     );
     const detail = { ...this.tab.config, ...patch };
+    if (!raw["name"]) delete detail.name;
     if (!dashStr) delete detail.stroke_dash;
     if (!data["attribute"]) delete detail.attribute;
     if (!data["unit"]) delete detail.unit;
@@ -8871,28 +8874,28 @@ function buildGeneralSchema(lang, cfg) {
             {
               value: "line",
               label: localize("editor.option.style.line", lang),
-              description: localize(
-                "editor.option.style.line_desc",
-                lang
-              ),
+              // description: localize(
+              //     "editor.option.style.line_desc",
+              //     lang,
+              // ),
               image: IMG_CHART_LINE
             },
             {
               value: "area",
               label: localize("editor.option.style.area", lang),
-              description: localize(
-                "editor.option.style.area_desc",
-                lang
-              ),
+              // description: localize(
+              //     "editor.option.style.area_desc",
+              //     lang,
+              // ),
               image: IMG_CHART_AREA
             },
             {
               value: "step",
               label: localize("editor.option.style.step", lang),
-              description: localize(
-                "editor.option.style.step_desc",
-                lang
-              ),
+              // description: localize(
+              //     "editor.option.style.step_desc",
+              //     lang,
+              // ),
               image: IMG_CHART_STEP
             }
           ]
@@ -8981,18 +8984,6 @@ const ADVANCED_SCHEMA = [
         step: 10,
         mode: "box",
         unit_of_measurement: "s"
-      }
-    }
-  },
-  {
-    name: "theme",
-    selector: {
-      select: {
-        options: [
-          { value: "auto", label: "Auto (follow HA theme)" },
-          { value: "light", label: "Light" },
-          { value: "dark", label: "Dark" }
-        ]
       }
     }
   },
@@ -9683,7 +9674,6 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     const cfg = this._lineConfig;
     const data = {
       update_interval: cfg.update_interval ?? 60,
-      theme: cfg.theme ?? "auto",
       margin_top: cfg.margin_top ?? 0,
       margin_bottom: cfg.margin_bottom ?? 0,
       margin_left: cfg.margin_left ?? 0,

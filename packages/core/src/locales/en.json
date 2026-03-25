@@ -39,7 +39,6 @@
       "aggregate": "Aggregation method",
       "aggregate_period": "Aggregation period (e.g. 30m, 1h, 6h, 1d)",
       "update_interval": "Update interval",
-      "theme": "Theme",
       "margin_top": "Margin top",
       "margin_bottom": "Margin bottom",
       "margin_left": "Margin left",

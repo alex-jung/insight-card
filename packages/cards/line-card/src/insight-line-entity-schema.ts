@@ -37,6 +37,10 @@ export function buildEntitySchema(style: string): HaFormSchema[] {
       selector: { entity: {} },
     },
     {
+      name: "name",
+      selector: { text: {} },
+    },
+    {
       name: "y_axis",
       selector: {
         select: {

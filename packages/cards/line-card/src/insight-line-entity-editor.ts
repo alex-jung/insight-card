@@ -91,6 +91,7 @@ export class InsightLineEntityEditor extends LitElement {
               : "";
         return {
             entity: ec.entity ?? "",
+            name: ec.name ?? "",
             y_axis: ec.y_axis ?? "left",
             hidden: ec.hidden ?? false,
             // ha-form-expandable nests data under the group name key
@@ -129,6 +130,7 @@ export class InsightLineEntityEditor extends LitElement {
         const patch: Partial<InsightEntityConfig> = Object.fromEntries(
             Object.entries({
                 entity: (raw["entity"] as string) ?? "",
+                name: (raw["name"] as string) || undefined,
                 y_axis:
                     (raw["y_axis"] as InsightEntityConfig["y_axis"]) ??
                     undefined,
@@ -154,6 +156,7 @@ export class InsightLineEntityEditor extends LitElement {
 
         const detail: InsightEntityConfig = { ...this.tab.config, ...patch };
         // Explicitly remove optional fields when the user clears them
+        if (!(raw["name"] as string)) delete detail.name;
         if (!dashStr) delete detail.stroke_dash;
         if (!(data["attribute"] as string)) delete detail.attribute;
         if (!(data["unit"] as string)) delete detail.unit;
