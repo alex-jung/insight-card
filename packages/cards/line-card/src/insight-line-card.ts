@@ -1160,15 +1160,16 @@ export class InsightLineCard extends InsightBaseCard {
                 this._needsRebuild = true;
                 this._syncUplot();
             } else {
-                this._uplot.setData(this._cachedUData, false);
-                const xs = this._cachedUData[0] as number[];
                 if (this._zoomedRange) {
+                    // Preserve zoom: update data without scale reset, then restore X range.
+                    this._uplot.setData(this._cachedUData, false);
                     this._uplot.setScale("x", {
                         min: this._zoomedRange[0],
                         max: this._zoomedRange[1],
                     });
-                } else if (xs.length > 0) {
-                    this._uplot.setScale("x", { min: xs[0], max: xs[xs.length - 1] });
+                } else {
+                    // No zoom: let uPlot auto-scale both X and Y axes to fit new data.
+                    this._uplot.setData(this._cachedUData, true);
                 }
             }
         }
@@ -1231,15 +1232,14 @@ export class InsightLineCard extends InsightBaseCard {
             );
             const chartHeight = this._chartHeight;
             if (dataChanged) {
-                this._uplot!.setData(uData, false);
-                const xs = uData[0] as number[];
                 if (this._zoomedRange) {
+                    this._uplot!.setData(uData, false);
                     this._uplot!.setScale("x", {
                         min: this._zoomedRange[0],
                         max: this._zoomedRange[1],
                     });
-                } else if (xs.length > 0) {
-                    this._uplot!.setScale("x", { min: xs[0], max: xs[xs.length - 1] });
+                } else {
+                    this._uplot!.setData(uData, true);
                 }
             }
             this._uplot!.setSize({ width: chartWidth, height: chartHeight });
