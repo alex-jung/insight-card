@@ -31,6 +31,7 @@ import {
     parsePeriod,
     aggregateTimeSeries,
     applyTransform,
+    normaliseEntityConfig,
 } from "@insight-chart/core";
 
 // ---------------------------------------------------------------------------
@@ -84,7 +85,7 @@ export class InsightLineCard extends InsightBaseCard {
                 border-radius: 6px;
                 background: var(--card-background-color, #fff);
                 color: var(--primary-text-color);
-                box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
                 cursor: pointer;
                 opacity: 0.85;
                 transition: opacity 0.15s;
@@ -249,7 +250,7 @@ export class InsightLineCard extends InsightBaseCard {
         `,
     ];
     static readonly cardType = "custom:insight-line-card";
-    static readonly cardName = "InsightChart Line";
+    static readonly cardName = "Insight line";
     static readonly cardDescription =
         "Interactive time-series line & area chart with zoom";
 
@@ -272,6 +273,16 @@ export class InsightLineCard extends InsightBaseCard {
     private _zoomedRange?: [number, number];
     /** Whether the chart is currently zoomed — controls reset-button visibility */
     @state() private _isZoomed = false;
+    /** Pinch gesture state — snapshot taken on touchstart with 2 fingers */
+    private _tapTimer?: ReturnType<typeof setTimeout>;
+    private _pinch?: { dist: number; scaleMin: number; scaleMax: number };
+    /** Bound touch handlers — stored so they can be removed on destroy */
+    private _touchHandlers?: {
+        start: (e: TouchEvent) => void;
+        move: (e: TouchEvent) => void;
+        end: (e: TouchEvent) => void;
+        target: HTMLElement;
+    };
 
     private _resizeObserver: ResizeObserver | null = null;
 
@@ -303,7 +314,7 @@ export class InsightLineCard extends InsightBaseCard {
             hours: 24,
             style: "area",
             zoom: true,
-            line_width: 1,
+            line_width: 2,
             show_legend: true,
             margin_bottom: 16,
             margin_top: 16,
@@ -324,8 +335,8 @@ export class InsightLineCard extends InsightBaseCard {
             zoom: true,
             line_width: 2,
             fill_opacity: 0.15,
-            y_range: "auto",
             update_interval: 60,
+            show_legend: true,
             show_x_axis: true,
             show_y_axis: true,
         };
@@ -424,10 +435,10 @@ export class InsightLineCard extends InsightBaseCard {
             : NaN;
         const cardMethod = config.aggregate;
 
-        // Apply per-entity (or card-level) aggregation, then transformation
+        // Apply card-level aggregation and per-entity transformation
         const datasets = this._data.map((dataset, i) => {
             const ec = this.entityConfigs[i];
-            const method = ec?.aggregate ?? cardMethod;
+            const method = cardMethod;
             const periodMs = cardPeriodMs;
             let data = dataset.data;
             if (method && isFinite(periodMs)) {
@@ -650,6 +661,7 @@ export class InsightLineCard extends InsightBaseCard {
                 ...(hasSecondaryAxis
                     ? [
                           {
+                              show: config.show_y_axis !== false,
                               scale: "y2",
                               side: 1, // right side
                               stroke: axisStroke,
@@ -692,7 +704,9 @@ export class InsightLineCard extends InsightBaseCard {
                         const curMin = u.scales.x?.min ?? fullMin;
                         const curMax = u.scales.x?.max ?? fullMax;
                         const zoomed = curMin > fullMin || curMax < fullMax;
-                        this._zoomedRange = zoomed ? [curMin, curMax] : undefined;
+                        this._zoomedRange = zoomed
+                            ? [curMin, curMax]
+                            : undefined;
                         this._isZoomed = zoomed;
                     },
                 ],
@@ -711,6 +725,20 @@ export class InsightLineCard extends InsightBaseCard {
                         // Cache u.over offsets — stable until next resize
                         this._overLeft = u.over.offsetLeft;
                         this._overTop = u.over.offsetTop;
+                        // Attach pinch-to-zoom touch handlers
+                        this._attachPinchHandlers(u);
+                        // Intercept dblclick before uPlot's zoom-reset handler.
+                        // stopImmediatePropagation prevents uPlot from resetting zoom;
+                        // we handle double_tap_action here directly.
+                        u.over.addEventListener(
+                            "dblclick",
+                            (e) => {
+                                e.stopImmediatePropagation();
+                                clearTimeout(this._tapTimer);
+                                this._handleAction("double_tap_action");
+                            },
+                            { capture: true },
+                        );
                     },
                 ],
                 setSize: [
@@ -722,16 +750,84 @@ export class InsightLineCard extends InsightBaseCard {
                 destroy: [
                     () => {
                         this._tooltipEl = undefined;
+                        this._detachPinchHandlers();
+                        this._pinch = undefined;
                     },
                 ],
             },
             padding: [
-                config.padding_top    ?? 8,
-                config.padding_right  ?? 16,
+                config.padding_top ?? 8,
+                config.padding_right ?? 16,
                 config.padding_bottom ?? 8,
-                config.padding_left   ?? 16,
+                config.padding_left ?? 16,
             ],
         };
+    }
+
+    /**
+     * Execute a tap / double-tap action from the card config.
+     * Supports: more-info, navigate, url, perform-action, none.
+     */
+    private _handleAction(actionType: "tap_action" | "double_tap_action"): void {
+        const cfg = this._config as InsightLineConfig | undefined;
+        const action = cfg?.[actionType];
+
+        // tap_action defaults to "more-info" when not explicitly configured
+        if (!action) {
+            if (actionType === "tap_action") {
+                this._fireMoreInfo(cfg);
+            }
+            return;
+        }
+        if (action.action === "none") return;
+
+        switch (action.action) {
+            case "more-info":
+                this._fireMoreInfo(cfg);
+                break;
+            case "navigate":
+                if (action.navigation_path) {
+                    history.pushState(null, "", action.navigation_path);
+                    this.dispatchEvent(
+                        new CustomEvent("location-changed", {
+                            bubbles: true,
+                            composed: true,
+                        }),
+                    );
+                }
+                break;
+            case "url":
+                if (action.url_path) {
+                    window.open(action.url_path, "_blank");
+                }
+                break;
+            case "perform-action": {
+                const serviceStr = action.perform_action ?? action.service ?? "";
+                const [domain, service] = serviceStr.split(".", 2);
+                if (domain && service) {
+                    this.hass?.callService(
+                        domain,
+                        service,
+                        action.data ?? action.service_data ?? {},
+                    );
+                }
+                break;
+            }
+        }
+    }
+
+    private _fireMoreInfo(cfg: InsightLineConfig | undefined): void {
+        const first = cfg?.entities?.[0];
+        if (!first) return;
+        const entityId = normaliseEntityConfig(first).entity;
+        if (!entityId) return;
+        this.dispatchEvent(
+            new CustomEvent("hass-more-info", {
+                detail: { entityId },
+                bubbles: true,
+                composed: true,
+            }),
+        );
     }
 
     /**
@@ -871,6 +967,97 @@ export class InsightLineCard extends InsightBaseCard {
     }
 
     // -------------------------------------------------------------------------
+    // Pinch-to-zoom (mobile)
+    // -------------------------------------------------------------------------
+
+    private _attachPinchHandlers(u: uPlot): void {
+        const over = u.over as HTMLElement;
+
+        const onStart = (e: TouchEvent) => {
+            if (e.touches.length !== 2) return;
+            const t0 = e.touches[0];
+            const t1 = e.touches[1];
+            const dist = Math.hypot(
+                t1.clientX - t0.clientX,
+                t1.clientY - t0.clientY,
+            );
+            this._pinch = {
+                dist,
+                scaleMin: u.scales.x?.min ?? (u.data[0][0] as number),
+                scaleMax:
+                    u.scales.x?.max ??
+                    (u.data[0][u.data[0].length - 1] as number),
+            };
+        };
+
+        const onMove = (e: TouchEvent) => {
+            if (e.touches.length !== 2 || !this._pinch) return;
+            e.preventDefault(); // prevent page scroll during pinch
+
+            const t0 = e.touches[0];
+            const t1 = e.touches[1];
+            const newDist = Math.hypot(
+                t1.clientX - t0.clientX,
+                t1.clientY - t0.clientY,
+            );
+
+            const { dist: initDist, scaleMin, scaleMax } = this._pinch;
+            const initRange = scaleMax - scaleMin;
+            const factor = initDist / newDist; // >1 = zoom in, <1 = zoom out
+            const newRange = initRange * factor;
+
+            // Pinch midpoint → time value to keep centered
+            const rect = over.getBoundingClientRect();
+            const centerPx = (t0.clientX + t1.clientX) / 2 - rect.left;
+            const centerTime = u.posToVal(centerPx, "x");
+
+            let newMin = centerTime - newRange / 2;
+            let newMax = centerTime + newRange / 2;
+
+            // Clamp to full data extent
+            const xs = u.data[0] as number[];
+            const dataMin = xs[0];
+            const dataMax = xs[xs.length - 1];
+            if (newMin < dataMin) {
+                newMin = dataMin;
+                newMax = Math.min(dataMax, dataMin + newRange);
+            }
+            if (newMax > dataMax) {
+                newMax = dataMax;
+                newMin = Math.max(dataMin, dataMax - newRange);
+            }
+            // Prevent over-zoom (minimum 60 s window)
+            if (newMax - newMin < 60) return;
+
+            u.setScale("x", { min: newMin, max: newMax });
+        };
+
+        const onEnd = (e: TouchEvent) => {
+            if (e.touches.length < 2) this._pinch = undefined;
+        };
+
+        over.addEventListener("touchstart", onStart, { passive: true });
+        over.addEventListener("touchmove", onMove, { passive: false });
+        over.addEventListener("touchend", onEnd, { passive: true });
+
+        this._touchHandlers = {
+            start: onStart,
+            move: onMove,
+            end: onEnd,
+            target: over,
+        };
+    }
+
+    private _detachPinchHandlers(): void {
+        if (!this._touchHandlers) return;
+        const { start, move, end, target } = this._touchHandlers;
+        target.removeEventListener("touchstart", start);
+        target.removeEventListener("touchmove", move);
+        target.removeEventListener("touchend", end);
+        this._touchHandlers = undefined;
+    }
+
+    // -------------------------------------------------------------------------
     // Chart render
     // -------------------------------------------------------------------------
 
@@ -881,11 +1068,25 @@ export class InsightLineCard extends InsightBaseCard {
         if (!config) return html``;
 
         return html`
-            <div class="chart-wrapper">
+            <div
+                class="chart-wrapper"
+                @click=${() => {
+                    this._tapTimer = setTimeout(
+                        () => this._handleAction("tap_action"),
+                        250,
+                    );
+                }}
+            >
                 <div id="chart"></div>
                 ${this._isZoomed
-                    ? html`<button class="zoom-reset-btn" @click=${this._resetZoom} title="Reset zoom">
-                          <ha-svg-icon .path=${"M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"}></ha-svg-icon>
+                    ? html`<button
+                          class="zoom-reset-btn"
+                          @click=${this._resetZoom}
+                          title="Reset zoom"
+                      >
+                          <ha-svg-icon
+                              .path=${"M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"}
+                          ></ha-svg-icon>
                       </button>`
                     : ""}
             </div>
@@ -931,6 +1132,12 @@ export class InsightLineCard extends InsightBaseCard {
 
         console.log("[line-card] updated, data", this._data);
         console.log("[line-card] updated, uPlot", this._uplot);
+
+        // Config/theme change → full rebuild even if data hasn't changed yet
+        if (this._needsRebuild && this._uplot) {
+            this._syncUplot();
+            return;
+        }
 
         if (this._uplot && this._data !== this._lastDataRef) {
             // If uPlot was built with no data (initial render before fetch completed),

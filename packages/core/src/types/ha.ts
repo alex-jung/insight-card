@@ -67,6 +67,20 @@ export interface HassStatisticsEntry {
 }
 
 // ---------------------------------------------------------------------------
+// Action config (tap_action, double_tap_action, …)
+// ---------------------------------------------------------------------------
+
+export interface ActionConfig {
+  action: "more-info" | "navigate" | "url" | "perform-action" | "assist" | "none";
+  navigation_path?: string;
+  url_path?: string;
+  service?: string;       // legacy alias for perform_action
+  perform_action?: string;
+  service_data?: Record<string, unknown>;
+  data?: Record<string, unknown>;
+}
+
+// ---------------------------------------------------------------------------
 // HA Config
 // ---------------------------------------------------------------------------
 

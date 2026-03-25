@@ -276,8 +276,6 @@ export abstract class InsightBaseCard extends LitElement {
 
     get isDarkTheme(): boolean {
         if (!this.hass) return false;
-        if (this._config?.theme === "dark") return true;
-        if (this._config?.theme === "light") return false;
         return this.hass.themes?.darkMode ?? false;
     }
 

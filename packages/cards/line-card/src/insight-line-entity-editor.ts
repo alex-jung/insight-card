@@ -18,7 +18,13 @@ import {
 } from "@insight-chart/core";
 
 import { InsightEntityTab } from "./insight-line-entity-tab.js";
-import { buildEntitySchema } from "./insight-line-entity-schema.js";
+import { InsightSectionTitle } from "@insight-chart/core";
+InsightSectionTitle;
+import {
+    ENTITY_BASE_SCHEMA,
+    buildAppearanceSchema,
+    DATA_SCHEMA,
+} from "./insight-line-entity-schema.js";
 
 @customElement("insight-line-entity-editor")
 export class InsightLineEntityEditor extends LitElement {
@@ -38,7 +44,33 @@ export class InsightLineEntityEditor extends LitElement {
         if (!this.tab) return html`${nothing}`;
 
         const ec = this.tab.config;
-        const schema = buildEntitySchema(this.chartStyle ?? "area");
+        const dashStr = Array.isArray(ec.stroke_dash)
+            ? ec.stroke_dash.join(",")
+            : ec.stroke_dash != null
+              ? String(ec.stroke_dash)
+              : "";
+
+        const baseData = {
+            entity: ec.entity ?? "",
+            name: ec.name ?? "",
+            y_axis: ec.y_axis ?? "left",
+            hidden: ec.hidden ?? false,
+        };
+
+        const appearanceData = {
+            line_width: ec.line_width,
+            fill_opacity: ec.fill_opacity,
+            stroke_dash: dashStr,
+        };
+
+        const dataData = {
+            attribute: ec.attribute ?? "",
+            unit: ec.unit ?? "",
+            scale: ec.scale,
+            invert: ec.invert ?? false,
+            transform: ec.transform ?? "none",
+            statistics: ec.statistics ?? "none",
+        };
 
         return html`
             <div class="entity-editor-content">
@@ -68,44 +100,65 @@ export class InsightLineEntityEditor extends LitElement {
 
                 <ha-form
                     .hass=${this.hass}
-                    .schema=${schema}
-                    .data=${this._formData(ec)}
+                    .schema=${ENTITY_BASE_SCHEMA}
+                    .data=${baseData}
                     .computeLabel=${this._computeLabel}
+                    .computeHelper=${this._computeHelper}
                     @value-changed=${(
                         e: CustomEvent<{ value: Record<string, unknown> }>,
-                    ) => this._onFormChanged(e.detail.value)}
+                    ) => this._onBaseChanged(e.detail.value)}
+                ></ha-form>
+
+                <insight-section-title
+                    .label=${localize("editor.field.appearance", this._lang)}
+                ></insight-section-title>
+                <ha-form
+                    .hass=${this.hass}
+                    .schema=${buildAppearanceSchema(this.chartStyle ?? "area")}
+                    .data=${appearanceData}
+                    .computeLabel=${this._computeLabel}
+                    .computeHelper=${this._computeHelper}
+                    @value-changed=${(
+                        e: CustomEvent<{ value: Record<string, unknown> }>,
+                    ) => this._onAppearanceChanged(e.detail.value)}
+                ></ha-form>
+
+                <insight-section-title
+                    .label=${localize("editor.field.data", this._lang)}
+                ></insight-section-title>
+                <ha-form
+                    .hass=${this.hass}
+                    .schema=${DATA_SCHEMA}
+                    .data=${dataData}
+                    .computeLabel=${this._computeLabel}
+                    .computeHelper=${this._computeHelper}
+                    @value-changed=${(
+                        e: CustomEvent<{ value: Record<string, unknown> }>,
+                    ) => this._onDataChanged(e.detail.value)}
                 ></ha-form>
             </div>
         `;
     }
 
     // ---------------------------------------------------------------------------
-    // Helpers
+    // Handlers
     // ---------------------------------------------------------------------------
 
-    private _formData(ec: InsightEntityConfig): Record<string, unknown> {
-        return {
-            entity: ec.entity ?? "",
-            y_axis: ec.y_axis ?? "left",
-            hidden: ec.hidden ?? false,
-            line_width: ec.line_width,
-            fill_opacity: ec.fill_opacity,
-            stroke_dash: Array.isArray(ec.stroke_dash)
-                ? ec.stroke_dash.join(",")
-                : ec.stroke_dash != null
-                  ? String(ec.stroke_dash)
-                  : "",
-            attribute: ec.attribute ?? "",
-            unit: ec.unit ?? "",
-            scale: ec.scale,
-            invert: ec.invert ?? false,
-            transform: ec.transform ?? "none",
-            aggregate: ec.aggregate ?? "",
-            statistics: ec.statistics ?? "",
-        };
+    private _onBaseChanged(raw: Record<string, unknown>): void {
+        const detail: InsightEntityConfig = { ...this.tab.config };
+        detail.entity = (raw["entity"] as string) ?? detail.entity;
+        detail.y_axis =
+            (raw["y_axis"] as InsightEntityConfig["y_axis"]) ?? detail.y_axis;
+        detail.hidden = raw["hidden"] as boolean | undefined;
+        if (raw["name"] as string) {
+            detail.name = raw["name"] as string;
+        } else {
+            delete detail.name;
+        }
+        this.dispatchEvent(new CustomEvent("onChange", { detail }));
     }
 
-    private _onFormChanged(raw: Record<string, unknown>): void {
+    private _onAppearanceChanged(raw: Record<string, unknown>): void {
         const dashStr = raw["stroke_dash"] as string | undefined;
         const parsedDash: InsightEntityConfig["stroke_dash"] = dashStr
             ? dashStr.includes(",")
@@ -116,37 +169,36 @@ export class InsightLineEntityEditor extends LitElement {
                 : Number(dashStr) || undefined
             : undefined;
 
-        const patch: Partial<InsightEntityConfig> = Object.fromEntries(
-            Object.entries({
-                entity: (raw["entity"] as string) ?? "",
-                y_axis:
-                    (raw["y_axis"] as InsightEntityConfig["y_axis"]) ??
-                    undefined,
-                hidden: raw["hidden"] as boolean | undefined,
-                line_width: raw["line_width"] as number | undefined,
-                fill_opacity: raw["fill_opacity"] as number | undefined,
-                stroke_dash: parsedDash,
-                attribute: (raw["attribute"] as string) || undefined,
-                unit: (raw["unit"] as string) || undefined,
-                scale: raw["scale"] as number | undefined,
-                invert: raw["invert"] as boolean | undefined,
-                transform:
-                    (raw["transform"] as InsightEntityConfig["transform"]) ||
-                    undefined,
-                aggregate:
-                    (raw["aggregate"] as InsightEntityConfig["aggregate"]) ||
-                    undefined,
-                statistics:
-                    (raw["statistics"] as InsightEntityConfig["statistics"]) ||
-                    undefined,
-            }).filter(([, v]) => v !== undefined),
-        ) as Partial<InsightEntityConfig>;
+        const detail: InsightEntityConfig = { ...this.tab.config };
+        detail.line_width = raw["line_width"] as number | undefined;
+        detail.fill_opacity = raw["fill_opacity"] as number | undefined;
+        if (parsedDash != null) {
+            detail.stroke_dash = parsedDash;
+        } else {
+            delete detail.stroke_dash;
+        }
+        this.dispatchEvent(new CustomEvent("onChange", { detail }));
+    }
 
-        this.dispatchEvent(
-            new CustomEvent("onChange", {
-                detail: { ...this.tab.config, ...patch },
-            }),
-        );
+    private _onDataChanged(raw: Record<string, unknown>): void {
+        const detail: InsightEntityConfig = { ...this.tab.config };
+        if (raw["attribute"] as string)
+            detail.attribute = raw["attribute"] as string;
+        else delete detail.attribute;
+        if (raw["unit"] as string) detail.unit = raw["unit"] as string;
+        else delete detail.unit;
+        if (raw["scale"] != null) detail.scale = raw["scale"] as number;
+        else delete detail.scale;
+        detail.invert = raw["invert"] as boolean | undefined;
+        detail.transform =
+            (raw["transform"] as InsightEntityConfig["transform"]) || undefined;
+        const statsRaw = raw["statistics"] as string | undefined;
+        if (statsRaw && statsRaw !== "none") {
+            detail.statistics = statsRaw as InsightEntityConfig["statistics"];
+        } else {
+            delete detail.statistics;
+        }
+        this.dispatchEvent(new CustomEvent("onChange", { detail }));
     }
 
     private _patch(patch: Partial<InsightEntityConfig>): void {
@@ -165,6 +217,12 @@ export class InsightLineEntityEditor extends LitElement {
         title?: string;
     }): string => {
         return localize(`editor.field.${schema.name}`, this._lang);
+    };
+
+    private readonly _computeHelper = (schema: { name: string }): string => {
+        const key = `editor.helper.${schema.name}`;
+        const result = localize(key, this._lang);
+        return result === key ? "" : result;
     };
 
     // ---------------------------------------------------------------------------
@@ -195,6 +253,7 @@ export class InsightLineEntityEditor extends LitElement {
             display: flex;
             flex-direction: column;
             gap: 8px;
+            padding-bottom: 16px;
         }
 
         .color-swatch {

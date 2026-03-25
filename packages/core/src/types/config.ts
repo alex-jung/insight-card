@@ -5,7 +5,7 @@
  * plain entity-id string (shorthand) or as a full InsightEntityConfig object.
  */
 
-import type { HassStatisticsPeriod } from "./ha.js";
+import type { ActionConfig, HassStatisticsPeriod } from "./ha.js";
 
 // ---------------------------------------------------------------------------
 // Shared entity config
@@ -68,11 +68,6 @@ export interface InsightEntityConfig {
    * @default false
    */
   invert?: boolean;
-  /**
-   * Aggregation method for this entity. Overrides the card-level `aggregate`.
-   * Applied client-side after fetching raw history data.
-   */
-  aggregate?: "mean" | "min" | "max" | "sum" | "last";
 }
 
 // ---------------------------------------------------------------------------
@@ -186,11 +181,6 @@ export interface InsightBaseConfig {
    * @default 0
    */
   margin_bottom?: number;
-  /**
-   * Force a colour theme. "auto" follows the HA theme.
-   * @default "auto"
-   */
-  theme?: "auto" | "dark" | "light";
   /** Override grid placement in Sections View */
   grid_options?: GridOptionsConfig;
 }
@@ -302,6 +292,10 @@ export interface InsightLineConfig extends InsightBaseConfig {
    * @default 16
    */
   padding_left?: number;
+  /** Action triggered by a single tap/click on the chart. */
+  tap_action?: ActionConfig;
+  /** Action triggered by a double-tap/double-click on the chart. */
+  double_tap_action?: ActionConfig;
 }
 
 // ---------------------------------------------------------------------------

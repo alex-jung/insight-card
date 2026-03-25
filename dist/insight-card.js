@@ -6208,8 +6208,7 @@ const ENTITY_OPTION_KEYS = /* @__PURE__ */ new Set([
   "attribute",
   "unit",
   "scale",
-  "invert",
-  "aggregate"
+  "invert"
 ]);
 function normaliseEntityConfig(e) {
   if (typeof e === "string") return { entity: e };
@@ -6351,7 +6350,7 @@ function aggregateTimeSeries(data, periodMs, method) {
   }
   return result.sort((a, b) => a.t - b.t);
 }
-function applyTransform$1(data, transform) {
+function applyTransform(data, transform) {
   if (transform === "none" || data.length === 0) return data;
   switch (transform) {
     case "diff": {
@@ -6378,11 +6377,14 @@ function applyTransform$1(data, transform) {
 
 const CACHE_TTL_MS = 3e4;
 const cache = /* @__PURE__ */ new Map();
-function cacheKey(entityId, hours, attribute) {
-  return attribute ? `${entityId}:${hours}:${attribute}` : `${entityId}:${hours}`;
+function cacheKey(entityId, hours, attribute, statistics) {
+  const parts = [entityId, hours];
+  if (attribute) parts.push(attribute);
+  if (statistics) parts.push(statistics);
+  return parts.join(":");
 }
-function fromCache(entityId, hours, attribute) {
-  const key = cacheKey(entityId, hours, attribute);
+function fromCache(entityId, hours, attribute, statistics) {
+  const key = cacheKey(entityId, hours, attribute, statistics);
   const entry = cache.get(key);
   if (!entry) return null;
   if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
@@ -6391,8 +6393,8 @@ function fromCache(entityId, hours, attribute) {
   }
   return entry.dataset;
 }
-function toCache(entityId, hours, dataset, attribute) {
-  cache.set(cacheKey(entityId, hours, attribute), { dataset, timestamp: Date.now() });
+function toCache(entityId, hours, dataset, attribute, statistics) {
+  cache.set(cacheKey(entityId, hours, attribute, statistics), { dataset, timestamp: Date.now() });
 }
 function invalidateCache(entityId) {
   {
@@ -6491,7 +6493,7 @@ async function getEntityData(hass, entityConfig, hours) {
   const cfg = normaliseEntityConfig(entityConfig);
   const entityId = cfg.entity;
   const attribute = cfg.attribute;
-  const cached = fromCache(entityId, hours, attribute);
+  const cached = fromCache(entityId, hours, attribute, cfg.statistics);
   if (cached) {
     return applyValueModifiers(cached, cfg);
   }
@@ -6509,39 +6511,12 @@ async function getEntityData(hass, entityConfig, hours) {
   } else {
     rawPoints = await fetchHistory(hass, entityId, startTime, endTime, attribute);
   }
-  const transformedData = applyTransform(rawPoints, cfg.transform ?? "none");
-  const dataset = { entityId, friendlyName, unit, data: transformedData };
-  toCache(entityId, hours, dataset, attribute);
+  const dataset = { entityId, friendlyName, unit, data: rawPoints };
+  toCache(entityId, hours, dataset, attribute, cfg.statistics);
   return applyValueModifiers(dataset, cfg);
 }
 async function getMultiEntityData(hass, entities, hours) {
   return Promise.all(entities.map((e) => getEntityData(hass, e, hours)));
-}
-function applyTransform(data, transform) {
-  if (!transform || transform === "none" || data.length === 0) return data;
-  if (transform === "diff") {
-    const out = [];
-    for (let i = 1; i < data.length; i++) {
-      out.push({ t: data[i].t, v: data[i].v - data[i - 1].v });
-    }
-    return out;
-  }
-  if (transform === "cumulative") {
-    let sum = 0;
-    return data.map((p) => ({ t: p.t, v: sum += p.v }));
-  }
-  if (transform === "normalize") {
-    let min = Infinity;
-    let max = -Infinity;
-    for (const p of data) {
-      if (p.v < min) min = p.v;
-      if (p.v > max) max = p.v;
-    }
-    const range = max - min;
-    if (range === 0) return data.map((p) => ({ ...p, v: 0 }));
-    return data.map((p) => ({ t: p.t, v: (p.v - min) / range }));
-  }
-  return data;
 }
 
 /**
@@ -6557,13 +6532,13 @@ const t={ATTRIBUTE:1},e=t=>(...e)=>({_$litDirective$:t,values:e});let i$1 = clas
  * SPDX-License-Identifier: BSD-3-Clause
  */const n="important",i=" !"+n,o=e(class extends i$1{constructor(t$1){if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||t$1.strings?.length>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.includes("-")?r:r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`},"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.ft)return this.ft=new Set(Object.keys(r)),this.render(r);for(const t of this.ft)null==r[t]&&(this.ft.delete(t),t.includes("-")?s.removeProperty(t):s[t]=null);for(const t in r){const e=r[t];if(null!=e){this.ft.add(t);const r="string"==typeof e&&e.endsWith(i);t.includes("-")||r?s.setProperty(t,r?e.slice(0,-11):e,r?n:""):s[t]=e;}}return E}});
 
-var __defProp$4 = Object.defineProperty;
-var __decorateClass$8 = (decorators, target, key, kind) => {
+var __defProp$7 = Object.defineProperty;
+var __decorateClass$b = (decorators, target, key, kind) => {
   var result = void 0 ;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (decorator(target, key, result) ) || result;
-  if (result) __defProp$4(target, key, result);
+  if (result) __defProp$7(target, key, result);
   return result;
 };
 class InsightBaseCard extends i$2 {
@@ -6717,8 +6692,6 @@ class InsightBaseCard extends i$2 {
   }
   get isDarkTheme() {
     if (!this.hass) return false;
-    if (this._config?.theme === "dark") return true;
-    if (this._config?.theme === "light") return false;
     return this.hass.themes?.darkMode ?? false;
   }
   _getEntityColor(index, overrideColor) {
@@ -6847,25 +6820,25 @@ InsightBaseCard.styles = i$5`
         font-size: 0.875rem;
       }
       `;
-__decorateClass$8([
+__decorateClass$b([
   n$1({ attribute: false })
 ], InsightBaseCard.prototype, "hass");
-__decorateClass$8([
+__decorateClass$b([
   r()
 ], InsightBaseCard.prototype, "_config");
-__decorateClass$8([
+__decorateClass$b([
   r()
 ], InsightBaseCard.prototype, "_data");
-__decorateClass$8([
+__decorateClass$b([
   r()
 ], InsightBaseCard.prototype, "_loading");
-__decorateClass$8([
+__decorateClass$b([
   r()
 ], InsightBaseCard.prototype, "_error");
-__decorateClass$8([
+__decorateClass$b([
   r()
 ], InsightBaseCard.prototype, "_cardWidth");
-__decorateClass$8([
+__decorateClass$b([
   e$1(".card-header")
 ], InsightBaseCard.prototype, "_header");
 
@@ -6875,11 +6848,11 @@ var editor$1 = {
 		general: "General",
 		entities: "Entities",
 		time_range: "Time range",
-		chart_style: "Chart style",
+		chart_style: "Appearance",
 		y_axis: "Y axis",
-		appearance: "Appearance",
 		data_aggregation: "Data aggregation",
 		overlays: "Overlays",
+		interactions: "Interactions",
 		advanced: "Advanced"
 	},
 	field: {
@@ -6895,12 +6868,12 @@ var editor$1 = {
 		show_points: "Data points",
 		line_width: "Line width",
 		fill_opacity: "Fill opacity",
-		y_min: "Soft minimum",
-		y_max: "Soft maximum",
+		y_min: "Minimum",
+		y_max: "Maximum",
 		decimals: "Decimal places",
 		logarithmic: "Logarithmic scale (base 10)",
-		y_min_secondary: "Secondary axis minimum",
-		y_max_secondary: "Secondary axis maximum",
+		y_min_secondary: "Minimum",
+		y_max_secondary: "Maximum",
 		show_legend: "Show legend",
 		show_x_axis: "Show X axis",
 		show_y_axis: "Show Y axis",
@@ -6910,7 +6883,6 @@ var editor$1 = {
 		aggregate: "Aggregation method",
 		aggregate_period: "Aggregation period (e.g. 30m, 1h, 6h, 1d)",
 		update_interval: "Update interval",
-		theme: "Theme",
 		margin_top: "Margin top",
 		margin_bottom: "Margin bottom",
 		margin_left: "Margin left",
@@ -6928,6 +6900,9 @@ var editor$1 = {
 		unit: "Unit override",
 		scale: "Scale factor",
 		invert: "Invert values",
+		tap_action: "Tap action",
+		double_tap_action: "Double tap action",
+		hold_action: "Hold action",
 		value: "Value",
 		label: "Label",
 		dash: "Dash pattern (e.g. 4,3)",
@@ -6938,7 +6913,8 @@ var editor$1 = {
 		add_entity: "+ Add entity",
 		remove_entity: "Remove entity",
 		add_threshold: "+ Add threshold",
-		add_color_threshold: "+ Add color threshold"
+		add_color_threshold: "+ Add color threshold",
+		add_interaction: "Add interaction"
 	},
 	option: {
 		style: {
@@ -6952,11 +6928,47 @@ var editor$1 = {
 		curve: {
 			smooth: "Smooth",
 			linear: "Linear"
+		},
+		points: {
+			none: "None",
+			hover: "On hover",
+			always: "Always"
+		},
+		tooltip: {
+			datetime: "Date & time",
+			time: "Time",
+			date: "Date"
+		},
+		time_format: {
+			auto: "Auto",
+			time: "HH:MM",
+			date: "DD.MM",
+			datetime: "DD.MM HH:MM"
 		}
+	},
+	helper: {
+		statistics: "Uses the Statistics API instead of the History API. The sensor must have a state_class (e.g. measurement). Without a selection the History API is used.",
+		transform: "diff: change from previous value · normalize: scale to 0–1 · cumulative: running sum",
+		scale: "Multiplication factor for all values. Example: 0.001 converts W to kW.",
+		attribute: "Use a numeric entity attribute as the data source instead of the state. Set the unit manually if needed.",
+		y_min: "The axis only goes below this value if data points require it.",
+		y_max: "The axis only goes above this value if data points require it.",
+		y_min_secondary: "The axis only goes below this value if data points require it.",
+		y_max_secondary: "The axis only goes above this value if data points require it.",
+		logarithmic: "All data values must be greater than 0.",
+		aggregate: "Groups raw data into equal time buckets on the client.",
+		aggregate_period: "Bucket size for aggregation, e.g. 30m, 1h, 6h, 1d.",
+		stroke_dash: "Single number for equal gaps (e.g. 5), or dash,gap pair (e.g. 8,4).",
+		color_thresholds: "Defines a color gradient based on Y values. At least 2 thresholds required."
 	},
 	subsection: {
 		threshold_lines: "Threshold lines",
-		color_thresholds: "Color thresholds (gradient)"
+		color_thresholds: "Color thresholds (gradient)",
+		primary_axis: "Primary axis",
+		secondary_axis: "Secondary axis",
+		layout: "Layout",
+		margin: "Margin",
+		padding: "Padding"
 	}
 };
 var card$1 = {
@@ -6976,11 +6988,11 @@ var editor = {
 		general: "Allgemein",
 		entities: "Entitäten",
 		time_range: "Zeitbereich",
-		chart_style: "Diagrammstil",
+		chart_style: "Darstellung",
 		y_axis: "Y-Achse",
-		appearance: "Darstellung",
 		data_aggregation: "Datenaggregation",
 		overlays: "Überlagerungen",
+		interactions: "Interaktionen",
 		advanced: "Erweitert"
 	},
 	field: {
@@ -6996,12 +7008,12 @@ var editor = {
 		show_points: "Datenpunkte",
 		line_width: "Linienbreite",
 		fill_opacity: "Fülldeckkraft",
-		y_min: "Weiches Minimum",
-		y_max: "Weiches Maximum",
-		decimals: "Dezimalstellen",
+		y_min: "Minimum",
+		y_max: "Maximum",
+		decimals: "Nachkommastellen",
 		logarithmic: "Logarithmische Skala (Basis 10)",
-		y_min_secondary: "Sekundärachse Minimum",
-		y_max_secondary: "Sekundärachse Maximum",
+		y_min_secondary: "Minimum",
+		y_max_secondary: "Maximum",
 		show_legend: "Legende anzeigen",
 		show_x_axis: "X-Achse anzeigen",
 		show_y_axis: "Y-Achse anzeigen",
@@ -7011,7 +7023,6 @@ var editor = {
 		aggregate: "Aggregationsmethode",
 		aggregate_period: "Aggregationszeitraum (z.B. 30m, 1h, 6h, 1d)",
 		update_interval: "Aktualisierungsintervall",
-		theme: "Thema",
 		margin_top: "Außenabstand oben",
 		margin_bottom: "Außenabstand unten",
 		margin_left: "Außenabstand links",
@@ -7029,6 +7040,9 @@ var editor = {
 		unit: "Einheit (überschreiben)",
 		scale: "Skalierungsfaktor",
 		invert: "Werte invertieren",
+		tap_action: "Tipp-Aktion",
+		double_tap_action: "Doppeltipp-Aktion",
+		hold_action: "Halten-Aktion",
 		value: "Wert",
 		label: "Bezeichnung",
 		dash: "Strichmuster (z.B. 4,3)",
@@ -7039,7 +7053,8 @@ var editor = {
 		add_entity: "+ Entität hinzufügen",
 		remove_entity: "Entität entfernen",
 		add_threshold: "+ Schwellenwert hinzufügen",
-		add_color_threshold: "+ Farbschwellenwert hinzufügen"
+		add_color_threshold: "+ Farbschwellenwert hinzufügen",
+		add_interaction: "Interaktion hinzufügen"
 	},
 	option: {
 		style: {
@@ -7053,11 +7068,47 @@ var editor = {
 		curve: {
 			smooth: "Smooth",
 			linear: "Linear"
+		},
+		points: {
+			none: "Keine",
+			hover: "Bei Hover",
+			always: "Immer"
+		},
+		tooltip: {
+			datetime: "Datum & Zeit",
+			time: "Zeit",
+			date: "Datum"
+		},
+		time_format: {
+			auto: "Auto",
+			time: "HH:MM",
+			date: "DD.MM",
+			datetime: "DD.MM HH:MM"
 		}
+	},
+	helper: {
+		statistics: "Nutzt die Statistics API statt der History API. Der Sensor benötigt eine state_class (z.B. measurement). Ohne Auswahl wird die History API verwendet.",
+		transform: "diff: Differenz zum Vorgängerwert · normalize: auf 0–1 skalieren · cumulative: aufsummieren",
+		scale: "Multiplikationsfaktor für alle Werte. Beispiel: 0.001 wandelt W in kW um.",
+		attribute: "Numerisches Attribut statt des Entity-States als Datenpunkt verwenden. Einheit ggf. manuell setzen.",
+		y_min: "Die Achse unterschreitet diesen Wert nur, wenn Datenpunkte darunter liegen.",
+		y_max: "Die Achse überschreitet diesen Wert nur, wenn Datenpunkte darüber liegen.",
+		y_min_secondary: "Die Achse unterschreitet diesen Wert nur, wenn Datenpunkte darunter liegen.",
+		y_max_secondary: "Die Achse überschreitet diesen Wert nur, wenn Datenpunkte darüber liegen.",
+		logarithmic: "Alle Datenwerte müssen größer 0 sein.",
+		aggregate: "Fasst Rohdaten clientseitig in gleichmäßige Zeitfenster zusammen.",
+		aggregate_period: "Größe der Zeitfenster für die Aggregation, z.B. 30m, 1h, 6h, 1d.",
+		stroke_dash: "Einzelne Zahl für gleichmäßige Lücken (z.B. 5), oder Strich,Lücke-Paar (z.B. 8,4).",
+		color_thresholds: "Definiert einen Farbverlauf basierend auf Y-Werten. Mindestens 2 Schwellenwerte erforderlich."
 	},
 	subsection: {
 		threshold_lines: "Schwellenwertlinien",
-		color_thresholds: "Farbschwellenwerte (Gradient)"
+		color_thresholds: "Farbschwellenwerte (Gradient)",
+		primary_axis: "Primärachse",
+		secondary_axis: "Sekundärachse",
+		layout: "Layout",
+		margin: "Außenabstand",
+		padding: "Innenabstand"
 	}
 };
 var card = {
@@ -7089,13 +7140,13 @@ function localize(key, lang = "en", vars) {
   return template;
 }
 
-var __defProp$3 = Object.defineProperty;
-var __decorateClass$7 = (decorators, target, key, kind) => {
+var __defProp$6 = Object.defineProperty;
+var __decorateClass$a = (decorators, target, key, kind) => {
   var result = void 0 ;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (decorator(target, key, result) ) || result;
-  if (result) __defProp$3(target, key, result);
+  if (result) __defProp$6(target, key, result);
   return result;
 };
 i$5`
@@ -7374,12 +7425,485 @@ InsightBaseEditor.styles = i$5`
       text-align: center;
     }
   `;
-__decorateClass$7([
+__decorateClass$a([
   n$1({ attribute: false })
 ], InsightBaseEditor.prototype, "hass");
-__decorateClass$7([
+__decorateClass$a([
   r()
 ], InsightBaseEditor.prototype, "_config");
+
+var __defProp$5 = Object.defineProperty;
+var __getOwnPropDesc$9 = Object.getOwnPropertyDescriptor;
+var __decorateClass$9 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$9(target, key) : target;
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result) __defProp$5(target, key, result);
+  return result;
+};
+let InsightToggleButton = class extends i$2 {
+  constructor() {
+    super(...arguments);
+    this.svg = "";
+    this.label = "";
+    this.active = false;
+    this.width = 80;
+    this.height = 80;
+  }
+  render() {
+    return b`
+            <button
+                class="toggle-btn ${this.active ? "active" : ""}"
+                style="width:${this.width}px;height:${this.height}px;"
+                aria-pressed=${this.active}
+                @click=${this._handleClick}
+            >
+                <span class="icon" .innerHTML=${this.svg}></span>
+                <span class="label">${this.label}</span>
+            </button>
+        `;
+  }
+  _handleClick() {
+    this.dispatchEvent(
+      new CustomEvent("toggle", {
+        detail: { active: !this.active },
+        bubbles: true,
+        composed: true
+      })
+    );
+  }
+};
+InsightToggleButton.styles = i$5`
+        :host {
+            display: inline-block;
+        }
+
+        .toggle-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: 2px solid var(--divider-color, #e0e0e0);
+            border-radius: 8px;
+            background: var(--card-background-color, #fff);
+            cursor: pointer;
+            transition:
+                border-color 0.15s ease,
+                background 0.15s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .toggle-btn:hover {
+            border-color: var(--primary-color, #03a9f4);
+        }
+
+        .toggle-btn.active {
+            border-color: var(--primary-color, #03a9f4);
+            background: color-mix(
+                in srgb,
+                var(--primary-color, #03a9f4) 12%,
+                transparent
+            );
+        }
+
+        .icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .icon svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            color: var(--secondary-text-color, #727272);
+            text-align: center;
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
+
+        .toggle-btn.active .label {
+            color: var(--primary-color, #03a9f4);
+            font-weight: 600;
+        }
+    `;
+__decorateClass$9([
+  n$1()
+], InsightToggleButton.prototype, "svg", 2);
+__decorateClass$9([
+  n$1()
+], InsightToggleButton.prototype, "label", 2);
+__decorateClass$9([
+  n$1({ type: Boolean, reflect: true })
+], InsightToggleButton.prototype, "active", 2);
+__decorateClass$9([
+  n$1({ type: Number })
+], InsightToggleButton.prototype, "width", 2);
+__decorateClass$9([
+  n$1({ type: Number })
+], InsightToggleButton.prototype, "height", 2);
+InsightToggleButton = __decorateClass$9([
+  t$1("insight-toggle-button")
+], InsightToggleButton);
+
+var __defProp$4 = Object.defineProperty;
+var __getOwnPropDesc$8 = Object.getOwnPropertyDescriptor;
+var __decorateClass$8 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$8(target, key) : target;
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result) __defProp$4(target, key, result);
+  return result;
+};
+let InsightBoxModel = class extends i$2 {
+  constructor() {
+    super(...arguments);
+    this.labelOuter = "Margin";
+    this.labelInner = "Padding";
+    this.keyOuter = "margin";
+    this.keyInner = "padding";
+    this.outerTop = 0;
+    this.outerRight = 0;
+    this.outerBottom = 0;
+    this.outerLeft = 0;
+    this.innerTop = 8;
+    this.innerRight = 16;
+    this.innerBottom = 8;
+    this.innerLeft = 16;
+  }
+  render() {
+    return b`
+            <div class="bm-outer">
+                <span class="bm-label">${this.labelOuter}</span>
+                <div class="bm-top">
+                    ${this._input(`${this.keyOuter}_top`, this.outerTop)}
+                </div>
+                <div class="bm-middle">
+                    ${this._input(`${this.keyOuter}_left`, this.outerLeft)}
+                    <div class="bm-inner">
+                        <span class="bm-label bm-label--inner">${this.labelInner}</span>
+                        <div class="bm-top">
+                            ${this._input(`${this.keyInner}_top`, this.innerTop)}
+                        </div>
+                        <div class="bm-middle">
+                            ${this._input(`${this.keyInner}_left`, this.innerLeft)}
+                            <div class="bm-chart-area"></div>
+                            ${this._input(`${this.keyInner}_right`, this.innerRight)}
+                        </div>
+                        <div class="bm-top">
+                            ${this._input(`${this.keyInner}_bottom`, this.innerBottom)}
+                        </div>
+                    </div>
+                    ${this._input(`${this.keyOuter}_right`, this.outerRight)}
+                </div>
+                <div class="bm-top">
+                    ${this._input(`${this.keyOuter}_bottom`, this.outerBottom)}
+                </div>
+            </div>
+        `;
+  }
+  _input(key, value) {
+    return b`
+            <input
+                class="bm-input"
+                type="number"
+                min="0"
+                max="100"
+                .value=${String(value)}
+                @change=${(e) => this._fire(key, parseInt(e.target.value) || 0)}
+            />
+        `;
+  }
+  _fire(key, value) {
+    this.dispatchEvent(
+      new CustomEvent("value-changed", {
+        detail: { key, value },
+        bubbles: true,
+        composed: true
+      })
+    );
+  }
+};
+InsightBoxModel.styles = i$5`
+        :host {
+            display: block;
+            margin: 8px 0px;
+        }
+
+        .bm-outer {
+            border: 2px dashed var(--divider-color, #ccc);
+            border-radius: 6px;
+            padding: 4px 6px;
+            position: relative;
+        }
+
+        .bm-inner {
+            border: 2px dashed var(--primary-color, #03a9f4);
+            border-radius: 4px;
+            padding: 4px 6px;
+            flex: 1;
+            min-width: 0;
+            position: relative;
+        }
+
+        .bm-label {
+            position: absolute;
+            top: -9px;
+            left: 8px;
+            background: var(--card-background-color, #fff);
+            padding: 0 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--secondary-text-color);
+        }
+
+        .bm-label--inner {
+            color: var(--primary-color, #03a9f4);
+        }
+
+        .bm-top {
+            display: flex;
+            justify-content: center;
+            padding: 2px 0;
+        }
+
+        .bm-middle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 0;
+        }
+
+        .bm-chart-area {
+            flex: 1;
+            min-height: 28px;
+            background: color-mix(in srgb, var(--primary-color, #03a9f4) 15%, transparent);
+            border-radius: 3px;
+        }
+
+        .bm-input {
+            width: 44px;
+            text-align: center;
+            border: 1px solid var(--divider-color, #e0e0e0);
+            border-radius: 4px;
+            padding: 3px 2px;
+            font-size: 0.8rem;
+            background: var(--card-background-color, #fff);
+            color: var(--primary-text-color);
+            -moz-appearance: textfield;
+        }
+
+        .bm-input::-webkit-inner-spin-button,
+        .bm-input::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+
+        .bm-input:focus {
+            outline: 2px solid var(--primary-color, #03a9f4);
+            outline-offset: -1px;
+        }
+    `;
+__decorateClass$8([
+  n$1({ attribute: "label-outer" })
+], InsightBoxModel.prototype, "labelOuter", 2);
+__decorateClass$8([
+  n$1({ attribute: "label-inner" })
+], InsightBoxModel.prototype, "labelInner", 2);
+__decorateClass$8([
+  n$1()
+], InsightBoxModel.prototype, "keyOuter", 2);
+__decorateClass$8([
+  n$1()
+], InsightBoxModel.prototype, "keyInner", 2);
+__decorateClass$8([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "outerTop", 2);
+__decorateClass$8([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "outerRight", 2);
+__decorateClass$8([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "outerBottom", 2);
+__decorateClass$8([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "outerLeft", 2);
+__decorateClass$8([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "innerTop", 2);
+__decorateClass$8([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "innerRight", 2);
+__decorateClass$8([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "innerBottom", 2);
+__decorateClass$8([
+  n$1({ type: Number })
+], InsightBoxModel.prototype, "innerLeft", 2);
+InsightBoxModel = __decorateClass$8([
+  t$1("insight-box-model")
+], InsightBoxModel);
+
+var __defProp$3 = Object.defineProperty;
+var __getOwnPropDesc$7 = Object.getOwnPropertyDescriptor;
+var __decorateClass$7 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$7(target, key) : target;
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result) __defProp$3(target, key, result);
+  return result;
+};
+let InsightSectionTitle = class extends i$2 {
+  constructor() {
+    super(...arguments);
+    this.label = "";
+  }
+  render() {
+    return b`
+            <div class="section-title">
+                <span class="line"></span>
+                <span class="label">${this.label}</span>
+                <span class="line"></span>
+            </div>
+        `;
+  }
+};
+InsightSectionTitle.styles = i$5`
+        :host {
+            display: block;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 24px 0px 8px 0px;
+        }
+
+        .line {
+            flex: 1;
+            height: 1px;
+            background: var(--divider-color, #e0e0e0);
+        }
+
+        .label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--secondary-text-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+    `;
+__decorateClass$7([
+  n$1()
+], InsightSectionTitle.prototype, "label", 2);
+InsightSectionTitle = __decorateClass$7([
+  t$1("insight-section-title")
+], InsightSectionTitle);
+
+function svgToDataUrl(svg) {
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+const IMG_CHART_LINE = svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90">
+  <rect width="160" height="90" rx="6" fill="#f4f6f9"/>
+  <line x1="15" y1="22" x2="145" y2="22" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="42" x2="145" y2="42" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="62" x2="145" y2="62" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="75" x2="145" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <line x1="15" y1="12" x2="15" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <polyline points="15,65 37,43 59,56 81,29 103,41 125,31 145,36" fill="none" stroke="#4AAFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`);
+const IMG_CHART_AREA = svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90">
+  <rect width="160" height="90" rx="6" fill="#f4f6f9"/>
+  <line x1="15" y1="22" x2="145" y2="22" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="42" x2="145" y2="42" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="62" x2="145" y2="62" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="75" x2="145" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <line x1="15" y1="12" x2="15" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <polygon points="15,65 37,43 59,56 81,29 103,41 125,31 145,36 145,75 15,75" fill="rgba(74,175,255,0.18)"/>
+  <polyline points="15,65 37,43 59,56 81,29 103,41 125,31 145,36" fill="none" stroke="#4AAFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`);
+const IMG_CHART_STEP = svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90">
+  <rect width="160" height="90" rx="6" fill="#f4f6f9"/>
+  <line x1="15" y1="22" x2="145" y2="22" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="42" x2="145" y2="42" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="62" x2="145" y2="62" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="75" x2="145" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <line x1="15" y1="12" x2="15" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <polyline points="15,65 37,65 37,43 59,43 59,56 81,56 81,29 103,29 103,41 125,41 125,31 145,31" fill="none" stroke="#4AAFFF" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/>
+</svg>`);
+const IMG_CURVE_SMOOTH = svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90">
+  <rect width="160" height="90" rx="6" fill="#f4f6f9"/>
+  <line x1="15" y1="22" x2="145" y2="22" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="42" x2="145" y2="42" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="62" x2="145" y2="62" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="75" x2="145" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <line x1="15" y1="12" x2="15" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <path d="M15,65 C26,55 32,36 45,35 C58,34 64,52 75,48 C86,44 92,22 105,22 C118,22 125,35 145,32" fill="none" stroke="#4AAFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`);
+const IMG_CURVE_LINEAR = svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90">
+  <rect width="160" height="90" rx="6" fill="#f4f6f9"/>
+  <line x1="15" y1="22" x2="145" y2="22" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="42" x2="145" y2="42" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="62" x2="145" y2="62" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="75" x2="145" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <line x1="15" y1="12" x2="15" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <polyline points="15,65 45,35 75,48 105,22 145,32" fill="none" stroke="#4AAFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`);
+const SVG_ZOOM_DRAG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <line x1="2" y1="20" x2="22" y2="20" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+  <line x1="2" y1="4"  x2="2"  y2="20" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+  <polyline points="2,17 6,12 10,14 14,8 18,10 22,7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+  <rect x="8" y="6" width="10" height="10" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 1.5" rx="1"/>
+  <circle cx="8" cy="6" r="1.2" fill="currentColor"/>
+  <circle cx="18" cy="16" r="1.2" fill="currentColor"/>
+  <line x1="5" y1="3" x2="7.5" y2="5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <polyline points="5,5.5 5,3 7.5,3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="19" y1="21" x2="16.5" y2="18.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <polyline points="19,18.5 19,21 16.5,21" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+const SVG_SHOW_LEGEND = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <line x1="2" y1="2"  x2="2"  y2="16" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+  <line x1="2" y1="16" x2="22" y2="16" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+  <polyline points="2,13 6,9 10,11 15,5 22,8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+  <rect x="2" y="18" width="20" height="5" rx="1" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-width="0.8"/>
+  <line x1="4" y1="20.5" x2="8" y2="20.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="6" cy="20.5" r="1" fill="currentColor"/>
+  <line x1="10" y1="20.5" x2="14" y2="20.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1.5 1"/>
+  <circle cx="12" cy="20.5" r="1" fill="currentColor"/>
+  <line x1="16" y1="20.5" x2="20" y2="20.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+</svg>`;
+const SVG_SHOW_X_AXIS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <line x1="4" y1="3" x2="4" y2="18" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+  <polyline points="4,15 8,10 12,12 17,6 22,9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+  <line x1="2" y1="18" x2="22" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <line x1="7"  y1="18" x2="7"  y2="20" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="12" y1="18" x2="12" y2="20" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="17" y1="18" x2="17" y2="20" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="22" y1="18" x2="22" y2="20" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+</svg>`;
+const SVG_SHOW_Y_AXIS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <line x1="4" y1="18" x2="22" y2="18" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+  <polyline points="4,15 8,10 12,12 17,6 22,9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+  <line x1="4" y1="2" x2="4" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <line x1="2" y1="6"  x2="4" y2="6"  stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="2" y1="10" x2="4" y2="10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="2" y1="14" x2="4" y2="14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="2" y1="18" x2="4" y2="18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+</svg>`;
 
 var __defProp$2 = Object.defineProperty;
 var __getOwnPropDesc$6 = Object.getOwnPropertyDescriptor;
@@ -7420,7 +7944,7 @@ let InsightLineCard = class extends InsightBaseCard {
       hours: 24,
       style: "area",
       zoom: true,
-      line_width: 1,
+      line_width: 2,
       show_legend: true,
       margin_bottom: 16,
       margin_top: 16,
@@ -7439,8 +7963,8 @@ let InsightLineCard = class extends InsightBaseCard {
       zoom: true,
       line_width: 2,
       fill_opacity: 0.15,
-      y_range: "auto",
       update_interval: 60,
+      show_legend: true,
       show_x_axis: true,
       show_y_axis: true
     };
@@ -7504,14 +8028,14 @@ let InsightLineCard = class extends InsightBaseCard {
     const cardMethod = config.aggregate;
     const datasets = this._data.map((dataset, i) => {
       const ec = this.entityConfigs[i];
-      const method = ec?.aggregate ?? cardMethod;
+      const method = cardMethod;
       const periodMs = cardPeriodMs;
       let data = dataset.data;
       if (method && isFinite(periodMs)) {
         data = aggregateTimeSeries(data, periodMs, method);
       }
       if (ec?.transform && ec.transform !== "none") {
-        data = applyTransform$1(data, ec.transform);
+        data = applyTransform(data, ec.transform);
       }
       return data;
     });
@@ -7671,6 +8195,7 @@ let InsightLineCard = class extends InsightBaseCard {
         },
         ...hasSecondaryAxis ? [
           {
+            show: config.show_y_axis !== false,
             scale: "y2",
             side: 1,
             // right side
@@ -7728,6 +8253,16 @@ let InsightLineCard = class extends InsightBaseCard {
             u.root.appendChild(this._tooltipEl);
             this._overLeft = u.over.offsetLeft;
             this._overTop = u.over.offsetTop;
+            this._attachPinchHandlers(u);
+            u.over.addEventListener(
+              "dblclick",
+              (e) => {
+                e.stopImmediatePropagation();
+                clearTimeout(this._tapTimer);
+                this._handleAction("double_tap_action");
+              },
+              { capture: true }
+            );
           }
         ],
         setSize: [
@@ -7739,6 +8274,8 @@ let InsightLineCard = class extends InsightBaseCard {
         destroy: [
           () => {
             this._tooltipEl = void 0;
+            this._detachPinchHandlers();
+            this._pinch = void 0;
           }
         ]
       },
@@ -7749,6 +8286,67 @@ let InsightLineCard = class extends InsightBaseCard {
         config.padding_left ?? 16
       ]
     };
+  }
+  /**
+   * Execute a tap / double-tap action from the card config.
+   * Supports: more-info, navigate, url, perform-action, none.
+   */
+  _handleAction(actionType) {
+    const cfg = this._config;
+    const action = cfg?.[actionType];
+    if (!action) {
+      if (actionType === "tap_action") {
+        this._fireMoreInfo(cfg);
+      }
+      return;
+    }
+    if (action.action === "none") return;
+    switch (action.action) {
+      case "more-info":
+        this._fireMoreInfo(cfg);
+        break;
+      case "navigate":
+        if (action.navigation_path) {
+          history.pushState(null, "", action.navigation_path);
+          this.dispatchEvent(
+            new CustomEvent("location-changed", {
+              bubbles: true,
+              composed: true
+            })
+          );
+        }
+        break;
+      case "url":
+        if (action.url_path) {
+          window.open(action.url_path, "_blank");
+        }
+        break;
+      case "perform-action": {
+        const serviceStr = action.perform_action ?? action.service ?? "";
+        const [domain, service] = serviceStr.split(".", 2);
+        if (domain && service) {
+          this.hass?.callService(
+            domain,
+            service,
+            action.data ?? action.service_data ?? {}
+          );
+        }
+        break;
+      }
+    }
+  }
+  _fireMoreInfo(cfg) {
+    const first = cfg?.entities?.[0];
+    if (!first) return;
+    const entityId = normaliseEntityConfig(first).entity;
+    if (!entityId) return;
+    this.dispatchEvent(
+      new CustomEvent("hass-more-info", {
+        detail: { entityId },
+        bubbles: true,
+        composed: true
+      })
+    );
   }
   /**
    * Build a vertical CanvasGradient from color_thresholds.
@@ -7850,6 +8448,78 @@ let InsightLineCard = class extends InsightBaseCard {
     tooltip.style.transform = flip ? "translate(-100%, -50%)" : "translateY(-50%)";
   }
   // -------------------------------------------------------------------------
+  // Pinch-to-zoom (mobile)
+  // -------------------------------------------------------------------------
+  _attachPinchHandlers(u) {
+    const over = u.over;
+    const onStart = (e) => {
+      if (e.touches.length !== 2) return;
+      const t0 = e.touches[0];
+      const t1 = e.touches[1];
+      const dist = Math.hypot(
+        t1.clientX - t0.clientX,
+        t1.clientY - t0.clientY
+      );
+      this._pinch = {
+        dist,
+        scaleMin: u.scales.x?.min ?? u.data[0][0],
+        scaleMax: u.scales.x?.max ?? u.data[0][u.data[0].length - 1]
+      };
+    };
+    const onMove = (e) => {
+      if (e.touches.length !== 2 || !this._pinch) return;
+      e.preventDefault();
+      const t0 = e.touches[0];
+      const t1 = e.touches[1];
+      const newDist = Math.hypot(
+        t1.clientX - t0.clientX,
+        t1.clientY - t0.clientY
+      );
+      const { dist: initDist, scaleMin, scaleMax } = this._pinch;
+      const initRange = scaleMax - scaleMin;
+      const factor = initDist / newDist;
+      const newRange = initRange * factor;
+      const rect = over.getBoundingClientRect();
+      const centerPx = (t0.clientX + t1.clientX) / 2 - rect.left;
+      const centerTime = u.posToVal(centerPx, "x");
+      let newMin = centerTime - newRange / 2;
+      let newMax = centerTime + newRange / 2;
+      const xs = u.data[0];
+      const dataMin = xs[0];
+      const dataMax = xs[xs.length - 1];
+      if (newMin < dataMin) {
+        newMin = dataMin;
+        newMax = Math.min(dataMax, dataMin + newRange);
+      }
+      if (newMax > dataMax) {
+        newMax = dataMax;
+        newMin = Math.max(dataMin, dataMax - newRange);
+      }
+      if (newMax - newMin < 60) return;
+      u.setScale("x", { min: newMin, max: newMax });
+    };
+    const onEnd = (e) => {
+      if (e.touches.length < 2) this._pinch = void 0;
+    };
+    over.addEventListener("touchstart", onStart, { passive: true });
+    over.addEventListener("touchmove", onMove, { passive: false });
+    over.addEventListener("touchend", onEnd, { passive: true });
+    this._touchHandlers = {
+      start: onStart,
+      move: onMove,
+      end: onEnd,
+      target: over
+    };
+  }
+  _detachPinchHandlers() {
+    if (!this._touchHandlers) return;
+    const { start, move, end, target } = this._touchHandlers;
+    target.removeEventListener("touchstart", start);
+    target.removeEventListener("touchmove", move);
+    target.removeEventListener("touchend", end);
+    this._touchHandlers = void 0;
+  }
+  // -------------------------------------------------------------------------
   // Chart render
   // -------------------------------------------------------------------------
   renderChart() {
@@ -7857,10 +8527,24 @@ let InsightLineCard = class extends InsightBaseCard {
     const config = this._config;
     if (!config) return b``;
     return b`
-            <div class="chart-wrapper">
+            <div
+                class="chart-wrapper"
+                @click=${() => {
+      this._tapTimer = setTimeout(
+        () => this._handleAction("tap_action"),
+        250
+      );
+    }}
+            >
                 <div id="chart"></div>
-                ${this._isZoomed ? b`<button class="zoom-reset-btn" @click=${this._resetZoom} title="Reset zoom">
-                          <ha-svg-icon .path=${"M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"}></ha-svg-icon>
+                ${this._isZoomed ? b`<button
+                          class="zoom-reset-btn"
+                          @click=${this._resetZoom}
+                          title="Reset zoom"
+                      >
+                          <ha-svg-icon
+                              .path=${"M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"}
+                          ></ha-svg-icon>
                       </button>` : ""}
             </div>
         `;
@@ -7895,6 +8579,10 @@ let InsightLineCard = class extends InsightBaseCard {
     super.updated(changedProps);
     console.log("[line-card] updated, data", this._data);
     console.log("[line-card] updated, uPlot", this._uplot);
+    if (this._needsRebuild && this._uplot) {
+      this._syncUplot();
+      return;
+    }
     if (this._uplot && this._data !== this._lastDataRef) {
       const previouslyEmpty = !this._lastDataRef || this._lastDataRef.every((d) => d.data.length === 0);
       this._cachedUData = this._buildUplotData();
@@ -8006,7 +8694,7 @@ InsightLineCard.styles = [
                 border-radius: 6px;
                 background: var(--card-background-color, #fff);
                 color: var(--primary-text-color);
-                box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
                 cursor: pointer;
                 opacity: 0.85;
                 transition: opacity 0.15s;
@@ -8171,7 +8859,7 @@ InsightLineCard.styles = [
         `
 ];
 InsightLineCard.cardType = "custom:insight-line-card";
-InsightLineCard.cardName = "InsightChart Line";
+InsightLineCard.cardName = "Insight line";
 InsightLineCard.cardDescription = "Interactive time-series line & area chart with zoom";
 __decorateClass$6([
   r()
@@ -8199,8 +8887,8 @@ var mdiChartLine = "M16,11.78L20.24,4.45L21.97,5.45L16.74,14.5L10.23,10.75L5.46,
 var mdiCog = "M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z";
 var mdiDatabaseClock = "M16.5 16.25L19.36 17.94L18.61 19.16L15 17V12H16.5V16.25M23 16C23 19.87 19.87 23 16 23C13.61 23 11.5 21.8 10.25 20C6.18 19.79 3 18.08 3 16V13C3 14.88 5.58 16.44 9.06 16.88C9.03 16.59 9 16.3 9 16C9 15.62 9.04 15.25 9.1 14.88C5.6 14.45 3 12.88 3 11V8C3 10.09 6.2 11.8 10.27 12C10.87 11.14 11.64 10.44 12.53 9.93C12.04 9.97 11.5 10 11 10C6.58 10 3 8.21 3 6S6.58 2 11 2 19 3.79 19 6C19 7.2 17.93 8.28 16.25 9C17 9.04 17.75 9.19 18.44 9.45C18.79 9 19 8.5 19 8V9.68C21.36 10.81 23 13.21 23 16M21 16C21 13.24 18.76 11 16 11S11 13.24 11 16 13.24 21 16 21 21 18.76 21 16Z";
 var mdiDelete = "M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z";
-var mdiEye = "M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z";
 var mdiFormatListBulleted = "M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z";
+var mdiGestureTap = "M10,9A1,1 0 0,1 11,8A1,1 0 0,1 12,9V13.47L13.21,13.6L18.15,15.79C18.68,16.03 19,16.56 19,17.14V21.5C18.97,22.32 18.32,22.97 17.5,23H11C10.62,23 10.26,22.85 10,22.57L5.1,18.37L5.84,17.6C6.03,17.39 6.3,17.28 6.58,17.28H6.8L10,19V9M11,5A4,4 0 0,1 15,9C15,10.5 14.2,11.77 13,12.46V11.24C13.61,10.69 14,9.89 14,9A3,3 0 0,0 11,6A3,3 0 0,0 8,9C8,9.89 8.39,10.69 9,11.24V12.46C7.8,11.77 7,10.5 7,9A4,4 0 0,1 11,5Z";
 var mdiLayersOutline = "M12,18.54L19.37,12.8L21,14.07L12,21.07L3,14.07L4.62,12.81L12,18.54M12,16L3,9L12,2L21,9L12,16M12,4.53L6.26,9L12,13.47L17.74,9L12,4.53Z";
 var mdiPlus = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
 
@@ -8211,102 +8899,75 @@ class InsightEntityTab {
   }
 }
 
-function buildEntitySchema(style) {
+const ENTITY_BASE_SCHEMA = [
+  { name: "entity", selector: { entity: {} } },
+  { name: "name", selector: { text: {} } },
+  {
+    name: "y_axis",
+    selector: {
+      select: {
+        mode: "list",
+        options: [
+          { value: "left", label: "Primary axis" },
+          { value: "right", label: "Secondary axis" }
+        ]
+      }
+    }
+  },
+  { name: "hidden", selector: { boolean: {} } }
+];
+function buildAppearanceSchema(style) {
   const isArea = style === "area";
   return [
     {
-      name: "entity",
-      selector: { entity: {} }
-    },
-    {
-      name: "y_axis",
+      name: "line_width",
       selector: {
-        select: {
-          mode: "list",
-          options: [
-            { value: "left", label: "Left axis" },
-            { value: "right", label: "Right axis" }
-          ]
-        }
+        number: { min: 0.5, max: 10, step: 0.5, mode: "slider", unit_of_measurement: "px" }
       }
     },
-    { name: "hidden", selector: { boolean: {} } },
-    {
-      type: "expandable",
-      name: "appearance",
-      title: "Appearance",
-      schema: [
-        {
-          name: "line_width",
-          selector: {
-            number: { min: 0.5, max: 10, step: 0.5, mode: "slider", unit_of_measurement: "px" }
-          }
-        },
-        ...isArea ? [
-          {
-            name: "fill_opacity",
-            selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
-          }
-        ] : [],
-        { name: "stroke_dash", selector: { text: {} } }
-      ]
-    },
-    {
-      type: "expandable",
-      name: "data",
-      title: "Data",
-      schema: [
-        { name: "attribute", selector: { text: {} } },
-        { name: "unit", selector: { text: {} } },
-        { name: "scale", selector: { number: { step: 1e-3, mode: "box" } } },
-        { name: "invert", selector: { boolean: {} } },
-        {
-          name: "transform",
-          selector: {
-            select: {
-              options: [
-                { value: "none", label: "None" },
-                { value: "diff", label: "Difference" },
-                { value: "normalize", label: "Normalize (0\u20131)" },
-                { value: "cumulative", label: "Cumulative" }
-              ]
-            }
-          }
-        },
-        {
-          name: "aggregate",
-          selector: {
-            select: {
-              options: [
-                { value: "", label: "None (use card default)" },
-                { value: "mean", label: "Mean" },
-                { value: "min", label: "Min" },
-                { value: "max", label: "Max" },
-                { value: "sum", label: "Sum" },
-                { value: "last", label: "Last" }
-              ]
-            }
-          }
-        },
-        {
-          name: "statistics",
-          selector: {
-            select: {
-              options: [
-                { value: "", label: "None (use History API)" },
-                { value: "5minute", label: "5 minutes" },
-                { value: "hour", label: "Hour" },
-                { value: "day", label: "Day" },
-                { value: "week", label: "Week" },
-                { value: "month", label: "Month" }
-              ]
-            }
-          }
-        }
-      ]
-    }
+    ...isArea ? [
+      {
+        name: "fill_opacity",
+        selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
+      }
+    ] : [],
+    { name: "stroke_dash", selector: { text: {} } }
   ];
 }
+const DATA_SCHEMA = [
+  { name: "attribute", selector: { text: {} } },
+  { name: "unit", selector: { text: {} } },
+  { name: "scale", selector: { number: { step: 1e-3, mode: "box" } } },
+  { name: "invert", selector: { boolean: {} } },
+  {
+    name: "transform",
+    selector: {
+      select: {
+        options: [
+          { value: "none", label: "None" },
+          { value: "diff", label: "Difference" },
+          { value: "normalize", label: "Normalize (0\u20131)" },
+          { value: "cumulative", label: "Cumulative" }
+        ]
+      }
+    }
+  },
+  {
+    name: "statistics",
+    selector: {
+      select: {
+        options: [
+          { value: "none", label: "None (use History API)" },
+          { value: "5minute", label: "5 minutes" },
+          { value: "hour", label: "Hour" },
+          { value: "day", label: "Day" },
+          { value: "week", label: "Week" },
+          { value: "month", label: "Month" }
+        ]
+      }
+    }
+  }
+];
 
 var __defProp$1 = Object.defineProperty;
 var __getOwnPropDesc$5 = Object.getOwnPropertyDescriptor;
@@ -8325,6 +8986,11 @@ let InsightLineEntityEditor = class extends i$2 {
     this._computeLabel = (schema) => {
       return localize(`editor.field.${schema.name}`, this._lang);
     };
+    this._computeHelper = (schema) => {
+      const key = `editor.helper.${schema.name}`;
+      const result = localize(key, this._lang);
+      return result === key ? "" : result;
+    };
   }
   get _lang() {
     return this.hass?.locale?.language ?? "en";
@@ -8335,7 +9001,26 @@ let InsightLineEntityEditor = class extends i$2 {
   render() {
     if (!this.tab) return b`${A}`;
     const ec = this.tab.config;
-    const schema = buildEntitySchema(this.chartStyle ?? "area");
+    const dashStr = Array.isArray(ec.stroke_dash) ? ec.stroke_dash.join(",") : ec.stroke_dash != null ? String(ec.stroke_dash) : "";
+    const baseData = {
+      entity: ec.entity ?? "",
+      name: ec.name ?? "",
+      y_axis: ec.y_axis ?? "left",
+      hidden: ec.hidden ?? false
+    };
+    const appearanceData = {
+      line_width: ec.line_width,
+      fill_opacity: ec.fill_opacity,
+      stroke_dash: dashStr
+    };
+    const dataData = {
+      attribute: ec.attribute ?? "",
+      unit: ec.unit ?? "",
+      scale: ec.scale,
+      invert: ec.invert ?? false,
+      transform: ec.transform ?? "none",
+      statistics: ec.statistics ?? "none"
+    };
     return b`
             <div class="entity-editor-content">
                 <div class="entity-top-row">
@@ -8361,59 +9046,85 @@ let InsightLineEntityEditor = class extends i$2 {
 
                 <ha-form
                     .hass=${this.hass}
-                    .schema=${schema}
-                    .data=${this._formData(ec)}
+                    .schema=${ENTITY_BASE_SCHEMA}
+                    .data=${baseData}
                     .computeLabel=${this._computeLabel}
-                    @value-changed=${(e) => this._onFormChanged(e.detail.value)}
+                    .computeHelper=${this._computeHelper}
+                    @value-changed=${(e) => this._onBaseChanged(e.detail.value)}
+                ></ha-form>
+
+                <insight-section-title
+                    .label=${localize("editor.field.appearance", this._lang)}
+                ></insight-section-title>
+                <ha-form
+                    .hass=${this.hass}
+                    .schema=${buildAppearanceSchema(this.chartStyle ?? "area")}
+                    .data=${appearanceData}
+                    .computeLabel=${this._computeLabel}
+                    .computeHelper=${this._computeHelper}
+                    @value-changed=${(e) => this._onAppearanceChanged(e.detail.value)}
+                ></ha-form>
+
+                <insight-section-title
+                    .label=${localize("editor.field.data", this._lang)}
+                ></insight-section-title>
+                <ha-form
+                    .hass=${this.hass}
+                    .schema=${DATA_SCHEMA}
+                    .data=${dataData}
+                    .computeLabel=${this._computeLabel}
+                    .computeHelper=${this._computeHelper}
+                    @value-changed=${(e) => this._onDataChanged(e.detail.value)}
                 ></ha-form>
             </div>
         `;
   }
   // ---------------------------------------------------------------------------
-  // Helpers
+  // Handlers
   // ---------------------------------------------------------------------------
-  _formData(ec) {
-    return {
-      entity: ec.entity ?? "",
-      y_axis: ec.y_axis ?? "left",
-      hidden: ec.hidden ?? false,
-      line_width: ec.line_width,
-      fill_opacity: ec.fill_opacity,
-      stroke_dash: Array.isArray(ec.stroke_dash) ? ec.stroke_dash.join(",") : ec.stroke_dash != null ? String(ec.stroke_dash) : "",
-      attribute: ec.attribute ?? "",
-      unit: ec.unit ?? "",
-      scale: ec.scale,
-      invert: ec.invert ?? false,
-      transform: ec.transform ?? "none",
-      aggregate: ec.aggregate ?? "",
-      statistics: ec.statistics ?? ""
-    };
+  _onBaseChanged(raw) {
+    const detail = { ...this.tab.config };
+    detail.entity = raw["entity"] ?? detail.entity;
+    detail.y_axis = raw["y_axis"] ?? detail.y_axis;
+    detail.hidden = raw["hidden"];
+    if (raw["name"]) {
+      detail.name = raw["name"];
+    } else {
+      delete detail.name;
+    }
+    this.dispatchEvent(new CustomEvent("onChange", { detail }));
   }
-  _onFormChanged(raw) {
+  _onAppearanceChanged(raw) {
     const dashStr = raw["stroke_dash"];
     const parsedDash = dashStr ? dashStr.includes(",") ? dashStr.split(",").map(Number).filter((n) => !isNaN(n)) : Number(dashStr) || void 0 : void 0;
-    const patch = Object.fromEntries(
-      Object.entries({
-        entity: raw["entity"] ?? "",
-        y_axis: raw["y_axis"] ?? void 0,
-        hidden: raw["hidden"],
-        line_width: raw["line_width"],
-        fill_opacity: raw["fill_opacity"],
-        stroke_dash: parsedDash,
-        attribute: raw["attribute"] || void 0,
-        unit: raw["unit"] || void 0,
-        scale: raw["scale"],
-        invert: raw["invert"],
-        transform: raw["transform"] || void 0,
-        aggregate: raw["aggregate"] || void 0,
-        statistics: raw["statistics"] || void 0
-      }).filter(([, v]) => v !== void 0)
-    );
-    this.dispatchEvent(
-      new CustomEvent("onChange", {
-        detail: { ...this.tab.config, ...patch }
-      })
-    );
+    const detail = { ...this.tab.config };
+    detail.line_width = raw["line_width"];
+    detail.fill_opacity = raw["fill_opacity"];
+    if (parsedDash != null) {
+      detail.stroke_dash = parsedDash;
+    } else {
+      delete detail.stroke_dash;
+    }
+    this.dispatchEvent(new CustomEvent("onChange", { detail }));
+  }
+  _onDataChanged(raw) {
+    const detail = { ...this.tab.config };
+    if (raw["attribute"])
+      detail.attribute = raw["attribute"];
+    else delete detail.attribute;
+    if (raw["unit"]) detail.unit = raw["unit"];
+    else delete detail.unit;
+    if (raw["scale"] != null) detail.scale = raw["scale"];
+    else delete detail.scale;
+    detail.invert = raw["invert"];
+    detail.transform = raw["transform"] || void 0;
+    const statsRaw = raw["statistics"];
+    if (statsRaw && statsRaw !== "none") {
+      detail.statistics = statsRaw;
+    } else {
+      delete detail.statistics;
+    }
+    this.dispatchEvent(new CustomEvent("onChange", { detail }));
   }
   _patch(patch) {
     const updated = { ...this.tab.config, ...patch };
@@ -8452,6 +9163,7 @@ InsightLineEntityEditor.styles = i$5`
             display: flex;
             flex-direction: column;
             gap: 8px;
+            padding-bottom: 16px;
         }
 
         .color-swatch {
@@ -8476,12 +9188,6 @@ InsightLineEntityEditor = __decorateClass$5([
   t$1("insight-line-entity-editor")
 ], InsightLineEntityEditor);
 
-const IMG_CHART_LINE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIExpbmUgLS0+CiAgPHBvbHlsaW5lCiAgICBwb2ludHM9IjE1LDY1IDM3LDQzIDU5LDU2IDgxLDI5IDEwMyw0MSAxMjUsMzEgMTQ1LDM2IgogICAgZmlsbD0ibm9uZSIKICAgIHN0cm9rZT0iIzRBQUZGRiIKICAgIHN0cm9rZS13aWR0aD0iMi41IgogICAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogICAgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K";
-const IMG_CHART_AREA = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIEZpbGwgYXJlYSAtLT4KICA8cG9seWdvbgogICAgcG9pbnRzPSIxNSw2NSAzNyw0MyA1OSw1NiA4MSwyOSAxMDMsNDEgMTI1LDMxIDE0NSwzNiAxNDUsNzUgMTUsNzUiCiAgICBmaWxsPSJyZ2JhKDc0LDE3NSwyNTUsMC4xOCkiLz4KCiAgPCEtLSBMaW5lIG9uIHRvcCAtLT4KICA8cG9seWxpbmUKICAgIHBvaW50cz0iMTUsNjUgMzcsNDMgNTksNTYgODEsMjkgMTAzLDQxIDEyNSwzMSAxNDUsMzYiCiAgICBmaWxsPSJub25lIgogICAgc3Ryb2tlPSIjNEFBRkZGIgogICAgc3Ryb2tlLXdpZHRoPSIyLjUiCiAgICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgICBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo=";
-const IMG_CHART_STEP = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIFN0ZXAgbGluZSAoaG9yaXpvbnRhbC1maXJzdCkgLS0+CiAgPHBvbHlsaW5lCiAgICBwb2ludHM9IjE1LDY1IDM3LDY1IDM3LDQzIDU5LDQzIDU5LDU2IDgxLDU2IDgxLDI5IDEwMywyOSAxMDMsNDEgMTI1LDQxIDEyNSwzMSAxNDUsMzEiCiAgICBmaWxsPSJub25lIgogICAgc3Ryb2tlPSIjNEFBRkZGIgogICAgc3Ryb2tlLXdpZHRoPSIyLjUiCiAgICBzdHJva2UtbGluZWNhcD0ic3F1YXJlIgogICAgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIvPgo8L3N2Zz4K";
-const IMG_CURVE_SMOOTH = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIFNtb290aCBjdXJ2ZSB2aWEgY3ViaWMgYmV6aWVyIC0tPgogIDxwYXRoCiAgICBkPSJNMTUsNjUgQzI2LDU1IDMyLDM2IDQ1LDM1IEM1OCwzNCA2NCw1MiA3NSw0OCBDODYsNDQgOTIsMjIgMTA1LDIyIEMxMTgsMjIgMTI1LDM1IDE0NSwzMiIKICAgIGZpbGw9Im5vbmUiCiAgICBzdHJva2U9IiM0QUFGRkYiCiAgICBzdHJva2Utd2lkdGg9IjIuNSIKICAgIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIKICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==";
-const IMG_CURVE_LINEAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjZjRmNmY5Ii8+CgogIDwhLS0gR3JpZCBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTUiIHkxPSIyMiIgeDI9IjE0NSIgeTI9IjIyIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iNDIiIHgyPSIxNDUiIHkyPSI0MiIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjYyIiB4Mj0iMTQ1IiB5Mj0iNjIiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KCiAgPCEtLSBBeGVzIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9Ijc1IiB4Mj0iMTQ1IiB5Mj0iNzUiIHN0cm9rZT0iI2MwYzhkMCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPGxpbmUgeDE9IjE1IiB5MT0iMTIiIHgyPSIxNSIgeTI9Ijc1IiBzdHJva2U9IiNjMGM4ZDAiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIExpbmVhciAoc3RyYWlnaHQgc2VnbWVudHMpIC0tPgogIDxwb2x5bGluZQogICAgcG9pbnRzPSIxNSw2NSA0NSwzNSA3NSw0OCAxMDUsMjIgMTQ1LDMyIgogICAgZmlsbD0ibm9uZSIKICAgIHN0cm9rZT0iIzRBQUZGRiIKICAgIHN0cm9rZS13aWR0aD0iMi41IgogICAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogICAgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K";
-
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc$4 = Object.getOwnPropertyDescriptor;
 var __getProtoOf$2 = Object.getPrototypeOf;
@@ -8505,19 +9211,6 @@ function dropEmpty(data) {
 function buildChartStyleSchema(cfg) {
   const isArea = (cfg.style ?? "area") === "area";
   return [
-    { name: "zoom", selector: { boolean: {} } },
-    {
-      name: "show_points",
-      selector: {
-        select: {
-          options: [
-            { value: "false", label: "None" },
-            { value: "true", label: "Always" },
-            { value: "hover", label: "On hover" }
-          ]
-        }
-      }
-    },
     {
       name: "line_width",
       selector: {
@@ -8542,7 +9235,13 @@ function buildChartStyleSchema(cfg) {
           }
         }
       }
-    ] : []
+    ] : [],
+    {
+      name: "grid_opacity",
+      selector: {
+        number: { min: 0, max: 1, step: 0.05, mode: "slider" }
+      }
+    }
   ];
 }
 function buildGeneralSchema(lang, cfg) {
@@ -8562,28 +9261,16 @@ function buildGeneralSchema(lang, cfg) {
             {
               value: "line",
               label: localize("editor.option.style.line", lang),
-              description: localize(
-                "editor.option.style.line_desc",
-                lang
-              ),
               image: IMG_CHART_LINE
             },
             {
               value: "area",
               label: localize("editor.option.style.area", lang),
-              description: localize(
-                "editor.option.style.area_desc",
-                lang
-              ),
               image: IMG_CHART_AREA
             },
             {
               value: "step",
               label: localize("editor.option.style.step", lang),
-              description: localize(
-                "editor.option.style.step_desc",
-                lang
-              ),
               image: IMG_CHART_STEP
             }
           ]
@@ -8620,14 +9307,18 @@ function buildGeneralSchema(lang, cfg) {
     ] : []
   ];
 }
-const Y_AXIS_SCHEMA = [
-  { name: "y_min", selector: { number: { step: 0.1, mode: "box" } } },
-  { name: "y_max", selector: { number: { step: 0.1, mode: "box" } } },
+const Y_AXIS_GENERAL_SCHEMA = [
+  { name: "logarithmic", selector: { boolean: {} } },
   {
     name: "decimals",
     selector: { number: { min: 0, max: 6, step: 1, mode: "box" } }
-  },
-  { name: "logarithmic", selector: { boolean: {} } },
+  }
+];
+const Y_AXIS_PRIMARY_SCHEMA = [
+  { name: "y_min", selector: { number: { step: 0.1, mode: "box" } } },
+  { name: "y_max", selector: { number: { step: 0.1, mode: "box" } } }
+];
+const Y_AXIS_SECONDARY_SCHEMA = [
   {
     name: "y_min_secondary",
     selector: { number: { step: 0.1, mode: "box" } }
@@ -8637,40 +9328,6 @@ const Y_AXIS_SCHEMA = [
     selector: { number: { step: 0.1, mode: "box" } }
   }
 ];
-const APPEARANCE_SCHEMA = [
-  { name: "show_legend", selector: { boolean: {} } },
-  { name: "show_x_axis", selector: { boolean: {} } },
-  { name: "show_y_axis", selector: { boolean: {} } },
-  {
-    name: "grid_opacity",
-    selector: { number: { min: 0, max: 1, step: 0.05, mode: "slider" } }
-  },
-  {
-    name: "tooltip_format",
-    selector: {
-      select: {
-        options: [
-          { value: "datetime", label: "Date & time" },
-          { value: "time", label: "Time only" },
-          { value: "date", label: "Date only" }
-        ]
-      }
-    }
-  },
-  {
-    name: "time_format",
-    selector: {
-      select: {
-        options: [
-          { value: "auto", label: "Auto" },
-          { value: "time", label: "HH:MM" },
-          { value: "date", label: "DD.MM" },
-          { value: "datetime", label: "DD.MM HH:MM" }
-        ]
-      }
-    }
-  }
-];
 function buildAggregationSchema(cfg) {
   return [
     {
@@ -8678,7 +9335,7 @@ function buildAggregationSchema(cfg) {
       selector: {
         select: {
           options: [
-            { value: "", label: "None" },
+            { value: "none", label: "None" },
             { value: "mean", label: "Mean" },
             { value: "min", label: "Min" },
             { value: "max", label: "Max" },
@@ -8688,10 +9345,23 @@ function buildAggregationSchema(cfg) {
         }
       }
     },
-    ...cfg.aggregate ? [
+    ...cfg.aggregate && cfg.aggregate !== "none" ? [
       {
         name: "aggregate_period",
-        selector: { text: {} }
+        selector: {
+          select: {
+            options: [
+              { value: "5m", label: "5 min" },
+              { value: "15m", label: "15 min" },
+              { value: "30m", label: "30 min" },
+              { value: "1h", label: "1 h" },
+              { value: "3h", label: "3 h" },
+              { value: "6h", label: "6 h" },
+              { value: "12h", label: "12 h" },
+              { value: "1d", label: "1 day" }
+            ]
+          }
+        }
       }
     ] : []
   ];
@@ -8706,114 +9376,6 @@ const ADVANCED_SCHEMA = [
         step: 10,
         mode: "box",
         unit_of_measurement: "s"
-      }
-    }
-  },
-  {
-    name: "theme",
-    selector: {
-      select: {
-        options: [
-          { value: "auto", label: "Auto (follow HA theme)" },
-          { value: "light", label: "Light" },
-          { value: "dark", label: "Dark" }
-        ]
-      }
-    }
-  },
-  {
-    name: "margin_top",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
-  },
-  {
-    name: "margin_bottom",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
-  },
-  {
-    name: "margin_left",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
-  },
-  {
-    name: "margin_right",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
-  },
-  {
-    name: "padding_top",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
-  },
-  {
-    name: "padding_bottom",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
-  },
-  {
-    name: "padding_left",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
-      }
-    }
-  },
-  {
-    name: "padding_right",
-    selector: {
-      number: {
-        min: 0,
-        max: 100,
-        step: 1,
-        mode: "box",
-        unit_of_measurement: "px"
       }
     }
   }
@@ -8846,11 +9408,59 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       this._syncEntitiesToConfig();
     };
     // ---------------------------------------------------------------------------
+    // Interactions
+    // ---------------------------------------------------------------------------
+    this._interactionsSchema = [
+      {
+        name: "tap_action",
+        selector: {
+          ui_action: {
+            actions: [
+              "perform-action",
+              "assist",
+              "url",
+              "navigate",
+              "none"
+            ],
+            default_action: "more-info"
+          }
+        }
+      },
+      {
+        name: "",
+        type: "optional_actions",
+        flatten: true,
+        schema: ["double_tap_action", "hold_action"].map(
+          (action) => ({
+            name: action,
+            selector: {
+              ui_action: {
+                actions: [
+                  "more-info",
+                  "perform-action",
+                  "assist",
+                  "navigate",
+                  "url",
+                  "none"
+                ],
+                default_action: "none"
+              }
+            }
+          })
+        )
+      }
+    ];
+    // ---------------------------------------------------------------------------
     // computeLabel
     // ---------------------------------------------------------------------------
     this._computeLabel = (schema) => {
       if ("title" in schema) return schema.title;
       return localize(`editor.field.${schema.name}`, this._lang);
+    };
+    this._computeHelper = (schema) => {
+      const key = `editor.helper.${schema.name}`;
+      const result = localize(key, this._lang);
+      return result === key ? "" : result;
     };
     this._appendThreshold = () => {
       const thresholds = [
@@ -8898,9 +9508,9 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
             <div class="editor-container">
                 ${this._renderGeneralSection()} ${this._renderEntitySection()}
                 ${this._renderChartStyleSection()} ${this._renderYAxisSection()}
-                ${this._renderAppearanceSection()}
                 ${this._renderAggregationSection()}
                 ${this._renderOverlaysSection()}
+                ${this._renderInteractionsSection()}
                 ${this._renderAdvancedSection()}
             </div>
         `;
@@ -8919,6 +9529,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                     .schema=${buildGeneralSchema(this._lang, cfg)}
                     .data=${data}
                     .computeLabel=${this._computeLabel}
+                    .computeHelper=${this._computeHelper}
                     @value-changed=${(e) => this._updateConfig(
       e.detail.value
     )}
@@ -9025,11 +9636,59 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
     const cfg = this._lineConfig;
     const showPointsStr = cfg.show_points === true ? "true" : cfg.show_points === "hover" ? "hover" : "false";
     const data = {
-      zoom: cfg.zoom !== false,
-      show_points: showPointsStr,
       line_width: cfg.line_width ?? 2,
-      fill_opacity: cfg.fill_opacity ?? 0.15
+      fill_opacity: cfg.fill_opacity ?? 0.15,
+      grid_opacity: cfg.grid_opacity ?? 1
     };
+    const timeFormatOptions = [
+      {
+        value: "auto",
+        label: localize("editor.option.time_format.auto", this._lang)
+      },
+      {
+        value: "time",
+        label: localize("editor.option.time_format.time", this._lang)
+      },
+      {
+        value: "date",
+        label: localize("editor.option.time_format.date", this._lang)
+      },
+      {
+        value: "datetime",
+        label: localize(
+          "editor.option.time_format.datetime",
+          this._lang
+        )
+      }
+    ];
+    const tooltipOptions = [
+      {
+        value: "datetime",
+        label: localize("editor.option.tooltip.datetime", this._lang)
+      },
+      {
+        value: "time",
+        label: localize("editor.option.tooltip.time", this._lang)
+      },
+      {
+        value: "date",
+        label: localize("editor.option.tooltip.date", this._lang)
+      }
+    ];
+    const pointsOptions = [
+      {
+        value: "false",
+        label: localize("editor.option.points.none", this._lang)
+      },
+      {
+        value: "hover",
+        label: localize("editor.option.points.hover", this._lang)
+      },
+      {
+        value: "true",
+        label: localize("editor.option.points.always", this._lang)
+      }
+    ];
     return b`
             <ha-expansion-panel outlined>
                 <ha-svg-icon
@@ -9040,20 +9699,129 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                     >${localize("editor.section.chart_style", this._lang)}</span
                 >
                 <div class="panel-content">
+                    <div class="toggle-row">
+                        <insight-toggle-button
+                            .svg=${SVG_ZOOM_DRAG}
+                            .label=${localize("editor.field.zoom", this._lang)}
+                            .width=${110}
+                            .height=${120}
+                            ?active=${cfg.zoom !== false}
+                            @toggle=${() => this._updateConfig({
+      zoom: cfg.zoom === false
+    })}
+                        ></insight-toggle-button>
+                        <insight-toggle-button
+                            .svg=${SVG_SHOW_LEGEND}
+                            .label=${localize(
+      "editor.field.show_legend",
+      this._lang
+    )}
+                            .width=${110}
+                            .height=${120}
+                            ?active=${cfg.show_legend !== false}
+                            @toggle=${() => this._updateConfig({
+      show_legend: cfg.show_legend === false
+    })}
+                        ></insight-toggle-button>
+                        <insight-toggle-button
+                            .svg=${SVG_SHOW_X_AXIS}
+                            .label=${localize(
+      "editor.field.show_x_axis",
+      this._lang
+    )}
+                            .width=${110}
+                            .height=${120}
+                            ?active=${cfg.show_x_axis !== false}
+                            @toggle=${() => this._updateConfig({
+      show_x_axis: cfg.show_x_axis === false
+    })}
+                        ></insight-toggle-button>
+                        <insight-toggle-button
+                            .svg=${SVG_SHOW_Y_AXIS}
+                            .label=${localize(
+      "editor.field.show_y_axis",
+      this._lang
+    )}
+                            .width=${110}
+                            .height=${120}
+                            ?active=${cfg.show_y_axis !== false}
+                            @toggle=${() => this._updateConfig({
+      show_y_axis: cfg.show_y_axis === false
+    })}
+                        ></insight-toggle-button>
+                    </div>
+
+                    <div class="control-row">
+                        <span class="control-label"
+                            >${localize(
+      "editor.field.show_points",
+      this._lang
+    )}</span
+                        >
+                        <ha-control-select
+                            .options=${pointsOptions}
+                            .value=${showPointsStr}
+                            @value-changed=${(e) => {
+      const v = e.detail.value;
+      const newCfg = {
+        ...this._config
+      };
+      if (v === "true") newCfg.show_points = true;
+      else if (v === "hover")
+        newCfg.show_points = "hover";
+      else delete newCfg.show_points;
+      this._config = newCfg;
+      this.dispatchEvent(
+        new CustomEvent("config-changed", {
+          detail: { config: newCfg },
+          bubbles: true,
+          composed: true
+        })
+      );
+    }}
+                        ></ha-control-select>
+                    </div>
+                    <div class="control-row">
+                        <span class="control-label"
+                            >${localize(
+      "editor.field.tooltip_format",
+      this._lang
+    )}</span
+                        >
+                        <ha-control-select
+                            .options=${tooltipOptions}
+                            .value=${cfg.tooltip_format ?? "datetime"}
+                            @value-changed=${(e) => this._updateConfig({
+      tooltip_format: e.detail.value
+    })}
+                        ></ha-control-select>
+                    </div>
+                    <div class="control-row">
+                        <span class="control-label"
+                            >${localize(
+      "editor.field.time_format",
+      this._lang
+    )}</span
+                        >
+                        <ha-control-select
+                            .options=${timeFormatOptions}
+                            .value=${cfg.time_format ?? "auto"}
+                            @value-changed=${(e) => this._updateConfig({
+      time_format: e.detail.value
+    })}
+                        ></ha-control-select>
+                    </div>
                     <ha-form
                         .hass=${this.hass}
                         .schema=${buildChartStyleSchema(cfg)}
                         .data=${data}
                         .computeLabel=${this._computeLabel}
-                        @value-changed=${(e) => {
-      const v = e.detail.value;
-      const showPoints = v.show_points === "true" ? true : v.show_points === "hover" ? "hover" : false;
-      this._updateConfig({
-        ...v,
-        show_points: showPoints
-      });
-    }}
+                        .computeHelper=${this._computeHelper}
+                        @value-changed=${(e) => this._updateConfig(
+      e.detail.value
+    )}
                     ></ha-form>
+                    ${this._renderBoxModel()}
                 </div>
             </ha-expansion-panel>
         `;
@@ -9063,11 +9831,13 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   // ---------------------------------------------------------------------------
   _renderYAxisSection() {
     const cfg = this._lineConfig;
-    const data = {
-      y_min: cfg.y_min,
-      y_max: cfg.y_max,
-      decimals: cfg.decimals,
+    const primaryData = {
       logarithmic: cfg.logarithmic ?? false,
+      decimals: cfg.decimals,
+      y_min: cfg.y_min,
+      y_max: cfg.y_max
+    };
+    const secondaryData = {
       y_min_secondary: cfg.y_min_secondary,
       y_max_secondary: cfg.y_max_secondary
     };
@@ -9083,46 +9853,50 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                 <div class="panel-content">
                     <ha-form
                         .hass=${this.hass}
-                        .schema=${Y_AXIS_SCHEMA}
-                        .data=${data}
+                        .schema=${Y_AXIS_GENERAL_SCHEMA}
+                        .data=${primaryData}
                         .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
                         @value-changed=${(e) => this._updateConfig(
       dropEmpty(
         e.detail.value
       )
     )}
                     ></ha-form>
-                </div>
-            </ha-expansion-panel>
-        `;
-  }
-  // ---------------------------------------------------------------------------
-  // Appearance
-  // ---------------------------------------------------------------------------
-  _renderAppearanceSection() {
-    const cfg = this._lineConfig;
-    const data = {
-      show_legend: cfg.show_legend !== false,
-      show_x_axis: cfg.show_x_axis !== false,
-      show_y_axis: cfg.show_y_axis !== false,
-      grid_opacity: cfg.grid_opacity ?? 1,
-      tooltip_format: cfg.tooltip_format ?? "datetime",
-      time_format: cfg.time_format ?? "auto"
-    };
-    return b`
-            <ha-expansion-panel outlined>
-                <ha-svg-icon slot="leading-icon" .path=${mdiEye}></ha-svg-icon>
-                <span slot="header"
-                    >${localize("editor.section.appearance", this._lang)}</span
-                >
-                <div class="panel-content">
+                    <insight-section-title
+                        .label=${localize(
+      "editor.subsection.primary_axis",
+      this._lang
+    )}
+                    ></insight-section-title>
                     <ha-form
                         .hass=${this.hass}
-                        .schema=${APPEARANCE_SCHEMA}
-                        .data=${data}
+                        .schema=${Y_AXIS_PRIMARY_SCHEMA}
+                        .data=${primaryData}
                         .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
                         @value-changed=${(e) => this._updateConfig(
-      e.detail.value
+      dropEmpty(
+        e.detail.value
+      )
+    )}
+                    ></ha-form>
+                    <insight-section-title
+                        .label=${localize(
+      "editor.subsection.secondary_axis",
+      this._lang
+    )}
+                    ></insight-section-title>
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${Y_AXIS_SECONDARY_SCHEMA}
+                        .data=${secondaryData}
+                        .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
+                        @value-changed=${(e) => this._updateConfig(
+      dropEmpty(
+        e.detail.value
+      )
     )}
                     ></ha-form>
                 </div>
@@ -9135,7 +9909,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   _renderAggregationSection() {
     const cfg = this._lineConfig;
     const data = {
-      aggregate: cfg.aggregate ?? "",
+      aggregate: cfg.aggregate ?? "none",
       aggregate_period: cfg.aggregate_period ?? ""
     };
     return b`
@@ -9156,11 +9930,28 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                         .schema=${buildAggregationSchema(cfg)}
                         .data=${data}
                         .computeLabel=${this._computeLabel}
-                        @value-changed=${(e) => this._updateConfig(
-      dropEmpty(
-        e.detail.value
-      )
-    )}
+                        .computeHelper=${this._computeHelper}
+                        @value-changed=${(e) => {
+      const v = e.detail.value;
+      const next = {
+        ...this._lineConfig,
+        ...dropEmpty(v)
+      };
+      if (!v["aggregate"] || v["aggregate"] === "none") {
+        delete next.aggregate;
+        delete next.aggregate_period;
+      } else if (!v["aggregate_period"]) {
+        delete next.aggregate_period;
+      }
+      this._config = next;
+      this.dispatchEvent(
+        new CustomEvent("config-changed", {
+          detail: { config: next },
+          bubbles: true,
+          composed: true
+        })
+      );
+    }}
                     ></ha-form>
                 </div>
             </ha-expansion-panel>
@@ -9183,12 +9974,12 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                     >${localize("editor.section.overlays", this._lang)}</span
                 >
                 <div class="panel-content">
-                    <div class="subsection-label">
-                        ${localize(
+                    <insight-section-title
+                        .label=${localize(
       "editor.subsection.threshold_lines",
       this._lang
     )}
-                    </div>
+                    ></insight-section-title>
                     ${thresholds.map(
       (t, idx) => b`
                             <div class="overlay-row">
@@ -9232,19 +10023,19 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                             </div>
                         `
     )}
-                    <mwc-button @click=${this._appendThreshold}
+                    <ha-button @click=${this._appendThreshold}
                         >${localize(
       "editor.action.add_threshold",
       this._lang
-    )}</mwc-button
+    )}</ha-button
                     >
 
-                    <div class="subsection-label" style="margin-top:12px">
-                        ${localize(
+                    <insight-section-title
+                        .label=${localize(
       "editor.subsection.color_thresholds",
       this._lang
     )}
-                    </div>
+                    ></insight-section-title>
                     ${colorThresholds.map(
       (ct, idx) => b`
                             <div class="overlay-row">
@@ -9282,12 +10073,39 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                             </div>
                         `
     )}
-                    <mwc-button @click=${this._appendColorThreshold}
+                    <ha-button @click=${this._appendColorThreshold}
                         >${localize(
       "editor.action.add_color_threshold",
       this._lang
-    )}</mwc-button
+    )}</ha-button
                     >
+                </div>
+            </ha-expansion-panel>
+        `;
+  }
+  _renderInteractionsSection() {
+    return b`
+            <ha-expansion-panel outlined>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiGestureTap}
+                ></ha-svg-icon>
+                <span slot="header"
+                    >${localize(
+      "editor.section.interactions",
+      this._lang
+    )}</span
+                >
+                <div class="panel-content">
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${this._interactionsSchema}
+                        .data=${this._config}
+                        .computeLabel=${this._computeLabel}
+                        @value-changed=${(e) => this._updateConfig(
+      e.detail.value
+    )}
+                    ></ha-form>
                 </div>
             </ha-expansion-panel>
         `;
@@ -9298,16 +10116,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   _renderAdvancedSection() {
     const cfg = this._lineConfig;
     const data = {
-      update_interval: cfg.update_interval ?? 60,
-      theme: cfg.theme ?? "auto",
-      margin_top: cfg.margin_top ?? 0,
-      margin_bottom: cfg.margin_bottom ?? 0,
-      margin_left: cfg.margin_left ?? 0,
-      margin_right: cfg.margin_right ?? 0,
-      padding_top: cfg.padding_top ?? 8,
-      padding_bottom: cfg.padding_bottom ?? 8,
-      padding_left: cfg.padding_left ?? 16,
-      padding_right: cfg.padding_right ?? 16
+      update_interval: cfg.update_interval ?? 60
     };
     return b`
             <ha-expansion-panel outlined>
@@ -9321,12 +10130,46 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                         .schema=${ADVANCED_SCHEMA}
                         .data=${data}
                         .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
                         @value-changed=${(e) => this._updateConfig(
       e.detail.value
     )}
                     ></ha-form>
                 </div>
             </ha-expansion-panel>
+        `;
+  }
+  _renderBoxModel() {
+    const cfg = this._lineConfig;
+    return b`
+            <div class="layout-section">
+                <insight-section-title
+                    .label=${localize("editor.subsection.layout", this._lang)}
+                ></insight-section-title>
+                <insight-box-model
+                    .labelOuter=${localize(
+      "editor.subsection.margin",
+      this._lang
+    )}
+                    .labelInner=${localize(
+      "editor.subsection.padding",
+      this._lang
+    )}
+                    keyOuter="margin"
+                    keyInner="padding"
+                    .outerTop=${cfg.margin_top ?? 0}
+                    .outerRight=${cfg.margin_right ?? 0}
+                    .outerBottom=${cfg.margin_bottom ?? 0}
+                    .outerLeft=${cfg.margin_left ?? 0}
+                    .innerTop=${cfg.padding_top ?? 8}
+                    .innerRight=${cfg.padding_right ?? 16}
+                    .innerBottom=${cfg.padding_bottom ?? 8}
+                    .innerLeft=${cfg.padding_left ?? 16}
+                    @value-changed=${(e) => this._updateConfig({
+      [e.detail.key]: e.detail.value
+    })}
+                ></insight-box-model>
+            </div>
         `;
   }
   // ---------------------------------------------------------------------------
@@ -9390,19 +10233,26 @@ InsightLineCardEditor.styles = [
             }
 
             .panel-content {
-                padding: 8px 0;
+                padding: 16px 0px 16px 0px;
+            }
+
+            .toggle-row {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-evenly;
+                gap: 8px;
+                padding: 20px 0px;
             }
 
             .control-row {
                 display: flex;
                 flex-direction: column;
                 gap: 4px;
+                padding: 20px 0px;
             }
 
             .control-label {
-                font-size: 0.75rem;
                 font-weight: 500;
-                color: var(--secondary-text-color);
             }
 
             ha-control-select {
@@ -9435,13 +10285,6 @@ InsightLineCardEditor.styles = [
                 margin-top: 4px;
             }
 
-            .subsection-label {
-                font-size: 0.8rem;
-                font-weight: 500;
-                color: var(--secondary-text-color);
-                margin-bottom: 4px;
-            }
-
             .overlay-row {
                 display: flex;
                 align-items: flex-start;
@@ -9462,6 +10305,10 @@ InsightLineCardEditor.styles = [
 
             .overlay-row ha-form {
                 flex: 1;
+            }
+
+            .layout-section {
+                margin: 16px 0;
             }
         `
 ];

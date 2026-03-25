@@ -5,11 +5,11 @@
       "general": "Allgemein",
       "entities": "Entitäten",
       "time_range": "Zeitbereich",
-      "chart_style": "Diagrammstil",
+      "chart_style": "Darstellung",
       "y_axis": "Y-Achse",
-      "appearance": "Darstellung",
       "data_aggregation": "Datenaggregation",
       "overlays": "Überlagerungen",
+      "interactions": "Interaktionen",
       "advanced": "Erweitert"
     },
     "field": {
@@ -25,12 +25,12 @@
       "show_points": "Datenpunkte",
       "line_width": "Linienbreite",
       "fill_opacity": "Fülldeckkraft",
-      "y_min": "Weiches Minimum",
-      "y_max": "Weiches Maximum",
-      "decimals": "Dezimalstellen",
+      "y_min": "Minimum",
+      "y_max": "Maximum",
+      "decimals": "Nachkommastellen",
       "logarithmic": "Logarithmische Skala (Basis 10)",
-      "y_min_secondary": "Sekundärachse Minimum",
-      "y_max_secondary": "Sekundärachse Maximum",
+      "y_min_secondary": "Minimum",
+      "y_max_secondary": "Maximum",
       "show_legend": "Legende anzeigen",
       "show_x_axis": "X-Achse anzeigen",
       "show_y_axis": "Y-Achse anzeigen",
@@ -40,7 +40,6 @@
       "aggregate": "Aggregationsmethode",
       "aggregate_period": "Aggregationszeitraum (z.B. 30m, 1h, 6h, 1d)",
       "update_interval": "Aktualisierungsintervall",
-      "theme": "Thema",
       "margin_top": "Außenabstand oben",
       "margin_bottom": "Außenabstand unten",
       "margin_left": "Außenabstand links",
@@ -58,6 +57,9 @@
       "unit": "Einheit (überschreiben)",
       "scale": "Skalierungsfaktor",
       "invert": "Werte invertieren",
+      "tap_action": "Tipp-Aktion",
+      "double_tap_action": "Doppeltipp-Aktion",
+      "hold_action": "Halten-Aktion",
       "value": "Wert",
       "label": "Bezeichnung",
       "dash": "Strichmuster (z.B. 4,3)",
@@ -68,7 +70,8 @@
       "add_entity": "+ Entität hinzufügen",
       "remove_entity": "Entität entfernen",
       "add_threshold": "+ Schwellenwert hinzufügen",
-      "add_color_threshold": "+ Farbschwellenwert hinzufügen"
+      "add_color_threshold": "+ Farbschwellenwert hinzufügen",
+      "add_interaction": "Interaktion hinzufügen"
     },
     "option": {
       "style": {
@@ -82,11 +85,47 @@
       "curve": {
         "smooth": "Smooth",
         "linear": "Linear"
+      },
+      "points": {
+        "none": "Keine",
+        "hover": "Bei Hover",
+        "always": "Immer"
+      },
+      "tooltip": {
+        "datetime": "Datum & Zeit",
+        "time": "Zeit",
+        "date": "Datum"
+      },
+      "time_format": {
+        "auto": "Auto",
+        "time": "HH:MM",
+        "date": "DD.MM",
+        "datetime": "DD.MM HH:MM"
       }
+    },
+    "helper": {
+      "statistics": "Nutzt die Statistics API statt der History API. Der Sensor benötigt eine state_class (z.B. measurement). Ohne Auswahl wird die History API verwendet.",
+      "transform": "diff: Differenz zum Vorgängerwert · normalize: auf 0–1 skalieren · cumulative: aufsummieren",
+      "scale": "Multiplikationsfaktor für alle Werte. Beispiel: 0.001 wandelt W in kW um.",
+      "attribute": "Numerisches Attribut statt des Entity-States als Datenpunkt verwenden. Einheit ggf. manuell setzen.",
+      "y_min": "Die Achse unterschreitet diesen Wert nur, wenn Datenpunkte darunter liegen.",
+      "y_max": "Die Achse überschreitet diesen Wert nur, wenn Datenpunkte darüber liegen.",
+      "y_min_secondary": "Die Achse unterschreitet diesen Wert nur, wenn Datenpunkte darunter liegen.",
+      "y_max_secondary": "Die Achse überschreitet diesen Wert nur, wenn Datenpunkte darüber liegen.",
+      "logarithmic": "Alle Datenwerte müssen größer 0 sein.",
+      "aggregate": "Fasst Rohdaten clientseitig in gleichmäßige Zeitfenster zusammen.",
+      "aggregate_period": "Größe der Zeitfenster für die Aggregation, z.B. 30m, 1h, 6h, 1d.",
+      "stroke_dash": "Einzelne Zahl für gleichmäßige Lücken (z.B. 5), oder Strich,Lücke-Paar (z.B. 8,4).",
+      "color_thresholds": "Definiert einen Farbverlauf basierend auf Y-Werten. Mindestens 2 Schwellenwerte erforderlich."
     },
     "subsection": {
       "threshold_lines": "Schwellenwertlinien",
-      "color_thresholds": "Farbschwellenwerte (Gradient)"
+      "color_thresholds": "Farbschwellenwerte (Gradient)",
+      "primary_axis": "Primärachse",
+      "secondary_axis": "Sekundärachse",
+      "layout": "Layout",
+      "margin": "Außenabstand",
+      "padding": "Innenabstand"
     }
   },
   "card": {
