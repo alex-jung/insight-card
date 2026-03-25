@@ -101,6 +101,7 @@ export class InsightLineEntityEditor extends LitElement {
                     .schema=${ENTITY_BASE_SCHEMA}
                     .data=${baseData}
                     .computeLabel=${this._computeLabel}
+                    .computeHelper=${this._computeHelper}
                     @value-changed=${(
                         e: CustomEvent<{ value: Record<string, unknown> }>,
                     ) => this._onBaseChanged(e.detail.value)}
@@ -114,6 +115,7 @@ export class InsightLineEntityEditor extends LitElement {
                     .schema=${buildAppearanceSchema(this.chartStyle ?? "area")}
                     .data=${appearanceData}
                     .computeLabel=${this._computeLabel}
+                    .computeHelper=${this._computeHelper}
                     @value-changed=${(
                         e: CustomEvent<{ value: Record<string, unknown> }>,
                     ) => this._onAppearanceChanged(e.detail.value)}
@@ -127,6 +129,7 @@ export class InsightLineEntityEditor extends LitElement {
                     .schema=${DATA_SCHEMA}
                     .data=${dataData}
                     .computeLabel=${this._computeLabel}
+                    .computeHelper=${this._computeHelper}
                     @value-changed=${(
                         e: CustomEvent<{ value: Record<string, unknown> }>,
                     ) => this._onDataChanged(e.detail.value)}
@@ -212,6 +215,12 @@ export class InsightLineEntityEditor extends LitElement {
         title?: string;
     }): string => {
         return localize(`editor.field.${schema.name}`, this._lang);
+    };
+
+    private readonly _computeHelper = (schema: { name: string }): string => {
+        const key = `editor.helper.${schema.name}`;
+        const result = localize(key, this._lang);
+        return result === key ? "" : result;
     };
 
     // ---------------------------------------------------------------------------

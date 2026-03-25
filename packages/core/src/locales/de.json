@@ -98,9 +98,24 @@
         "datetime": "DD.MM HH:MM"
       }
     },
+    "helper": {
+      "statistics": "Nutzt die Statistics API statt der History API. Der Sensor benötigt eine state_class (z.B. measurement). Ohne Auswahl wird die History API verwendet.",
+      "transform": "diff: Differenz zum Vorgängerwert · normalize: auf 0–1 skalieren · cumulative: aufsummieren",
+      "scale": "Multiplikationsfaktor für alle Werte. Beispiel: 0.001 wandelt W in kW um.",
+      "attribute": "Numerisches Attribut statt des Entity-States als Datenpunkt verwenden. Einheit ggf. manuell setzen.",
+      "y_min": "Die Achse unterschreitet diesen Wert nur, wenn Datenpunkte darunter liegen.",
+      "y_max": "Die Achse überschreitet diesen Wert nur, wenn Datenpunkte darüber liegen.",
+      "logarithmic": "Alle Datenwerte müssen größer 0 sein.",
+      "aggregate": "Fasst Rohdaten clientseitig in gleichmäßige Zeitfenster zusammen.",
+      "aggregate_period": "Größe der Zeitfenster für die Aggregation, z.B. 30m, 1h, 6h, 1d.",
+      "stroke_dash": "Einzelne Zahl für gleichmäßige Lücken (z.B. 5), oder Strich,Lücke-Paar (z.B. 8,4).",
+      "color_thresholds": "Definiert einen Farbverlauf basierend auf Y-Werten. Mindestens 2 Schwellenwerte erforderlich."
+    },
     "subsection": {
       "threshold_lines": "Schwellenwertlinien",
       "color_thresholds": "Farbschwellenwerte (Gradient)",
+      "primary_axis": "Primärachse",
+      "secondary_axis": "Sekundärachse",
       "layout": "Layout",
       "margin": "Außenabstand",
       "padding": "Innenabstand"

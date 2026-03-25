@@ -98,9 +98,24 @@
         "datetime": "DD.MM HH:MM"
       }
     },
+    "helper": {
+      "statistics": "Uses the Statistics API instead of the History API. The sensor must have a state_class (e.g. measurement). Without a selection the History API is used.",
+      "transform": "diff: change from previous value · normalize: scale to 0–1 · cumulative: running sum",
+      "scale": "Multiplication factor for all values. Example: 0.001 converts W to kW.",
+      "attribute": "Use a numeric entity attribute as the data source instead of the state. Set the unit manually if needed.",
+      "y_min": "The axis only goes below this value if data points require it.",
+      "y_max": "The axis only goes above this value if data points require it.",
+      "logarithmic": "All data values must be greater than 0.",
+      "aggregate": "Groups raw data into equal time buckets on the client.",
+      "aggregate_period": "Bucket size for aggregation, e.g. 30m, 1h, 6h, 1d.",
+      "stroke_dash": "Single number for equal gaps (e.g. 5), or dash,gap pair (e.g. 8,4).",
+      "color_thresholds": "Defines a color gradient based on Y values. At least 2 thresholds required."
+    },
     "subsection": {
       "threshold_lines": "Threshold lines",
       "color_thresholds": "Color thresholds (gradient)",
+      "primary_axis": "Primary axis",
+      "secondary_axis": "Secondary axis",
       "layout": "Layout",
       "margin": "Margin",
       "padding": "Padding"

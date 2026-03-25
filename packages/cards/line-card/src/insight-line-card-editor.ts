@@ -183,14 +183,20 @@ function buildGeneralSchema(
     ];
 }
 
-const Y_AXIS_SCHEMA: HaFormSchema[] = [
-    { name: "y_min", selector: { number: { step: 0.1, mode: "box" } } },
-    { name: "y_max", selector: { number: { step: 0.1, mode: "box" } } },
+const Y_AXIS_GENERAL_SCHEMA: HaFormSchema[] = [
+    { name: "logarithmic", selector: { boolean: {} as Record<string, never> } },
     {
         name: "decimals",
         selector: { number: { min: 0, max: 6, step: 1, mode: "box" } },
     },
-    { name: "logarithmic", selector: { boolean: {} as Record<string, never> } },
+];
+
+const Y_AXIS_PRIMARY_SCHEMA: HaFormSchema[] = [
+    { name: "y_min", selector: { number: { step: 0.1, mode: "box" } } },
+    { name: "y_max", selector: { number: { step: 0.1, mode: "box" } } },
+];
+
+const Y_AXIS_SECONDARY_SCHEMA: HaFormSchema[] = [
     {
         name: "y_min_secondary",
         selector: { number: { step: 0.1, mode: "box" } },
@@ -341,6 +347,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                     .schema=${buildGeneralSchema(this._lang, cfg)}
                     .data=${data}
                     .computeLabel=${this._computeLabel}
+                    .computeHelper=${this._computeHelper}
                     @value-changed=${(
                         e: CustomEvent<{ value: Record<string, unknown> }>,
                     ) =>
@@ -672,6 +679,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                         .schema=${buildChartStyleSchema(cfg)}
                         .data=${data}
                         .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
                         @value-changed=${(
                             e: CustomEvent<{ value: typeof data }>,
                         ) =>
@@ -691,11 +699,13 @@ export class InsightLineCardEditor extends InsightBaseEditor {
 
     private _renderYAxisSection(): TemplateResult {
         const cfg = this._lineConfig;
-        const data = {
+        const primaryData = {
+            logarithmic: cfg.logarithmic ?? false,
+            decimals: cfg.decimals,
             y_min: cfg.y_min,
             y_max: cfg.y_max,
-            decimals: cfg.decimals,
-            logarithmic: cfg.logarithmic ?? false,
+        };
+        const secondaryData = {
             y_min_secondary: cfg.y_min_secondary,
             y_max_secondary: cfg.y_max_secondary,
         };
@@ -712,9 +722,52 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                 <div class="panel-content">
                     <ha-form
                         .hass=${this.hass}
-                        .schema=${Y_AXIS_SCHEMA}
-                        .data=${data}
+                        .schema=${Y_AXIS_GENERAL_SCHEMA}
+                        .data=${primaryData}
                         .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
+                        @value-changed=${(
+                            e: CustomEvent<{ value: Record<string, unknown> }>,
+                        ) =>
+                            this._updateConfig(
+                                dropEmpty(
+                                    e.detail.value,
+                                ) as Partial<InsightLineConfig>,
+                            )}
+                    ></ha-form>
+                    <div class="section-title" style="padding-top:24px">
+                        ${localize(
+                            "editor.subsection.primary_axis",
+                            this._lang,
+                        )}
+                    </div>
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${Y_AXIS_PRIMARY_SCHEMA}
+                        .data=${primaryData}
+                        .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
+                        @value-changed=${(
+                            e: CustomEvent<{ value: Record<string, unknown> }>,
+                        ) =>
+                            this._updateConfig(
+                                dropEmpty(
+                                    e.detail.value,
+                                ) as Partial<InsightLineConfig>,
+                            )}
+                    ></ha-form>
+                    <div class="section-title" style="padding-top:24px">
+                        ${localize(
+                            "editor.subsection.secondary_axis",
+                            this._lang,
+                        )}
+                    </div>
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${Y_AXIS_SECONDARY_SCHEMA}
+                        .data=${secondaryData}
+                        .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
                         @value-changed=${(
                             e: CustomEvent<{ value: Record<string, unknown> }>,
                         ) =>
@@ -758,6 +811,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                         .schema=${buildAggregationSchema(cfg)}
                         .data=${data}
                         .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
                         @value-changed=${(
                             e: CustomEvent<{ value: Record<string, unknown> }>,
                         ) => {
@@ -958,6 +1012,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                         .schema=${ADVANCED_SCHEMA}
                         .data=${data}
                         .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
                         @value-changed=${(
                             e: CustomEvent<{ value: Record<string, unknown> }>,
                         ) =>
@@ -1014,6 +1069,12 @@ export class InsightLineCardEditor extends InsightBaseEditor {
     private readonly _computeLabel = (schema: HaFormSchema): string => {
         if ("title" in schema) return schema.title as string;
         return localize(`editor.field.${schema.name}`, this._lang);
+    };
+
+    private readonly _computeHelper = (schema: HaFormSchema): string => {
+        const key = `editor.helper.${schema.name}`;
+        const result = localize(key, this._lang);
+        return result === key ? "" : result;
     };
 
     // ---------------------------------------------------------------------------
@@ -1119,7 +1180,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
             .section-title {
                 font-size: 0.8rem;
                 font-weight: 500;
-                color: var(--secondary-text-color);
+                /*color: var(--secondary-text-color);*/
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
                 margin: 8px 0px 16px 0px;

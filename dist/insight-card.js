@@ -6350,7 +6350,7 @@ function aggregateTimeSeries(data, periodMs, method) {
   }
   return result.sort((a, b) => a.t - b.t);
 }
-function applyTransform(data, transform) {
+function applyTransform$1(data, transform) {
   if (transform === "none" || data.length === 0) return data;
   switch (transform) {
     case "diff": {
@@ -6941,9 +6941,24 @@ var editor$1 = {
 			datetime: "DD.MM HH:MM"
 		}
 	},
+	helper: {
+		statistics: "Uses the Statistics API instead of the History API. The sensor must have a state_class (e.g. measurement). Without a selection the History API is used.",
+		transform: "diff: change from previous value · normalize: scale to 0–1 · cumulative: running sum",
+		scale: "Multiplication factor for all values. Example: 0.001 converts W to kW.",
+		attribute: "Use a numeric entity attribute as the data source instead of the state. Set the unit manually if needed.",
+		y_min: "The axis only goes below this value if data points require it.",
+		y_max: "The axis only goes above this value if data points require it.",
+		logarithmic: "All data values must be greater than 0.",
+		aggregate: "Groups raw data into equal time buckets on the client.",
+		aggregate_period: "Bucket size for aggregation, e.g. 30m, 1h, 6h, 1d.",
+		stroke_dash: "Single number for equal gaps (e.g. 5), or dash,gap pair (e.g. 8,4).",
+		color_thresholds: "Defines a color gradient based on Y values. At least 2 thresholds required."
+	},
 	subsection: {
 		threshold_lines: "Threshold lines",
 		color_thresholds: "Color thresholds (gradient)",
+		primary_axis: "Primary axis",
+		secondary_axis: "Secondary axis",
 		layout: "Layout",
 		margin: "Margin",
 		padding: "Padding"
@@ -7059,9 +7074,24 @@ var editor = {
 			datetime: "DD.MM HH:MM"
 		}
 	},
+	helper: {
+		statistics: "Nutzt die Statistics API statt der History API. Der Sensor benötigt eine state_class (z.B. measurement). Ohne Auswahl wird die History API verwendet.",
+		transform: "diff: Differenz zum Vorgängerwert · normalize: auf 0–1 skalieren · cumulative: aufsummieren",
+		scale: "Multiplikationsfaktor für alle Werte. Beispiel: 0.001 wandelt W in kW um.",
+		attribute: "Numerisches Attribut statt des Entity-States als Datenpunkt verwenden. Einheit ggf. manuell setzen.",
+		y_min: "Die Achse unterschreitet diesen Wert nur, wenn Datenpunkte darunter liegen.",
+		y_max: "Die Achse überschreitet diesen Wert nur, wenn Datenpunkte darüber liegen.",
+		logarithmic: "Alle Datenwerte müssen größer 0 sein.",
+		aggregate: "Fasst Rohdaten clientseitig in gleichmäßige Zeitfenster zusammen.",
+		aggregate_period: "Größe der Zeitfenster für die Aggregation, z.B. 30m, 1h, 6h, 1d.",
+		stroke_dash: "Einzelne Zahl für gleichmäßige Lücken (z.B. 5), oder Strich,Lücke-Paar (z.B. 8,4).",
+		color_thresholds: "Definiert einen Farbverlauf basierend auf Y-Werten. Mindestens 2 Schwellenwerte erforderlich."
+	},
 	subsection: {
 		threshold_lines: "Schwellenwertlinien",
 		color_thresholds: "Farbschwellenwerte (Gradient)",
+		primary_axis: "Primärachse",
+		secondary_axis: "Sekundärachse",
 		layout: "Layout",
 		margin: "Außenabstand",
 		padding: "Innenabstand"
@@ -7932,7 +7962,7 @@ let InsightLineCard = class extends InsightBaseCard {
         data = aggregateTimeSeries(data, periodMs, method);
       }
       if (ec?.transform && ec.transform !== "none") {
-        data = applyTransform(data, ec.transform);
+        data = applyTransform$1(data, ec.transform);
       }
       return data;
     });
@@ -8803,6 +8833,11 @@ let InsightLineEntityEditor = class extends i$2 {
     this._computeLabel = (schema) => {
       return localize(`editor.field.${schema.name}`, this._lang);
     };
+    this._computeHelper = (schema) => {
+      const key = `editor.helper.${schema.name}`;
+      const result = localize(key, this._lang);
+      return result === key ? "" : result;
+    };
   }
   get _lang() {
     return this.hass?.locale?.language ?? "en";
@@ -8861,6 +8896,7 @@ let InsightLineEntityEditor = class extends i$2 {
                     .schema=${ENTITY_BASE_SCHEMA}
                     .data=${baseData}
                     .computeLabel=${this._computeLabel}
+                    .computeHelper=${this._computeHelper}
                     @value-changed=${(e) => this._onBaseChanged(e.detail.value)}
                 ></ha-form>
 
@@ -8872,6 +8908,7 @@ let InsightLineEntityEditor = class extends i$2 {
                     .schema=${buildAppearanceSchema(this.chartStyle ?? "area")}
                     .data=${appearanceData}
                     .computeLabel=${this._computeLabel}
+                    .computeHelper=${this._computeHelper}
                     @value-changed=${(e) => this._onAppearanceChanged(e.detail.value)}
                 ></ha-form>
 
@@ -8883,6 +8920,7 @@ let InsightLineEntityEditor = class extends i$2 {
                     .schema=${DATA_SCHEMA}
                     .data=${dataData}
                     .computeLabel=${this._computeLabel}
+                    .computeHelper=${this._computeHelper}
                     @value-changed=${(e) => this._onDataChanged(e.detail.value)}
                 ></ha-form>
             </div>
@@ -9127,14 +9165,18 @@ function buildGeneralSchema(lang, cfg) {
     ] : []
   ];
 }
-const Y_AXIS_SCHEMA = [
-  { name: "y_min", selector: { number: { step: 0.1, mode: "box" } } },
-  { name: "y_max", selector: { number: { step: 0.1, mode: "box" } } },
+const Y_AXIS_GENERAL_SCHEMA = [
+  { name: "logarithmic", selector: { boolean: {} } },
   {
     name: "decimals",
     selector: { number: { min: 0, max: 6, step: 1, mode: "box" } }
-  },
-  { name: "logarithmic", selector: { boolean: {} } },
+  }
+];
+const Y_AXIS_PRIMARY_SCHEMA = [
+  { name: "y_min", selector: { number: { step: 0.1, mode: "box" } } },
+  { name: "y_max", selector: { number: { step: 0.1, mode: "box" } } }
+];
+const Y_AXIS_SECONDARY_SCHEMA = [
   {
     name: "y_min_secondary",
     selector: { number: { step: 0.1, mode: "box" } }
@@ -9230,6 +9272,11 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
       if ("title" in schema) return schema.title;
       return localize(`editor.field.${schema.name}`, this._lang);
     };
+    this._computeHelper = (schema) => {
+      const key = `editor.helper.${schema.name}`;
+      const result = localize(key, this._lang);
+      return result === key ? "" : result;
+    };
     this._appendThreshold = () => {
       const thresholds = [
         ...this._lineConfig.thresholds ?? [],
@@ -9296,6 +9343,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                     .schema=${buildGeneralSchema(this._lang, cfg)}
                     .data=${data}
                     .computeLabel=${this._computeLabel}
+                    .computeHelper=${this._computeHelper}
                     @value-changed=${(e) => this._updateConfig(
       e.detail.value
     )}
@@ -9570,6 +9618,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                         .schema=${buildChartStyleSchema(cfg)}
                         .data=${data}
                         .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
                         @value-changed=${(e) => this._updateConfig(
       e.detail.value
     )}
@@ -9584,11 +9633,13 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
   // ---------------------------------------------------------------------------
   _renderYAxisSection() {
     const cfg = this._lineConfig;
-    const data = {
-      y_min: cfg.y_min,
-      y_max: cfg.y_max,
-      decimals: cfg.decimals,
+    const primaryData = {
       logarithmic: cfg.logarithmic ?? false,
+      decimals: cfg.decimals,
+      y_min: cfg.y_min,
+      y_max: cfg.y_max
+    };
+    const secondaryData = {
       y_min_secondary: cfg.y_min_secondary,
       y_max_secondary: cfg.y_max_secondary
     };
@@ -9604,9 +9655,46 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                 <div class="panel-content">
                     <ha-form
                         .hass=${this.hass}
-                        .schema=${Y_AXIS_SCHEMA}
-                        .data=${data}
+                        .schema=${Y_AXIS_GENERAL_SCHEMA}
+                        .data=${primaryData}
                         .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
+                        @value-changed=${(e) => this._updateConfig(
+      dropEmpty(
+        e.detail.value
+      )
+    )}
+                    ></ha-form>
+                    <div class="section-title" style="padding-top:24px">
+                        ${localize(
+      "editor.subsection.primary_axis",
+      this._lang
+    )}
+                    </div>
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${Y_AXIS_PRIMARY_SCHEMA}
+                        .data=${primaryData}
+                        .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
+                        @value-changed=${(e) => this._updateConfig(
+      dropEmpty(
+        e.detail.value
+      )
+    )}
+                    ></ha-form>
+                    <div class="section-title" style="padding-top:24px">
+                        ${localize(
+      "editor.subsection.secondary_axis",
+      this._lang
+    )}
+                    </div>
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${Y_AXIS_SECONDARY_SCHEMA}
+                        .data=${secondaryData}
+                        .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
                         @value-changed=${(e) => this._updateConfig(
       dropEmpty(
         e.detail.value
@@ -9644,6 +9732,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                         .schema=${buildAggregationSchema(cfg)}
                         .data=${data}
                         .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
                         @value-changed=${(e) => {
       const v = e.detail.value;
       const next = {
@@ -9816,6 +9905,7 @@ let InsightLineCardEditor = class extends InsightBaseEditor {
                         .schema=${ADVANCED_SCHEMA}
                         .data=${data}
                         .computeLabel=${this._computeLabel}
+                        .computeHelper=${this._computeHelper}
                         @value-changed=${(e) => this._updateConfig(
       e.detail.value
     )}
@@ -9924,7 +10014,7 @@ InsightLineCardEditor.styles = [
             .section-title {
                 font-size: 0.8rem;
                 font-weight: 500;
-                color: var(--secondary-text-color);
+                /*color: var(--secondary-text-color);*/
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
                 margin: 8px 0px 16px 0px;
