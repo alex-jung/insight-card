@@ -1096,7 +1096,8 @@ export class InsightLineCard extends InsightBaseCard {
         `;
     }
 
-    private _resetZoom(): void {
+    private _resetZoom(e: Event): void {
+        e.stopPropagation();
         if (!this._uplot) return;
         const xs = this._uplot.data[0];
         if (!xs?.length) return;
