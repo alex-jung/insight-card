@@ -133,28 +133,28 @@ function buildGeneralSchema(
                         {
                             value: "line",
                             label: localize("editor.option.style.line", lang),
-                            description: localize(
-                                "editor.option.style.line_desc",
-                                lang,
-                            ),
+                            // description: localize(
+                            //     "editor.option.style.line_desc",
+                            //     lang,
+                            // ),
                             image: IMG_CHART_LINE,
                         },
                         {
                             value: "area",
                             label: localize("editor.option.style.area", lang),
-                            description: localize(
-                                "editor.option.style.area_desc",
-                                lang,
-                            ),
+                            // description: localize(
+                            //     "editor.option.style.area_desc",
+                            //     lang,
+                            // ),
                             image: IMG_CHART_AREA,
                         },
                         {
                             value: "step",
                             label: localize("editor.option.style.step", lang),
-                            description: localize(
-                                "editor.option.style.step_desc",
-                                lang,
-                            ),
+                            // description: localize(
+                            //     "editor.option.style.step_desc",
+                            //     lang,
+                            // ),
                             image: IMG_CHART_STEP,
                         },
                     ],
@@ -250,18 +250,6 @@ const ADVANCED_SCHEMA: HaFormSchema[] = [
                 step: 10,
                 mode: "box",
                 unit_of_measurement: "s",
-            },
-        },
-    },
-    {
-        name: "theme",
-        selector: {
-            select: {
-                options: [
-                    { value: "auto", label: "Auto (follow HA theme)" },
-                    { value: "light", label: "Light" },
-                    { value: "dark", label: "Dark" },
-                ],
             },
         },
     },
@@ -1034,7 +1022,6 @@ export class InsightLineCardEditor extends InsightBaseEditor {
         const cfg = this._lineConfig;
         const data = {
             update_interval: cfg.update_interval ?? 60,
-            theme: cfg.theme ?? "auto",
             margin_top: cfg.margin_top ?? 0,
             margin_bottom: cfg.margin_bottom ?? 0,
             margin_left: cfg.margin_left ?? 0,
