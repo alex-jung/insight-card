@@ -331,6 +331,12 @@ export interface InsightBarConfig extends InsightBaseConfig {
    * @default 0
    */
   bar_radius?: number;
+  /**
+   * Value-based bar coloring. Each bar is colored according to the highest
+   * threshold whose value is ≤ the bar's aggregated value.
+   * Entities with an explicit `color` are not affected.
+   */
+  color_thresholds?: ColorThresholdConfig[];
 }
 
 // ---------------------------------------------------------------------------

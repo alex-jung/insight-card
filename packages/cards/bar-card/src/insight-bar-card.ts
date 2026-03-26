@@ -13,6 +13,7 @@ import {
   InsightBaseCard,
   type InsightBarConfig,
   type ThresholdConfig,
+  type ColorThresholdConfig,
   generateColors,
   formatValue,
   findNumericSensor,
@@ -79,6 +80,16 @@ function bucketLabel(key: string, groupBy: InsightBarConfig["group_by"] = "day")
     return months[parseInt(parts[1], 10)] ?? key;
   }
   return `${parts[2]}.${(parseInt(parts[1], 10) + 1).toString().padStart(2, "0")}`;
+}
+
+/** Return the color for `value` from a sorted threshold list, or null if none match. */
+function colorFromThresholds(value: number, thresholds: ColorThresholdConfig[]): string | null {
+  const sorted = [...thresholds].sort((a, b) => a.value - b.value);
+  let color: string | null = null;
+  for (const t of sorted) {
+    if (value >= t.value) color = t.color;
+  }
+  return color;
 }
 
 // ---------------------------------------------------------------------------
@@ -499,6 +510,9 @@ export class InsightBarCard extends InsightBaseCard {
     const baseAlpha = Math.min(1, Math.max(0, config.fill_opacity ?? 1));
     const dpr = uPlot.pxRatio;
     const radiusPx = (config.bar_radius ?? 0) * dpr;
+    const colorThresholds = config.color_thresholds ?? [];
+    // Track which entity indices have an explicit color set in config
+    const hasExplicitColor = this.entityConfigs.map((ec) => !!ec.color);
 
     const bucketW = width / n;
     const padFrac = 0.15;
@@ -529,7 +543,9 @@ export class InsightBarCard extends InsightBaseCard {
             ? baseAlpha * 0.15 : baseAlpha;
           const yTop = u.valToPos(cumulative + val, "y", true);
           const yBottom = u.valToPos(cumulative, "y", true);
-          ctx.fillStyle = colors[si];
+          const thColor = colorThresholds.length && !hasExplicitColor[si]
+            ? colorFromThresholds(val, colorThresholds) : null;
+          ctx.fillStyle = thColor ?? colors[si];
           const r = si === topSi ? Math.min(radiusPx, barGroupW / 2, (yBottom - yTop) / 2) : 0;
           this._fillBar(ctx, groupX, yTop, barGroupW, yBottom - yTop, r);
           cumulative += val;
@@ -547,7 +563,9 @@ export class InsightBarCard extends InsightBaseCard {
           const yTop = u.valToPos(val, "y", true);
           const x = groupX + si * barW;
           const h = yBase - yTop;
-          ctx.fillStyle = colors[si];
+          const thColor = colorThresholds.length && !hasExplicitColor[si]
+            ? colorFromThresholds(val, colorThresholds) : null;
+          ctx.fillStyle = thColor ?? colors[si];
           const r = Math.min(radiusPx, singleW / 2, h / 2);
           this._fillBar(ctx, x, yTop, singleW, h, r);
         }
