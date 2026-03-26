@@ -420,8 +420,18 @@ export class InsightBarCard extends InsightBaseCard {
           grid: { show: false },
           ticks: { show: false },
           splits: (_u: uPlot) => Array.from({ length: n }, (_, i) => i),
-          values: (_u: uPlot, vals: number[]) =>
-            vals.map((v) => labels[Math.round(v)] ?? ""),
+          values: (u: uPlot, vals: number[]) => {
+            // Estimate how many labels fit without overlapping.
+            // Use the longest label to compute a safe character width.
+            const maxLen = labels.reduce((m, l) => Math.max(m, l.length), 0);
+            const labelPx = maxLen * 7 + 12; // ~7px per char + padding
+            const plotW = u.bbox.width / uPlot.pxRatio;
+            const step = Math.max(1, Math.ceil((n * labelPx) / plotW));
+            return vals.map((v) => {
+              const bi = Math.round(v);
+              return bi % step === 0 ? (labels[bi] ?? "") : "";
+            });
+          },
           size: 36,
         },
         {
