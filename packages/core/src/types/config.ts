@@ -181,6 +181,26 @@ export interface InsightBaseConfig {
    * @default 0
    */
   margin_bottom?: number;
+  /**
+   * Inner padding on the top of the chart canvas (px).
+   * @default 8
+   */
+  padding_top?: number;
+  /**
+   * Inner padding on the right of the chart canvas (px).
+   * @default 16
+   */
+  padding_right?: number;
+  /**
+   * Inner padding on the bottom of the chart canvas (px).
+   * @default 8
+   */
+  padding_bottom?: number;
+  /**
+   * Inner padding on the left of the chart canvas (px).
+   * @default 16
+   */
+  padding_left?: number;
   /** Override grid placement in Sections View */
   grid_options?: GridOptionsConfig;
 }
@@ -272,26 +292,6 @@ export interface InsightLineConfig extends InsightBaseConfig {
    * Required when `aggregate` is set.
    */
   aggregate_period?: string;
-  /**
-   * Inner padding on the top of the chart canvas (px).
-   * @default 8
-   */
-  padding_top?: number;
-  /**
-   * Inner padding on the right of the chart canvas (px).
-   * @default 16
-   */
-  padding_right?: number;
-  /**
-   * Inner padding on the bottom of the chart canvas (px).
-   * @default 8
-   */
-  padding_bottom?: number;
-  /**
-   * Inner padding on the left of the chart canvas (px).
-   * @default 16
-   */
-  padding_left?: number;
   /** Action triggered by a single tap/click on the chart. */
   tap_action?: ActionConfig;
   /** Action triggered by a double-tap/double-click on the chart. */

@@ -413,7 +413,12 @@ export class InsightBarCard extends InsightBaseCard {
       hooks: {
         draw: [(u: uPlot) => this._drawBarsHook(u)],
       },
-      padding: [8, 8, 0, 0],
+      padding: [
+        config.padding_top ?? 8,
+        config.padding_right ?? 16,
+        config.padding_bottom ?? 8,
+        config.padding_left ?? 16,
+      ],
     } as unknown as uPlot.Options;
   }
 
