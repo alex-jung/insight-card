@@ -236,7 +236,7 @@ export class InsightBarCard extends InsightBaseCard {
               @click=${() => this._toggleSeries(i)}
             >
               <span class="bar-legend-marker" style="background:${isHidden ? "transparent" : colors[i]}; border: 2px solid ${colors[i]}"></span>
-              ${dataset.friendlyName ?? this.entityConfigs[i]?.entity ?? `Entity ${i + 1}`}
+              ${this.entityConfigs[i]?.name ?? dataset.friendlyName ?? this.entityConfigs[i]?.entity ?? `Entity ${i + 1}`}
             </span>
           `;
         })}
@@ -415,7 +415,7 @@ export class InsightBarCard extends InsightBaseCard {
     const series: uPlot.Series[] = [{}];
     this._data.forEach((dataset, i) => {
       series.push({
-        label: dataset.friendlyName ?? `Entity ${i + 1}`,
+        label: this.entityConfigs[i]?.name ?? dataset.friendlyName ?? `Entity ${i + 1}`,
         stroke: colors[i],
         fill: colors[i],
         // uPlot path drawing disabled — bars are rendered in the draw hook
@@ -855,7 +855,7 @@ export class InsightBarCard extends InsightBaseCard {
         if (this._hiddenSeries.has(si)) return "";
         const val = bd.series[si]?.[bi] ?? 0;
         const color = bd.colors[si];
-        const name = dataset.friendlyName ?? this.entityConfigs[si]?.entity ?? `Entity ${si + 1}`;
+        const name = this.entityConfigs[si]?.name ?? dataset.friendlyName ?? this.entityConfigs[si]?.entity ?? `Entity ${si + 1}`;
         return `<div class="u-tooltip-row">
           <span class="u-tooltip-dot" style="background:${color}"></span>
           <span class="u-tooltip-name">${name}</span>

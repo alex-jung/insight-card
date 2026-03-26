@@ -942,7 +942,7 @@ export class InsightLineCard extends InsightBaseCard {
                 if (val == null) return "";
                 const unit = dataset.unit ? ` ${dataset.unit}` : "";
                 const color = this._tooltipColors[i] ?? "#888";
-                const name = dataset.friendlyName;
+                const name = this.entityConfigs[i]?.name ?? dataset.friendlyName;
                 return `<div class="u-tooltip-row">
         <span class="u-tooltip-dot" style="background:${color}"></span>
         <span class="u-tooltip-name">${name}</span>
