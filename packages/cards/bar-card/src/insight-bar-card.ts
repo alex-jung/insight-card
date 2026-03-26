@@ -218,12 +218,51 @@ export class InsightBarCard extends InsightBaseCard {
     requestAnimationFrame(() => requestAnimationFrame(() => this._syncUplot()));
   }
 
+  override connectedCallback(): void {
+    super.connectedCallback();
+
+    this._resizeObserver = new ResizeObserver(() => {
+      this._refreshChartHeight();
+      const width = this.wrapper?.clientWidth ?? 0;
+      const height = this._chartHeight;
+      if (width < 10 || height < 10) return;
+      if (!this._uplot) {
+        this._syncUplot();
+      } else {
+        this._uplot.setSize({ width, height });
+      }
+    });
+
+    this.updateComplete.then(() => {
+      this._resizeObserver!.observe(this);
+    });
+  }
+
   override disconnectedCallback(): void {
     super.disconnectedCallback();
     this._resizeObserver?.disconnect();
     this._resizeObserver = null;
     this._uplot?.destroy();
     this._uplot = undefined;
+  }
+
+  private _refreshChartHeight(): void {
+    const total = this.offsetHeight;
+    if (total === 0) return;
+
+    const legendEl = this.shadowRoot?.querySelector<HTMLElement>(".bar-legend");
+    const legendHeight = legendEl?.offsetHeight ?? 0;
+
+    let h = total;
+    h -= this._header?.offsetHeight ?? 0;
+    h -= legendHeight;
+    h -= this._config?.margin_top ?? 0;
+    h -= this._config?.margin_bottom ?? 0;
+
+    const clamped = Math.max(80, h);
+    if (clamped !== this._chartHeight) {
+      this._chartHeight = clamped;
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -474,18 +513,6 @@ export class InsightBarCard extends InsightBaseCard {
       this._uplot = undefined;
       this._uplot = new uPlot(this._buildOptions(bucketData), uData, this.wrapper);
       this._needsRebuild = false;
-
-      if (!this._resizeObserver) {
-        this._resizeObserver = new ResizeObserver(() => {
-          if (this._uplot && this.wrapper) {
-            this._uplot.setSize({
-              width: Math.max(100, this.wrapper.clientWidth),
-              height: this._chartHeight,
-            });
-          }
-        });
-        this._resizeObserver.observe(this.wrapper);
-      }
     } else if (this._data !== this._lastSyncedDataRef) {
       this._uplot!.setData(uData, true);
     }
