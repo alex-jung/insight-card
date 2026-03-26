@@ -114,6 +114,12 @@ export class InsightBarCard extends InsightBaseCard {
   /** Last _data reference synced to uPlot */
   private _lastSyncedDataRef?: typeof this._data;
 
+  /** Floating tooltip element — appended to u.root */
+  private _tooltipEl?: HTMLDivElement;
+  /** Cached u.over offset — updated in ready hook, used for tooltip positioning */
+  private _overLeft = 0;
+  private _overTop = 0;
+
   /** Index of the currently hovered legend item — drives bar opacity in draw hook */
   @state() private _hoveredSeriesIdx: number | null = null;
   /** Set of hidden series indices — toggled by legend click */
@@ -413,6 +419,18 @@ export class InsightBarCard extends InsightBaseCard {
       legend: { show: false },
       cursor: { show: false },
       hooks: {
+        ready: [
+          (u: uPlot) => {
+            this._tooltipEl = document.createElement("div");
+            this._tooltipEl.className = "u-tooltip";
+            u.root.appendChild(this._tooltipEl);
+            this._overLeft = u.over.offsetLeft;
+            this._overTop = u.over.offsetTop;
+            u.over.addEventListener("mousemove", (e) => this._onChartMouseMove(u, e));
+            u.over.addEventListener("mouseleave", () => this._hideTooltip());
+          },
+        ],
+        destroy: [() => { this._tooltipEl = undefined; }],
         draw: [(u: uPlot) => this._drawBarsHook(u)],
       },
       padding: [
@@ -486,6 +504,59 @@ export class InsightBarCard extends InsightBaseCard {
   }
 
   // -------------------------------------------------------------------------
+  // Tooltip
+  // -------------------------------------------------------------------------
+
+  private _onChartMouseMove(u: uPlot, e: MouseEvent): void {
+    const bd = this._bucketData;
+    if (!bd || bd.labels.length === 0 || !this._tooltipEl) return;
+
+    const n = bd.labels.length;
+    // e.offsetX is relative to u.over, which is already aligned with the plot
+    // area (left edge = after Y-axis). So offsetX=0 is the leftmost plot pixel.
+    const mouseX = e.offsetX;
+    const plotWidth = u.bbox.width / uPlot.pxRatio;
+
+    if (mouseX < 0 || mouseX > plotWidth) {
+      this._hideTooltip();
+      return;
+    }
+
+    const bi = Math.max(0, Math.min(n - 1, Math.floor(mouseX / (plotWidth / n))));
+
+    const rows = this._data
+      .map((dataset, si) => {
+        if (this._hiddenSeries.has(si)) return "";
+        const val = bd.series[si]?.[bi] ?? 0;
+        const color = bd.colors[si];
+        const name = dataset.friendlyName ?? this.entityConfigs[si]?.entity ?? `Entity ${si + 1}`;
+        return `<div class="u-tooltip-row">
+          <span class="u-tooltip-dot" style="background:${color}"></span>
+          <span class="u-tooltip-name">${name}</span>
+          <span class="u-tooltip-value">${formatValue(val)}</span>
+        </div>`;
+      })
+      .filter(Boolean)
+      .join("");
+
+    this._tooltipEl.innerHTML = `<div class="u-tooltip-time">${bd.labels[bi]}</div>${rows}`;
+    this._tooltipEl.style.display = "block";
+
+    // Position relative to u.root — mouseX + overLeft converts from plot-area
+    // coords back to u.root coords.
+    const left = mouseX + this._overLeft;
+    const top = e.offsetY + this._overTop;
+    const flip = mouseX > plotWidth / 2;
+    this._tooltipEl.style.left = `${left + (flip ? -12 : 12)}px`;
+    this._tooltipEl.style.top = `${top}px`;
+    this._tooltipEl.style.transform = flip ? "translate(-100%, -50%)" : "translateY(-50%)";
+  }
+
+  private _hideTooltip(): void {
+    if (this._tooltipEl) this._tooltipEl.style.display = "none";
+  }
+
+  // -------------------------------------------------------------------------
   // uPlot sync
   // -------------------------------------------------------------------------
 
@@ -493,6 +564,10 @@ export class InsightBarCard extends InsightBaseCard {
     const config = this._config as InsightBarConfig | undefined;
     if (!config || !this.wrapper) return;
     if (this._data.length === 0) return;
+
+    // Recompute height after every update — the legend may have just appeared
+    // (data arriving after first paint) and DOM is settled after double-rAF.
+    this._refreshChartHeight();
 
     const bucketData = this._buildBucketData();
 
@@ -560,6 +635,47 @@ export class InsightBarCard extends InsightBaseCard {
         display: block;
         width: 100%;
         height: 100%;
+      }
+
+      /* Tooltip */
+      .u-tooltip {
+        position: absolute;
+        pointer-events: none;
+        z-index: 200;
+        background: var(--card-background-color, #fff);
+        border: 1px solid var(--divider-color, #e0e0e0);
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        color: var(--primary-text-color);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        white-space: nowrap;
+        display: none;
+      }
+      .u-tooltip-time {
+        color: var(--secondary-text-color);
+        margin-bottom: 4px;
+        font-size: 0.7rem;
+      }
+      .u-tooltip-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 1px 0;
+      }
+      .u-tooltip-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+      .u-tooltip-name {
+        color: var(--secondary-text-color);
+        flex: 1;
+      }
+      .u-tooltip-value {
+        font-weight: 500;
+        text-align: right;
       }
 
       .bar-legend {
