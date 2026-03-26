@@ -407,7 +407,10 @@ export class InsightBarCard extends InsightBaseCard {
     const isDark = this.isDarkTheme;
 
     const axisStroke = isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.55)";
-    const gridStroke = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
+    const gridOpacity = config.grid_opacity ?? 1;
+    const gridStroke = isDark
+      ? `rgba(255,255,255,${(0.08 * gridOpacity).toFixed(3)})`
+      : `rgba(0,0,0,${(0.08 * gridOpacity).toFixed(3)})`;
 
     const series: uPlot.Series[] = [{}];
     this._data.forEach((dataset, i) => {

@@ -25,6 +25,8 @@
       "show_points": "Datenpunkte",
       "line_width": "Linienbreite",
       "fill_opacity": "Fülldeckkraft",
+      "bar_fill_opacity": "Balken-Fülldeckkraft",
+      "bar_radius": "Balken-Eckenradius",
       "y_min": "Minimum",
       "y_max": "Maximum",
       "decimals": "Nachkommastellen",

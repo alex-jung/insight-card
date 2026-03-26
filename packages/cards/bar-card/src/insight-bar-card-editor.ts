@@ -61,10 +61,19 @@ function dropEmpty<T extends Record<string, unknown>>(data: T): Partial<T> {
 }
 
 // Minimal ha-form schema types (mirror HA's internal interface)
-type HaFormField = { name: string; selector: Record<string, unknown>; required?: boolean };
-type HaFormSchema = HaFormField | {
-    type: string; name: string; flatten?: boolean; schema: HaFormField[];
+type HaFormField = {
+    name: string;
+    selector: Record<string, unknown>;
+    required?: boolean;
 };
+type HaFormSchema =
+    | HaFormField
+    | {
+          type: string;
+          name: string;
+          flatten?: boolean;
+          schema: HaFormField[];
+      };
 
 // ---------------------------------------------------------------------------
 // Schema constants
@@ -78,7 +87,13 @@ const CHART_STYLE_SCHEMA: HaFormSchema[] = [
     {
         name: "bar_radius",
         selector: {
-            number: { min: 0, max: 20, step: 1, mode: "slider", unit_of_measurement: "px" },
+            number: {
+                min: 0,
+                max: 20,
+                step: 1,
+                mode: "slider",
+                unit_of_measurement: "px",
+            },
         },
     },
     {
@@ -88,12 +103,12 @@ const CHART_STYLE_SCHEMA: HaFormSchema[] = [
 ];
 
 const Y_AXIS_SCHEMA: HaFormSchema[] = [
-    { name: "y_min", selector: { number: { step: 0.1, mode: "box" } } },
-    { name: "y_max", selector: { number: { step: 0.1, mode: "box" } } },
+    { name: "y_min", selector: { number: { step: 0.1 } } },
+    { name: "y_max", selector: { number: { step: 0.1 } } },
 ];
 
 const THRESHOLD_SCHEMA: HaFormField[] = [
-    { name: "value", selector: { number: { step: 0.1, mode: "box" } } },
+    { name: "value", selector: { number: { step: 0.1 } } },
     { name: "label", selector: { text: {} } },
     { name: "dash", selector: { text: {} } },
 ];
@@ -106,7 +121,13 @@ const ADVANCED_SCHEMA: HaFormSchema[] = [
     {
         name: "update_interval",
         selector: {
-            number: { min: 10, max: 3600, step: 10, mode: "box", unit_of_measurement: "s" },
+            number: {
+                min: 10,
+                max: 3600,
+                step: 10,
+                mode: "box",
+                unit_of_measurement: "s",
+            },
         },
     },
 ];
@@ -144,10 +165,8 @@ export class InsightBarCardEditor extends InsightBaseEditor {
         }
         return html`
             <div class="editor-container">
-                ${this._renderGeneralSection()}
-                ${this._renderEntitySection()}
-                ${this._renderChartStyleSection()}
-                ${this._renderYAxisSection()}
+                ${this._renderGeneralSection()} ${this._renderEntitySection()}
+                ${this._renderChartStyleSection()} ${this._renderYAxisSection()}
                 ${this._renderOverlaysSection()}
                 ${this._renderInteractionsSection()}
                 ${this._renderAdvancedSection()}
@@ -178,8 +197,12 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                     .schema=${[{ name: "title", selector: { text: {} } }]}
                     .data=${{ title: cfg.title ?? "" }}
                     .computeLabel=${this._computeLabel}
-                    @value-changed=${(e: CustomEvent<{ value: Record<string, unknown> }>) =>
-                        this._updateConfig(e.detail.value as Partial<InsightBarConfig>)}
+                    @value-changed=${(
+                        e: CustomEvent<{ value: Record<string, unknown> }>,
+                    ) =>
+                        this._updateConfig(
+                            e.detail.value as Partial<InsightBarConfig>,
+                        )}
                 ></ha-form>
                 <div class="control-row">
                     <span class="control-label">
@@ -189,7 +212,9 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                         .options=${this._hoursOptions}
                         .value=${String(cfg.hours ?? 24)}
                         @value-changed=${(e: CustomEvent<{ value: string }>) =>
-                            this._updateConfig({ hours: Number(e.detail.value) })}
+                            this._updateConfig({
+                                hours: Number(e.detail.value),
+                            })}
                     ></ha-control-select>
                 </div>
                 <div class="control-row">
@@ -204,7 +229,8 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                         .value=${cfg.group_by ?? "day"}
                         @value-changed=${(e: CustomEvent<{ value: string }>) =>
                             this._updateConfig({
-                                group_by: e.detail.value as InsightBarConfig["group_by"],
+                                group_by: e.detail
+                                    .value as InsightBarConfig["group_by"],
                             } as unknown as Partial<InsightBaseConfig>)}
                     ></ha-control-select>
                 </div>
@@ -220,7 +246,8 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                         .value=${cfg.aggregate ?? "mean"}
                         @value-changed=${(e: CustomEvent<{ value: string }>) =>
                             this._updateConfig({
-                                aggregate: e.detail.value as InsightBarConfig["aggregate"],
+                                aggregate: e.detail
+                                    .value as InsightBarConfig["aggregate"],
                             } as unknown as Partial<InsightBaseConfig>)}
                     ></ha-control-select>
                 </div>
@@ -234,7 +261,8 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                         .value=${cfg.layout ?? "grouped"}
                         @value-changed=${(e: CustomEvent<{ value: string }>) =>
                             this._updateConfig({
-                                layout: e.detail.value as InsightBarConfig["layout"],
+                                layout: e.detail
+                                    .value as InsightBarConfig["layout"],
                             } as unknown as Partial<InsightBaseConfig>)}
                     ></ha-control-select>
                 </div>
@@ -250,7 +278,10 @@ export class InsightBarCardEditor extends InsightBaseEditor {
         const palette = generateColors(Math.max(this._entities.length, 5));
         return html`
             <ha-expansion-panel outlined>
-                <ha-svg-icon slot="leading-icon" .path=${mdiFormatListBulleted}></ha-svg-icon>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiFormatListBulleted}
+                ></ha-svg-icon>
                 <span slot="header">
                     ${localize("editor.section.entities", this._lang)}
                 </span>
@@ -267,14 +298,18 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                                         @input=${(e: Event) =>
                                             this._updateEntityAt(idx, {
                                                 ...ec,
-                                                color: (e.target as HTMLInputElement).value,
+                                                color: (
+                                                    e.target as HTMLInputElement
+                                                ).value,
                                             })}
                                     />
                                 </div>
                                 <ha-entity-picker
                                     .hass=${this.hass}
                                     .value=${ec.entity ?? ""}
-                                    @value-changed=${(e: CustomEvent<{ value: string }>) =>
+                                    @value-changed=${(
+                                        e: CustomEvent<{ value: string }>,
+                                    ) =>
                                         this._updateEntityAt(idx, {
                                             ...ec,
                                             entity: e.detail.value,
@@ -287,8 +322,8 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                                         this._updateEntityAt(idx, {
                                             ...ec,
                                             name:
-                                                (e.target as HTMLInputElement).value ||
-                                                undefined,
+                                                (e.target as HTMLInputElement)
+                                                    .value || undefined,
                                         })}
                                 ></ha-textfield>
                                 <ha-icon-button
@@ -345,7 +380,10 @@ export class InsightBarCardEditor extends InsightBaseEditor {
         };
         return html`
             <ha-expansion-panel outlined>
-                <ha-svg-icon slot="leading-icon" .path=${mdiChartBar}></ha-svg-icon>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiChartBar}
+                ></ha-svg-icon>
                 <span slot="header">
                     ${localize("editor.section.chart_style", this._lang)}
                 </span>
@@ -358,11 +396,16 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                             .height=${120}
                             ?active=${cfg.zoom === true}
                             @toggle=${() =>
-                                this._updateConfig({ zoom: !cfg.zoom } as unknown as Partial<InsightBaseConfig>)}
+                                this._updateConfig({
+                                    zoom: !cfg.zoom,
+                                } as unknown as Partial<InsightBaseConfig>)}
                         ></insight-toggle-button>
                         <insight-toggle-button
                             .svg=${SVG_SHOW_LEGEND}
-                            .label=${localize("editor.field.show_legend", this._lang)}
+                            .label=${localize(
+                                "editor.field.show_legend",
+                                this._lang,
+                            )}
                             .width=${110}
                             .height=${120}
                             ?active=${cfg.show_legend !== false}
@@ -373,7 +416,10 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                         ></insight-toggle-button>
                         <insight-toggle-button
                             .svg=${SVG_SHOW_X_AXIS}
-                            .label=${localize("editor.field.show_x_axis", this._lang)}
+                            .label=${localize(
+                                "editor.field.show_x_axis",
+                                this._lang,
+                            )}
                             .width=${110}
                             .height=${120}
                             ?active=${cfg.show_x_axis !== false}
@@ -384,7 +430,10 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                         ></insight-toggle-button>
                         <insight-toggle-button
                             .svg=${SVG_SHOW_Y_AXIS}
-                            .label=${localize("editor.field.show_y_axis", this._lang)}
+                            .label=${localize(
+                                "editor.field.show_y_axis",
+                                this._lang,
+                            )}
                             .width=${110}
                             .height=${120}
                             ?active=${cfg.show_y_axis !== false}
@@ -400,7 +449,9 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                         .data=${data}
                         .computeLabel=${this._computeLabel}
                         .computeHelper=${this._computeHelper}
-                        @value-changed=${(e: CustomEvent<{ value: typeof data }>) =>
+                        @value-changed=${(
+                            e: CustomEvent<{ value: typeof data }>,
+                        ) =>
                             this._updateConfig(
                                 e.detail.value as Partial<InsightBarConfig>,
                             )}
@@ -419,7 +470,10 @@ export class InsightBarCardEditor extends InsightBaseEditor {
         const cfg = this._barConfig;
         return html`
             <ha-expansion-panel outlined>
-                <ha-svg-icon slot="leading-icon" .path=${mdiAxisArrow}></ha-svg-icon>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiAxisArrow}
+                ></ha-svg-icon>
                 <span slot="header">
                     ${localize("editor.section.y_axis", this._lang)}
                 </span>
@@ -454,7 +508,10 @@ export class InsightBarCardEditor extends InsightBaseEditor {
         const colorThresholds = cfg.color_thresholds ?? [];
         return html`
             <ha-expansion-panel outlined>
-                <ha-svg-icon slot="leading-icon" .path=${mdiLayersOutline}></ha-svg-icon>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiLayersOutline}
+                ></ha-svg-icon>
                 <span slot="header">
                     ${localize("editor.section.overlays", this._lang)}
                 </span>
@@ -470,7 +527,10 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                             <div class="overlay-row">
                                 <div class="overlay-color-field">
                                     <span class="field-label">
-                                        ${localize("editor.field.color", this._lang)}
+                                        ${localize(
+                                            "editor.field.color",
+                                            this._lang,
+                                        )}
                                     </span>
                                     <input
                                         type="color"
@@ -479,8 +539,9 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                                         @input=${(e: Event) =>
                                             this._updateThresholdAt(idx, {
                                                 ...t,
-                                                color: (e.target as HTMLInputElement)
-                                                    .value,
+                                                color: (
+                                                    e.target as HTMLInputElement
+                                                ).value,
                                             })}
                                     />
                                 </div>
@@ -500,7 +561,9 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                                     ) =>
                                         this._updateThresholdAt(idx, {
                                             ...t,
-                                            ...this._parseThreshold(e.detail.value),
+                                            ...this._parseThreshold(
+                                                e.detail.value,
+                                            ),
                                         })}
                                 ></ha-form>
                                 <ha-icon-button
@@ -525,7 +588,10 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                             <div class="overlay-row">
                                 <div class="overlay-color-field">
                                     <span class="field-label">
-                                        ${localize("editor.field.color", this._lang)}
+                                        ${localize(
+                                            "editor.field.color",
+                                            this._lang,
+                                        )}
                                     </span>
                                     <input
                                         type="color"
@@ -534,8 +600,9 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                                         @input=${(e: Event) =>
                                             this._updateColorThresholdAt(idx, {
                                                 ...ct,
-                                                color: (e.target as HTMLInputElement)
-                                                    .value,
+                                                color: (
+                                                    e.target as HTMLInputElement
+                                                ).value,
                                             })}
                                     />
                                 </div>
@@ -552,8 +619,9 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                                         this._updateColorThresholdAt(idx, {
                                             ...ct,
                                             value:
-                                                (e.detail.value["value"] as number) ??
-                                                0,
+                                                (e.detail.value[
+                                                    "value"
+                                                ] as number) ?? 0,
                                         })}
                                 ></ha-form>
                                 <ha-icon-button
@@ -565,7 +633,10 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                         `,
                     )}
                     <ha-button @click=${this._appendColorThreshold}>
-                        ${localize("editor.action.add_color_threshold", this._lang)}
+                        ${localize(
+                            "editor.action.add_color_threshold",
+                            this._lang,
+                        )}
                     </ha-button>
                 </div>
             </ha-expansion-panel>
@@ -581,7 +652,13 @@ export class InsightBarCardEditor extends InsightBaseEditor {
             name: "tap_action",
             selector: {
                 ui_action: {
-                    actions: ["perform-action", "assist", "url", "navigate", "none"],
+                    actions: [
+                        "perform-action",
+                        "assist",
+                        "url",
+                        "navigate",
+                        "none",
+                    ],
                     default_action: "more-info" as const,
                 },
             },
@@ -590,29 +667,34 @@ export class InsightBarCardEditor extends InsightBaseEditor {
             name: "",
             type: "optional_actions",
             flatten: true,
-            schema: (["double_tap_action", "hold_action"] as const).map((action) => ({
-                name: action,
-                selector: {
-                    ui_action: {
-                        actions: [
-                            "more-info",
-                            "perform-action",
-                            "assist",
-                            "navigate",
-                            "url",
-                            "none",
-                        ],
-                        default_action: "none" as const,
+            schema: (["double_tap_action", "hold_action"] as const).map(
+                (action) => ({
+                    name: action,
+                    selector: {
+                        ui_action: {
+                            actions: [
+                                "more-info",
+                                "perform-action",
+                                "assist",
+                                "navigate",
+                                "url",
+                                "none",
+                            ],
+                            default_action: "none" as const,
+                        },
                     },
-                },
-            })),
+                }),
+            ),
         },
     ];
 
     private _renderInteractionsSection(): TemplateResult {
         return html`
             <ha-expansion-panel outlined>
-                <ha-svg-icon slot="leading-icon" .path=${mdiGestureTap}></ha-svg-icon>
+                <ha-svg-icon
+                    slot="leading-icon"
+                    .path=${mdiGestureTap}
+                ></ha-svg-icon>
                 <span slot="header">
                     ${localize("editor.section.interactions", this._lang)}
                 </span>
@@ -677,8 +759,14 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                     .label=${localize("editor.subsection.layout", this._lang)}
                 ></insight-section-title>
                 <insight-box-model
-                    .labelOuter=${localize("editor.subsection.margin", this._lang)}
-                    .labelInner=${localize("editor.subsection.padding", this._lang)}
+                    .labelOuter=${localize(
+                        "editor.subsection.margin",
+                        this._lang,
+                    )}
+                    .labelInner=${localize(
+                        "editor.subsection.padding",
+                        this._lang,
+                    )}
                     keyOuter="margin"
                     keyInner="padding"
                     .outerTop=${cfg.margin_top ?? 0}
@@ -704,8 +792,11 @@ export class InsightBarCardEditor extends InsightBaseEditor {
     // computeLabel / computeHelper
     // ---------------------------------------------------------------------------
 
-    private readonly _computeLabel = (schema: { name: string }): string =>
-        localize(`editor.field.${schema.name}`, this._lang);
+    private readonly _computeLabel = (schema: { name: string }): string => {
+        if (schema.name === "fill_opacity")
+            return localize("editor.field.bar_fill_opacity", this._lang);
+        return localize(`editor.field.${schema.name}`, this._lang);
+    };
 
     private readonly _computeHelper = (schema: { name: string }): string => {
         const key = `editor.helper.${schema.name}`;
@@ -717,10 +808,15 @@ export class InsightBarCardEditor extends InsightBaseEditor {
     // Threshold helpers
     // ---------------------------------------------------------------------------
 
-    private _parseThreshold(raw: Record<string, unknown>): Partial<ThresholdConfig> {
+    private _parseThreshold(
+        raw: Record<string, unknown>,
+    ): Partial<ThresholdConfig> {
         const dashStr = raw["dash"] as string | undefined;
         const dash = dashStr
-            ? dashStr.split(",").map(Number).filter((n) => !isNaN(n))
+            ? dashStr
+                  .split(",")
+                  .map(Number)
+                  .filter((n) => !isNaN(n))
             : undefined;
         return {
             value: (raw["value"] as number) ?? 0,
@@ -763,7 +859,10 @@ export class InsightBarCardEditor extends InsightBaseEditor {
         this._updateConfig({ color_thresholds } as Partial<InsightBarConfig>);
     }
 
-    private _updateColorThresholdAt(idx: number, ct: ColorThresholdConfig): void {
+    private _updateColorThresholdAt(
+        idx: number,
+        ct: ColorThresholdConfig,
+    ): void {
         const color_thresholds = [...(this._barConfig.color_thresholds ?? [])];
         color_thresholds[idx] = ct;
         this._updateConfig({ color_thresholds } as Partial<InsightBarConfig>);
@@ -789,14 +888,14 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                 flex-wrap: wrap;
                 justify-content: space-evenly;
                 gap: 8px;
-                padding: 20px 0px;
+                padding-bottom: 20px;
             }
 
             .control-row {
                 display: flex;
                 flex-direction: column;
                 gap: 4px;
-                padding: 20px 0px;
+                padding: 8px 0 8px 0px;
             }
 
             .control-label {

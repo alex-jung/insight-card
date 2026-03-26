@@ -25,6 +25,8 @@
       "show_points": "Data points",
       "line_width": "Line width",
       "fill_opacity": "Fill opacity",
+      "bar_fill_opacity": "Bar fill opacity",
+      "bar_radius": "Bar corner radius",
       "y_min": "Minimum",
       "y_max": "Maximum",
       "decimals": "Decimal places",
