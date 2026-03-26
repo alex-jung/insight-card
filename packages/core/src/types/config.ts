@@ -321,6 +321,11 @@ export interface InsightBarConfig extends InsightBaseConfig {
   y_max?: number;
   /** Horizontal reference lines drawn across the chart. */
   thresholds?: ThresholdConfig[];
+  /**
+   * Bar fill opacity (0–1).
+   * @default 1
+   */
+  fill_opacity?: number;
 }
 
 // ---------------------------------------------------------------------------

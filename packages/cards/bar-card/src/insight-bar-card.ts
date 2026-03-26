@@ -486,6 +486,7 @@ export class InsightBarCard extends InsightBaseCard {
     const ctx = u.ctx;
     const { left, top: _top, width, height: _height } = u.bbox;
     const numSeries = series.length;
+    const baseAlpha = Math.min(1, Math.max(0, config.fill_opacity ?? 1));
 
     const bucketW = width / n;
     const padFrac = 0.15;
@@ -505,7 +506,8 @@ export class InsightBarCard extends InsightBaseCard {
           if (this._hiddenSeries.has(si)) continue;
           const val = series[si][bi] ?? 0;
           if (val <= 0) continue;
-          ctx.globalAlpha = this._hoveredSeriesIdx !== null && this._hoveredSeriesIdx !== si ? 0.15 : 1;
+          ctx.globalAlpha = this._hoveredSeriesIdx !== null && this._hoveredSeriesIdx !== si
+            ? baseAlpha * 0.15 : baseAlpha;
           const yTop = u.valToPos(cumulative + val, "y", true);
           const yBottom = u.valToPos(cumulative, "y", true);
           ctx.fillStyle = colors[si];
@@ -519,7 +521,8 @@ export class InsightBarCard extends InsightBaseCard {
           if (this._hiddenSeries.has(si)) continue;
           const val = series[si][bi] ?? 0;
           if (val <= 0) continue;
-          ctx.globalAlpha = this._hoveredSeriesIdx !== null && this._hoveredSeriesIdx !== si ? 0.15 : 1;
+          ctx.globalAlpha = this._hoveredSeriesIdx !== null && this._hoveredSeriesIdx !== si
+            ? baseAlpha * 0.15 : baseAlpha;
           const yTop = u.valToPos(val, "y", true);
           const x = groupX + si * barW;
           ctx.fillStyle = colors[si];
