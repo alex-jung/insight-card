@@ -1071,7 +1071,9 @@ export class InsightLineCard extends InsightBaseCard {
         return html`
             <div
                 class="chart-wrapper"
-                @click=${() => {
+                @click=${(e: MouseEvent) => {
+                    // Ignore clicks that originated from the uPlot legend
+                    if ((e.target as Element)?.closest(".u-legend")) return;
                     this._tapTimer = setTimeout(
                         () => this._handleAction("tap_action"),
                         250,
