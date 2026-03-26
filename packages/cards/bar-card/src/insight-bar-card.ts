@@ -389,6 +389,7 @@ export class InsightBarCard extends InsightBaseCard {
       axes: [
         {
           // x axis — categorical bucket labels
+          show: config.show_x_axis !== false,
           stroke: axisStroke,
           grid: { show: false },
           ticks: { show: false },
@@ -399,6 +400,7 @@ export class InsightBarCard extends InsightBaseCard {
         },
         {
           // y axis
+          show: config.show_y_axis !== false,
           stroke: axisStroke,
           grid: { stroke: gridStroke, width: 1 },
           ticks: { show: false },
