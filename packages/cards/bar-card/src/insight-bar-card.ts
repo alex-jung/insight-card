@@ -135,10 +135,14 @@ export class InsightBarCard extends InsightBaseCard {
   /** Cached --error-color for threshold lines */
   private _thresholdDefaultColor = "#db4437";
 
-  /** Zoom drag state */
+  /** Zoom drag / touch state */
   private _isDragging = false;
   private _dragStartX = 0;
   private _zoomOverlay?: HTMLDivElement;
+  /** Initial pinch distance recorded on touchstart with 2 fingers */
+  private _pinchInitDist = 0;
+  /** Bucket indices at the left/right finger when pinch started */
+  private _pinchInitRange: [number, number] = [0, 0];
 
   /**
    * The slice of _buildBucketData() currently shown in uPlot.
@@ -557,9 +561,7 @@ export class InsightBarCard extends InsightBaseCard {
 
               u.over.addEventListener("mouseup", endDrag);
 
-              u.over.addEventListener("dblclick", () => {
-                this._zoomRange = null;
-              });
+              this._attachTouchZoom(u);
             }
           },
         ],
@@ -712,6 +714,115 @@ export class InsightBarCard extends InsightBaseCard {
       }
     }
     ctx.restore();
+  }
+
+  // -------------------------------------------------------------------------
+  // Touch zoom (single-finger drag + pinch)
+  // -------------------------------------------------------------------------
+
+  private _attachTouchZoom(u: uPlot): void {
+    const over = u.over;
+
+    /** Convert a Touch to an offsetX relative to u.over */
+    const toOffsetX = (t: Touch) => t.clientX - over.getBoundingClientRect().left;
+
+    /** Bucket index from an offsetX (clamped to display range) */
+    const toBucket = (offsetX: number): number => {
+      const bd = this._activeBucketData;
+      if (!bd || bd.labels.length === 0) return 0;
+      const n = bd.labels.length;
+      const plotW = u.bbox.width / uPlot.pxRatio;
+      return Math.max(0, Math.min(n - 1, Math.floor(offsetX / (plotW / n))));
+    };
+
+    // ── Single-finger drag → zoom selection ──────────────────────────────────
+    over.addEventListener("touchstart", (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        const ox = toOffsetX(e.touches[0]);
+        this._isDragging = true;
+        this._dragStartX = ox;
+        const ov = this._zoomOverlay!;
+        ov.style.top = `${this._overTop}px`;
+        ov.style.height = `${over.offsetHeight}px`;
+        ov.style.left = `${ox + this._overLeft}px`;
+        ov.style.width = "0px";
+        ov.style.display = "block";
+      } else if (e.touches.length === 2) {
+        // Cancel single-finger drag when second finger lands
+        this._isDragging = false;
+        if (this._zoomOverlay) this._zoomOverlay.style.display = "none";
+        // Record initial pinch state
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        this._pinchInitDist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+        const ox0 = toOffsetX(t0);
+        const ox1 = toOffsetX(t1);
+        this._pinchInitRange = [
+          toBucket(Math.min(ox0, ox1)),
+          toBucket(Math.max(ox0, ox1)),
+        ];
+      }
+    }, { passive: true });
+
+    over.addEventListener("touchmove", (e: TouchEvent) => {
+      if (e.touches.length === 1 && this._isDragging) {
+        e.preventDefault();
+        const ox = toOffsetX(e.touches[0]);
+        const x0 = Math.min(this._dragStartX, ox) + this._overLeft;
+        const x1 = Math.max(this._dragStartX, ox) + this._overLeft;
+        if (this._zoomOverlay) {
+          this._zoomOverlay.style.left = `${x0}px`;
+          this._zoomOverlay.style.width = `${x1 - x0}px`;
+        }
+      }
+    }, { passive: false });
+
+    over.addEventListener("touchend", (e: TouchEvent) => {
+      // ── Single-finger drag end → commit zoom ───────────────────────────────
+      if (this._isDragging) {
+        this._isDragging = false;
+        if (this._zoomOverlay) this._zoomOverlay.style.display = "none";
+        if (e.changedTouches.length > 0) {
+          const endX = toOffsetX(e.changedTouches[0]);
+          const bd = this._activeBucketData;
+          if (bd && bd.labels.length > 0) {
+            const x0 = Math.min(this._dragStartX, endX);
+            const x1 = Math.max(this._dragStartX, endX);
+            if (x1 - x0 >= 10) {
+              const dispStart = toBucket(x0);
+              const dispEnd = toBucket(x1);
+              if (dispEnd > dispStart) {
+                const offset = this._zoomRange?.[0] ?? 0;
+                this._zoomRange = [offset + dispStart, offset + dispEnd];
+              }
+            }
+          }
+        }
+        return;
+      }
+
+      // ── Pinch end → zoom to finger span (or zoom out if spread) ───────────
+      if (e.touches.length === 0 && e.changedTouches.length === 2) {
+        const t0 = e.changedTouches[0];
+        const t1 = e.changedTouches[1];
+        const finalDist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+
+        if (finalDist < this._pinchInitDist * 0.85) {
+          // Pinch in → zoom to range between fingers at touchend
+          const ox0 = toOffsetX(t0);
+          const ox1 = toOffsetX(t1);
+          const dispStart = toBucket(Math.min(ox0, ox1));
+          const dispEnd = toBucket(Math.max(ox0, ox1));
+          if (dispEnd > dispStart) {
+            const offset = this._zoomRange?.[0] ?? 0;
+            this._zoomRange = [offset + dispStart, offset + dispEnd];
+          }
+        } else if (finalDist > this._pinchInitDist * 1.15) {
+          // Spread out → zoom out one level (back to full if no parent range)
+          this._zoomRange = null;
+        }
+      }
+    }, { passive: true });
   }
 
   // -------------------------------------------------------------------------
