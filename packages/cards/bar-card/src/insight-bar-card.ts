@@ -11,9 +11,11 @@ import uPlot from "uplot";
 
 import {
   InsightBaseCard,
+  normaliseEntityConfig,
   type InsightBarConfig,
   type ThresholdConfig,
   type ColorThresholdConfig,
+  type ActionConfig,
   generateColors,
   formatValue,
   findNumericSensor,
@@ -162,6 +164,15 @@ export class InsightBarCard extends InsightBaseCard {
   /** Default chart area height in px (matches base .chart-container) */
   protected _chartHeight = 220;
 
+  /** Action timers */
+  private _tapTimer?: ReturnType<typeof setTimeout>;
+  private _holdTimer?: ReturnType<typeof setTimeout>;
+  /** Set in endDrag when a real zoom occurred — suppresses the following click */
+  private _wasZoomDrag = false;
+  /** Last known mouse position over u.over (CSS px, relative to plot area) */
+  private _lastMouseX = 0;
+  private _lastMouseY = 0;
+
   @query("#chart")
   private wrapper!: HTMLDivElement;
 
@@ -205,12 +216,36 @@ export class InsightBarCard extends InsightBaseCard {
 
   protected renderChart(): TemplateResult {
     return html`
-      <div id="chart" style="position:relative;">
-        ${this._zoomRange ? html`
-          <div class="bar-zoom-reset" @click=${() => { this._zoomRange = null; }}>
-            ↺ Reset Zoom
-          </div>
-        ` : nothing}
+      <div
+        class="chart-wrapper"
+        @click=${(e: MouseEvent) => {
+          if (this._wasZoomDrag) { this._wasZoomDrag = false; return; }
+          clearTimeout(this._holdTimer);
+          this._tapTimer = setTimeout(() => this._handleAction("tap_action"), 250);
+        }}
+        @dblclick=${(e: MouseEvent) => {
+          clearTimeout(this._tapTimer);
+          clearTimeout(this._holdTimer);
+          this._handleAction("double_tap_action");
+        }}
+        @pointerdown=${(e: PointerEvent) => {
+          clearTimeout(this._holdTimer);
+          this._holdTimer = setTimeout(() => {
+            clearTimeout(this._tapTimer);
+            this._handleAction("hold_action");
+          }, 500);
+        }}
+        @pointerup=${() => clearTimeout(this._holdTimer)}
+        @pointermove=${() => clearTimeout(this._holdTimer)}
+        @pointercancel=${() => clearTimeout(this._holdTimer)}
+      >
+        <div id="chart" style="position:relative;">
+          ${this._zoomRange ? html`
+            <div class="bar-zoom-reset" @click=${(e: Event) => { e.stopPropagation(); this._zoomRange = null; }}>
+              ↺ Reset Zoom
+            </div>
+          ` : nothing}
+        </div>
       </div>
       ${this._renderLegend()}
     `;
@@ -242,6 +277,64 @@ export class InsightBarCard extends InsightBaseCard {
         })}
       </div>
     `;
+  }
+
+  // ---------------------------------------------------------------------------
+  // HA Actions (tap / double-tap / hold)
+  // ---------------------------------------------------------------------------
+
+  private _handleAction(
+    actionType: "tap_action" | "double_tap_action" | "hold_action",
+  ): void {
+    const cfg = this._config as InsightBarConfig | undefined;
+    const action = cfg?.[actionType as keyof InsightBarConfig] as ActionConfig | undefined;
+
+    const detectedIdx = this._getSeriesAtPoint(this._lastMouseX, this._lastMouseY);
+
+    if (!action) {
+      if (actionType === "tap_action") this._fireMoreInfo(cfg, detectedIdx);
+      return;
+    }
+    if (action.action === "none") return;
+
+    switch (action.action) {
+      case "more-info":
+        this._fireMoreInfo(cfg, detectedIdx);
+        break;
+      case "navigate":
+        if (action.navigation_path) {
+          history.pushState(null, "", action.navigation_path);
+          this.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
+        }
+        break;
+      case "url":
+        if (action.url_path) window.open(action.url_path, "_blank");
+        break;
+      case "perform-action": {
+        const serviceStr = action.perform_action ?? action.service ?? "";
+        const [domain, service] = serviceStr.split(".", 2);
+        if (domain && service) {
+          this.hass?.callService(domain, service, action.data ?? action.service_data ?? {});
+        }
+        break;
+      }
+    }
+  }
+
+  private _fireMoreInfo(cfg: InsightBarConfig | undefined, entityIdx = 0): void {
+    const entities = cfg?.entities;
+    if (!entities || entities.length === 0) return;
+    const raw = entities[Math.min(entityIdx, entities.length - 1)];
+    if (!raw) return;
+    const entityId = normaliseEntityConfig(raw).entity;
+    if (!entityId) return;
+    this.dispatchEvent(
+      new CustomEvent("hass-more-info", {
+        detail: { entityId },
+        bubbles: true,
+        composed: true,
+      }),
+    );
   }
 
   private _toggleSeries(idx: number): void {
@@ -559,6 +652,7 @@ export class InsightBarCard extends InsightBaseCard {
 
                 // Map displayed indices back to full bucket data indices
                 const offset = this._zoomRange?.[0] ?? 0;
+                this._wasZoomDrag = true;
                 this._zoomRange = [offset + dispStart, offset + dispEnd];
               };
 
@@ -843,6 +937,10 @@ export class InsightBarCard extends InsightBaseCard {
     const mouseX = e.offsetX;
     const plotWidth = u.bbox.width / uPlot.pxRatio;
 
+    // Track for action handlers (click position in plot-area CSS px)
+    this._lastMouseX = mouseX;
+    this._lastMouseY = e.offsetY;
+
     if (mouseX < 0 || mouseX > plotWidth) {
       this._hideTooltip();
       return;
@@ -880,6 +978,51 @@ export class InsightBarCard extends InsightBaseCard {
 
   private _hideTooltip(): void {
     if (this._tooltipEl) this._tooltipEl.style.display = "none";
+  }
+
+  /**
+   * Detect which series (entity) was under the cursor at the last known mouse
+   * position. Uses the same bar geometry as the draw hook.
+   * Returns a series index (0-based), or 0 as a safe fallback.
+   */
+  private _getSeriesAtPoint(mouseX: number, mouseY: number): number {
+    const u = this._uplot;
+    const bd = this._activeBucketData;
+    const config = this._config as InsightBarConfig | undefined;
+    if (!u || !bd || bd.labels.length === 0) return 0;
+
+    const n = bd.labels.length;
+    const plotW = u.bbox.width / uPlot.pxRatio;
+    const padFrac = 0.15;
+    const bucketW = plotW / n;
+    const barGroupW = bucketW * (1 - padFrac * 2);
+    const bi = Math.max(0, Math.min(n - 1, Math.floor(mouseX / bucketW)));
+    const groupX = bi * bucketW + bucketW * padFrac;
+    const numSeries = bd.series.length;
+
+    if (config?.layout === "stacked") {
+      // Walk stacked segments bottom-to-top, find the one at mouseY
+      let cumulative = 0;
+      for (let si = 0; si < numSeries; si++) {
+        if (this._hiddenSeries.has(si)) continue;
+        const val = bd.series[si][bi] ?? 0;
+        if (val <= 0) continue;
+        const yTop = u.valToPos(cumulative + val, "y");   // CSS px, top of segment
+        const yBottom = u.valToPos(cumulative, "y");       // CSS px, bottom of segment
+        if (mouseY >= yTop && mouseY <= yBottom) return si;
+        cumulative += val;
+      }
+      return 0;
+    }
+
+    // grouped — find which bar column the click falls in
+    const barW = barGroupW / numSeries;
+    for (let si = 0; si < numSeries; si++) {
+      if (this._hiddenSeries.has(si)) continue;
+      const barX = groupX + si * barW;
+      if (mouseX >= barX && mouseX < barX + barW) return si;
+    }
+    return 0;
   }
 
   // -------------------------------------------------------------------------

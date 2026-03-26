@@ -296,6 +296,8 @@ export interface InsightLineConfig extends InsightBaseConfig {
   tap_action?: ActionConfig;
   /** Action triggered by a double-tap/double-click on the chart. */
   double_tap_action?: ActionConfig;
+  /** Action triggered by a long press (≥500 ms) on the chart. */
+  hold_action?: ActionConfig;
 }
 
 // ---------------------------------------------------------------------------
