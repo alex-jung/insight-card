@@ -5,476 +5,12 @@ resources:
       type: module
 
 views:
-    - title: Line Card
-      icon: mdi:chart-line
-      cards:
-          - type: custom:insight-line-card
-            title: Temperature Comparison
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Living Room
-                  color: "#FF6B4A"
-                - entity: sensor.test_temperature_bedroom
-                  name: Bedroom
-                  color: "#4AAFFF"
-            hours: 24
-            style: area
-            zoom: true
-            show_stats: true
-
-          - type: custom:insight-line-card
-            title: Power (Line)
-            entities:
-                - entity: sensor.test_power
-                  name: Power
-                  color: "#6BDB6B"
-            hours: 12
-            style: line
-
-    - title: Line Card Features
-      icon: mdi:chart-line-variant
-      cards:
-          - type: custom:insight-line-card
-            title: "grid_opacity: 1.0 (default)"
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Living Room
-                  color: "#FF6B4A"
-            hours: 24
-            style: area
-
-          - type: custom:insight-line-card
-            title: "grid_opacity: 0.3"
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Living Room
-                  color: "#FF6B4A"
-            hours: 24
-            style: area
-            grid_opacity: 0.3
-
-          - type: custom:insight-line-card
-            title: "grid_opacity: 0 (no grid)"
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Living Room
-                  color: "#FF6B4A"
-            hours: 24
-            style: area
-            grid_opacity: 0
-
-          - type: custom:insight-line-card
-            title: "Y-Axis: logarithmic scale"
-            entities:
-                - entity: sensor.test_power
-                  name: Power
-                  color: "#6BDB6B"
-            hours: 24
-            style: line
-            logarithmic: true
-
-          - type: custom:insight-line-card
-            title: "Y-Axis: secondary (right) axis"
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Temperature
-                  color: "#FF6B4A"
-                - entity: sensor.test_power
-                  name: Power (kW)
-                  color: "#4AAFFF"
-                  y_axis: right
-                  scale: 0.001
-                  unit: "kW"
-            hours: 24
-            style: line
-            show_stats: true
-
-          - type: custom:insight-line-card
-            title: "Hidden entity (toggle via legend)"
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Living Room
-                  color: "#FF6B4A"
-                - entity: sensor.test_temperature_bedroom
-                  name: Bedroom (starts hidden)
-                  color: "#4AAFFF"
-                  hidden: true
-            hours: 24
-            style: line
-            show_stats: true
-
-          - type: custom:insight-line-card
-            title: "Per-entity: line_width, fill_opacity, stroke_dash"
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Living Room (thick, full area)
-                  color: "#FF6B4A"
-                  line_width: 3
-                  fill_opacity: 0.4
-                - entity: sensor.test_temperature_bedroom
-                  name: Bedroom (thin, dashed, no fill)
-                  color: "#4AAFFF"
-                  line_width: 1
-                  fill_opacity: 0
-                  stroke_dash: [8, 4]
-            hours: 24
-            style: area
-            show_stats: true
-
-          - type: custom:insight-line-card
-            title: "Color Thresholds (gradient)"
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Temperature
-            hours: 24
-            style: area
-            y_min: 0
-            color_thresholds:
-                - value: 15
-                  color: "#4AAFFF"
-                - value: 20
-                  color: "#6BDB6B"
-                - value: 25
-                  color: "#FF6B4A"
-
-          - type: custom:insight-line-card
-            title: "Thresholds"
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Temperature
-                  color: "#FF6B4A"
-            hours: 24
-            style: area
-            y_min: 0
-            thresholds:
-                - value: 22
-                  color: "#FF6B4A"
-                  label: "Comfort max"
-                - value: 18
-                  color: "#4AAFFF"
-                  label: "Comfort min"
-                  dash: [8, 4]
-
-          - type: custom:insight-line-card
-            title: "time_format: time (HH:MM)"
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Living Room
-                  color: "#FF6B4A"
-            hours: 24
-            style: line
-            time_format: time
-
-          - type: custom:insight-line-card
-            title: "time_format: date (DD.MM)"
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Living Room
-                  color: "#FF6B4A"
-            hours: 168
-            style: line
-            time_format: date
-
-          - type: custom:insight-line-card
-            title: "show_points: true"
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Living Room
-                  color: "#FF6B4A"
-                - entity: sensor.test_temperature_bedroom
-                  name: Bedroom
-                  color: "#4AAFFF"
-            hours: 6
-            style: line
-            show_points: true
-
-          - type: custom:insight-line-card
-            title: "Y-Axis: soft bounds y_min=0, decimals=1"
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Living Room
-                  color: "#FF6B4A"
-                - entity: sensor.test_temperature_bedroom
-                  name: Bedroom
-                  color: "#4AAFFF"
-            hours: 24
-            style: area
-            y_min: 0
-            decimals: 1
-            show_stats: true
-
-    - title: Bar Card
-      icon: mdi:chart-bar
-      cards:
-          - type: custom:insight-bar-card
-            title: Daily Power Consumption
-            entities:
-                - entity: sensor.test_power
-            group_by: hour
-            aggregate: mean
-
-    - title: Statistics API
-      icon: mdi:database-clock
-      cards:
-          # Auto-switch: hours > 72 → Statistics API, period: "hour"
-          - type: custom:insight-line-card
-            title: Temperature — 7d (Statistics API auto)
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Living Room
-                  color: "#FF6B4A"
-                - entity: sensor.test_temperature_bedroom
-                  name: Bedroom
-                  color: "#4AAFFF"
-            hours: 168
-            style: area
-            show_stats: true
-
-          # Explizites statistics-Feld: erzwingt Statistics API unabhängig von hours
-          - type: custom:insight-line-card
-            title: Temperature — explicit statistics hour
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Living Room
-                  color: "#FF6B4A"
-                  statistics: "hour"
-            hours: 24
-            style: line
-            show_stats: true
-
-          # 30-Tage mit period: day
-          - type: custom:insight-bar-card
-            title: Power — 30d (Statistics API, period day)
-            entities:
-                - entity: sensor.test_power
-                  statistics: "day"
-            hours: 720
-            group_by: day
-            aggregate: mean
-
-    - title: Heatmap
-      icon: mdi:chart-box
-      cards:
-          - type: custom:insight-heatmap-card
-            title: Power Heatmap
-            entity: sensor.test_power
-            hours: 168
-            color_scale: YlOrRd
-
-    - title: Aggregation Demo
-      icon: mdi:chart-timeline-variant
-      cards:
-          # Rohwerte ohne Aggregation
-          - type: custom:insight-line-card
-            title: "Power — raw (no aggregation)"
-            entities:
-                - entity: sensor.test_power
-                  name: Power
-                  color: "#4AAFFF"
-            hours: 24
-            style: line
-            show_stats: true
-
-          # Karten-Level: 1h Mittelwert
-          - type: custom:insight-line-card
-            title: "Power — 1h mean (card-level)"
-            entities:
-                - entity: sensor.test_power
-                  name: Power
-                  color: "#FF6B4A"
-            hours: 24
-            style: area
-            aggregate: mean
-            aggregate_period: "1h"
-            show_stats: true
-
-          # Per-Entity Override: Living Room = mean, Bedroom = max
-          - type: custom:insight-line-card
-            title: "Temp — per-entity aggregate (30m)"
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Living Room (mean)
-                  color: "#FF6B4A"
-                  aggregate: mean
-                - entity: sensor.test_temperature_bedroom
-                  name: Bedroom (max)
-                  color: "#4AAFFF"
-                  aggregate: max
-            hours: 24
-            style: line
-            aggregate_period: "30m"
-            show_stats: true
-
-    - title: Transform Demo
-      icon: mdi:function-variant
-      cards:
-          - type: custom:insight-line-card
-            title: "diff — delta between consecutive values"
-            entities:
-                - entity: sensor.test_power
-                  name: Power Δ
-                  color: "#FF6B4A"
-                  transform: diff
-            hours: 12
-            style: line
-            show_stats: true
-
-          - type: custom:insight-line-card
-            title: "normalize — scale to 0–1"
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Living Room (norm)
-                  color: "#FF6B4A"
-                  transform: normalize
-                - entity: sensor.test_temperature_bedroom
-                  name: Bedroom (norm)
-                  color: "#4AAFFF"
-                  transform: normalize
-            hours: 24
-            style: line
-            show_stats: true
-
-          - type: custom:insight-line-card
-            title: "cumulative — running sum"
-            entities:
-                - entity: sensor.test_power
-                  name: Power (cumsum)
-                  color: "#6BDB6B"
-                  transform: cumulative
-            hours: 24
-            style: area
-            show_stats: true
-
-    - title: Scale Demo
-      icon: mdi:scale
-      cards:
-          # Rohwerte in Watt
-          - type: custom:insight-line-card
-            title: Power — raw (W)
-            entities:
-                - entity: sensor.test_power
-                  name: Power
-                  color: "#4AAFFF"
-            hours: 12
-            style: line
-            show_stats: true
-
-          # Gleicher Sensor, scale: 0.001 → Kilowatt
-          # Cache-Hit: unscaled Daten werden nur einmal von HA geholt
-          - type: custom:insight-line-card
-            title: Power — scaled (kW, scale 0.001)
-            entities:
-                - entity: sensor.test_power
-                  name: Power
-                  color: "#FF6B4A"
-                  scale: 0.001
-                  unit: "kW"
-            hours: 12
-            style: line
-            show_stats: true
-
-          # invert: true — Werte negiert (nützlich für Export-Sensoren)
-          - type: custom:insight-line-card
-            title: Power — inverted
-            entities:
-                - entity: sensor.test_power
-                  name: Power
-                  color: "#6BDB6B"
-                  invert: true
-            hours: 12
-            style: line
-            show_stats: true
-
-          # Kombination: scale + invert
-          - type: custom:insight-line-card
-            title: Power — inverted kW (scale 0.001 + invert)
-            entities:
-                - entity: sensor.test_power
-                  name: Power
-                  color: "#B07AFF"
-                  scale: 0.001
-                  invert: true
-            hours: 12
-            style: line
-            show_stats: true
-
-          # attribute: Zwei Attribute desselben Sensors in einer Card
-          - type: custom:insight-line-card
-            title: Climate — attributes as source
-            entities:
-                - entity: sensor.test_climate
-                  name: Current Temp
-                  color: "#FF6B4A"
-                  attribute: current_temperature
-                  unit: "°C"
-                - entity: sensor.test_climate
-                  name: Target Temp
-                  color: "#4AAFFF"
-                  attribute: target_temperature
-                  unit: "°C"
-                - entity: sensor.test_climate
-                  name: Humidity
-                  color: "#6BDB6B"
-                  attribute: humidity
-                  unit: "%"
-            hours: 12
-            style: line
-            show_stats: true
-
-    - title: Mixed Sensors
-      icon: mdi:gauge
-      cards:
-          - type: custom:insight-line-card
-            title: Environment
-            entities:
-                - entity: sensor.test_temperature_living_room
-                  name: Temperature
-                  color: "#FF6B4A"
-                - entity: sensor.test_humidity
-                  name: Humidity
-                  color: "#4AAFFF"
-                  y_axis: right
-            hours: 24
-            style: line
-            show_stats: true
-
-          - type: custom:insight-line-card
-            title: CO₂
-            entities:
-                - entity: sensor.test_co2
-                  name: CO₂
-                  color: "#B07AFF"
-            hours: 24
-            style: area
-            show_stats: true
-
-          - type: custom:insight-line-card
-            title: Battery
-            entities:
-                - entity: sensor.test_battery
-                  name: Battery
-                  color: "#6BDB6B"
-            hours: 24
-            style: line
-            y_min: 0
-            y_max: 100
-
-          - type: custom:insight-line-card
-            title: Energy (kWh, total_increasing)
-            entities:
-                - entity: sensor.test_energy
-                  name: Energy
-                  color: "#FFB84A"
-            hours: 24
-            style: area
-            show_stats: true
-
     # ---------------------------------------------------------------------------
-    # SHOWCASE — clean cards for README screenshots
+    # SHOWCASE LINE CARD — clean cards for README screenshots
     # Screenshot size: 800×400 px, dark mode preferred
     # ---------------------------------------------------------------------------
-    - title: Showcase
-      icon: mdi:camera
+    - title: Showcase Line Card
+      icon: mdi:chart-line
       cards:
           # screenshot: docs/screenshots/line-card-hero.png
           - type: custom:insight-line-card
@@ -591,3 +127,73 @@ views:
             hours: 24
             style: area
             show_stats: true
+
+    # ---------------------------------------------------------------------------
+    # SHOWCASE BAR CARD — clean cards for README screenshots
+    # Screenshot size: 800×400 px, dark mode preferred
+    # ---------------------------------------------------------------------------
+    - title: Showcase Bar Card
+      icon: mdi:chart-bar
+      cards:
+          # screenshot: docs/screenshots/bar-card-hero.png
+          - type: custom:insight-bar-card
+            title: Power — Hourly Consumption
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#6BDB6B"
+            hours: 24
+            group_by: hour
+            aggregate: mean
+
+          # screenshot: docs/screenshots/bar-card-grouped.png
+          - type: custom:insight-bar-card
+            title: Temperature — Grouped (Living Room vs Bedroom)
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom
+                  color: "#4AAFFF"
+            hours: 168
+            group_by: day
+            aggregate: mean
+            layout: grouped
+
+          # screenshot: docs/screenshots/bar-card-stacked.png
+          - type: custom:insight-bar-card
+            title: Temperature — Stacked (Living Room + Bedroom)
+            entities:
+                - entity: sensor.test_temperature_living_room
+                  name: Living Room
+                  color: "#FF6B4A"
+                - entity: sensor.test_temperature_bedroom
+                  name: Bedroom
+                  color: "#4AAFFF"
+            hours: 168
+            group_by: day
+            aggregate: mean
+            layout: stacked
+
+          # screenshot: docs/screenshots/bar-card-weekly.png
+          - type: custom:insight-bar-card
+            title: Power — Daily sum (7 days)
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#B07AFF"
+            hours: 168
+            group_by: day
+            aggregate: sum
+
+          # screenshot: docs/screenshots/bar-card-monthly.png
+          - type: custom:insight-bar-card
+            title: Power — Monthly mean
+            entities:
+                - entity: sensor.test_power
+                  name: Power
+                  color: "#FFB84A"
+            hours: 2160
+            group_by: month
+            aggregate: mean

@@ -1,12 +1,13 @@
 /**
  * custom:insight-bar-card
  *
- * Bar chart with configurable grouping and aggregation. Renders via the
- * Canvas 2D API — no external chart library required.
+ * Bar chart with configurable grouping and aggregation, powered by uPlot.
+ * Axes and grid are rendered by uPlot; bars are drawn in a custom draw hook.
  */
 
-import { html, css, type TemplateResult, type CSSResultGroup } from "lit";
-import { customElement } from "lit/decorators.js";
+import { html, css, nothing, type TemplateResult, type CSSResultGroup } from "lit";
+import { customElement, query, state } from "lit/decorators.js";
+import uPlot from "uplot";
 
 import {
   InsightBaseCard,
@@ -32,14 +33,8 @@ declare global {
 }
 
 // ---------------------------------------------------------------------------
-// Bar chart rendering helpers
+// Aggregation helpers
 // ---------------------------------------------------------------------------
-
-interface Bar {
-  label: string;
-  values: number[];
-  colors: string[];
-}
 
 function aggregateBuckets(
   values: number[],
@@ -59,7 +54,6 @@ function bucketKey(ts: number, groupBy: InsightBarConfig["group_by"] = "day"): s
     return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}-${d.getHours()}`;
   }
   if (groupBy === "week") {
-    // ISO week approximation
     const start = new Date(d);
     start.setDate(d.getDate() - d.getDay());
     return `${start.getFullYear()}-W${start.getDate()}`;
@@ -87,6 +81,18 @@ function bucketLabel(key: string, groupBy: InsightBarConfig["group_by"] = "day")
 }
 
 // ---------------------------------------------------------------------------
+// Internal types
+// ---------------------------------------------------------------------------
+
+interface BucketData {
+  labels: string[];
+  /** series[entityIdx][bucketIdx] */
+  series: number[][];
+  colors: string[];
+  maxVal: number;
+}
+
+// ---------------------------------------------------------------------------
 // Card implementation
 // ---------------------------------------------------------------------------
 
@@ -96,12 +102,32 @@ export class InsightBarCard extends InsightBaseCard {
   static readonly cardName = "Insight Bar Card";
   static readonly cardDescription = "Bar chart with grouping and aggregation";
 
-  private _canvas?: HTMLCanvasElement;
-  /** Cached aggregated bar data — reused when _data reference and config are unchanged */
-  private _barCache?: { bars: Bar[]; colors: string[] };
-  private _lastBarDataRef?: typeof this._data;
-  private _lastBarGroupBy?: InsightBarConfig["group_by"];
-  private _lastBarAggregate?: InsightBarConfig["aggregate"];
+  private _uplot?: uPlot;
+  private _resizeObserver: ResizeObserver | null = null;
+
+  /** Cached aggregated bucket data — rebuilt when data or config changes */
+  private _bucketData?: BucketData;
+  private _lastBucketDataRef?: typeof this._data;
+  private _lastGroupBy?: InsightBarConfig["group_by"];
+  private _lastAggregate?: InsightBarConfig["aggregate"];
+
+  /** Last _data reference synced to uPlot */
+  private _lastSyncedDataRef?: typeof this._data;
+
+  /** Index of the currently hovered legend item — drives bar opacity in draw hook */
+  @state() private _hoveredSeriesIdx: number | null = null;
+  /** Set of hidden series indices — toggled by legend click */
+  @state() private _hiddenSeries = new Set<number>();
+
+  /** Default chart area height in px (matches base .chart-container) */
+  protected _chartHeight = 220;
+
+  @query("#chart")
+  private wrapper!: HTMLDivElement;
+
+  // -------------------------------------------------------------------------
+  // HA editor integration
+  // -------------------------------------------------------------------------
 
   static getConfigElement(): HTMLElement {
     return document.createElement("insight-bar-card-editor");
@@ -123,6 +149,10 @@ export class InsightBarCard extends InsightBaseCard {
     };
   }
 
+  // -------------------------------------------------------------------------
+  // Base card overrides
+  // -------------------------------------------------------------------------
+
   protected getDefaultConfig(): Partial<InsightBarConfig> {
     return {
       hours: 168,
@@ -135,189 +165,399 @@ export class InsightBarCard extends InsightBaseCard {
 
   protected renderChart(): TemplateResult {
     return html`
-      <canvas
-        class="bar-canvas"
-        style="width:100%;height:250px"
-      ></canvas>
+      <div id="chart"></div>
+      ${this._renderLegend()}
     `;
+  }
+
+  private _renderLegend(): TemplateResult | typeof nothing {
+    const config = this._config as InsightBarConfig | undefined;
+    if (config?.show_legend === false || this._data.length === 0) return nothing;
+
+    const palette = generateColors(this._data.length);
+    const colors = this.entityConfigs.map((ec, i) => ec.color ?? palette[i]);
+
+    return html`
+      <div class="bar-legend">
+        ${this._data.map((dataset, i) => {
+          const isHidden = this._hiddenSeries.has(i);
+          const isDimmed = !isHidden && this._hoveredSeriesIdx !== null && this._hoveredSeriesIdx !== i;
+          return html`
+            <span
+              class="bar-legend-item ${isDimmed ? "dimmed" : ""} ${isHidden ? "hidden" : ""}"
+              @mouseenter=${() => { if (!isHidden) { this._hoveredSeriesIdx = i; this._uplot?.redraw(false); } }}
+              @mouseleave=${() => { this._hoveredSeriesIdx = null; this._uplot?.redraw(false); }}
+              @click=${() => this._toggleSeries(i)}
+            >
+              <span class="bar-legend-marker" style="background:${isHidden ? "transparent" : colors[i]}; border: 2px solid ${colors[i]}"></span>
+              ${dataset.friendlyName ?? this.entityConfigs[i]?.entity ?? `Entity ${i + 1}`}
+            </span>
+          `;
+        })}
+      </div>
+    `;
+  }
+
+  private _toggleSeries(idx: number): void {
+    const next = new Set(this._hiddenSeries);
+    next.has(idx) ? next.delete(idx) : next.add(idx);
+    this._hiddenSeries = next;
+    this._hoveredSeriesIdx = null;
+    // Force Y-scale recalculation with updated visible series
+    if (this._uplot) {
+      this._uplot.setData(this._uplot.data as uPlot.AlignedData, true);
+    }
   }
 
   override updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
-    requestAnimationFrame(() => this._drawBars());
+    if (changedProps.has("_config")) {
+      this._hiddenSeries = new Set();
+    }
+    // Double rAF ensures layout is complete before we measure clientWidth
+    requestAnimationFrame(() => requestAnimationFrame(() => this._syncUplot()));
   }
 
-  private _drawBars(): void {
-    const config = this._config as InsightBarConfig | undefined;
-    if (!config || this._loading || this._data.length === 0) return;
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._resizeObserver?.disconnect();
+    this._resizeObserver = null;
+    this._uplot?.destroy();
+    this._uplot = undefined;
+  }
 
-    const canvasEl =
-      this.shadowRoot?.querySelector<HTMLCanvasElement>(".bar-canvas");
-    if (!canvasEl) return;
+  // -------------------------------------------------------------------------
+  // Bucket aggregation
+  // -------------------------------------------------------------------------
 
-    const dpr = window.devicePixelRatio ?? 1;
-    const displayWidth = canvasEl.clientWidth || this._cardWidth - 32;
-    const displayHeight = canvasEl.clientHeight || 250;
+  private _buildBucketData(): BucketData {
+    const config = this._config as InsightBarConfig;
 
-    canvasEl.width = displayWidth * dpr;
-    canvasEl.height = displayHeight * dpr;
-
-    const ctx = canvasEl.getContext("2d");
-    if (!ctx) return;
-
-    ctx.scale(dpr, dpr);
-
-    // -----------------------------------------------------------------------
-    // Aggregate data into buckets — skip if data and config are unchanged
-    // -----------------------------------------------------------------------
-    const dataChanged = this._data !== this._lastBarDataRef;
-    const configChanged =
-      config.group_by !== this._lastBarGroupBy ||
-      config.aggregate !== this._lastBarAggregate;
-
-    let bars: Bar[];
-    let colors: string[];
-
-    if (!dataChanged && !configChanged && this._barCache) {
-      ({ bars, colors } = this._barCache);
-    } else {
-      colors = generateColors(this._data.length);
-
-      const bucketMap = new Map<string, Map<number, number[]>>();
-      this._data.forEach((dataset, seriesIdx) => {
-        for (const point of dataset.data) {
-          const key = bucketKey(point.t, config.group_by);
-          if (!bucketMap.has(key)) bucketMap.set(key, new Map());
-          const seriesMap = bucketMap.get(key)!;
-          if (!seriesMap.has(seriesIdx)) seriesMap.set(seriesIdx, []);
-          seriesMap.get(seriesIdx)!.push(point.v);
-        }
-      });
-
-      const sortedKeys = Array.from(bucketMap.keys()).sort();
-      bars = sortedKeys.map((key) => {
-        const seriesMap = bucketMap.get(key)!;
-        const values = this._data.map((_, i) => {
-          const raw = seriesMap.get(i) ?? [];
-          return aggregateBuckets(raw, config.aggregate);
-        });
-        return { label: bucketLabel(key, config.group_by), values, colors };
-      });
-
-      this._barCache = { bars, colors };
-      this._lastBarDataRef = this._data;
-      this._lastBarGroupBy = config.group_by;
-      this._lastBarAggregate = config.aggregate;
+    if (
+      this._bucketData &&
+      this._data === this._lastBucketDataRef &&
+      config.group_by === this._lastGroupBy &&
+      config.aggregate === this._lastAggregate
+    ) {
+      return this._bucketData;
     }
 
-    if (bars.length === 0) return;
+    const palette = generateColors(this._data.length);
+    const colors = this.entityConfigs.map((ec, i) => ec.color ?? palette[i]);
+    const bucketMap = new Map<string, Map<number, number[]>>();
 
-    // -----------------------------------------------------------------------
-    // Compute layout
-    // -----------------------------------------------------------------------
-    const padding = { top: 16, right: 8, bottom: 36, left: 50 };
-    const plotW = displayWidth - padding.left - padding.right;
-    const plotH = displayHeight - padding.top - padding.bottom;
+    this._data.forEach((dataset, si) => {
+      for (const point of dataset.data) {
+        const key = bucketKey(point.t, config.group_by);
+        if (!bucketMap.has(key)) bucketMap.set(key, new Map());
+        const sm = bucketMap.get(key)!;
+        if (!sm.has(si)) sm.set(si, []);
+        sm.get(si)!.push(point.v);
+      }
+    });
+
+    const sortedKeys = Array.from(bucketMap.keys()).sort();
+    const labels = sortedKeys.map((key) => bucketLabel(key, config.group_by));
+    const series = this._data.map((_, si) =>
+      sortedKeys.map((key) => {
+        const raw = bucketMap.get(key)?.get(si) ?? [];
+        return aggregateBuckets(raw, config.aggregate);
+      }),
+    );
 
     let maxVal = 0;
     if (config.layout === "stacked") {
-      for (const b of bars) {
-        const sum = b.values.reduce((a, v) => a + v, 0);
+      for (let bi = 0; bi < sortedKeys.length; bi++) {
+        const sum = series.reduce((acc, s) => acc + (s[bi] ?? 0), 0);
         if (sum > maxVal) maxVal = sum;
       }
     } else {
-      for (const b of bars) {
-        for (const v of b.values) {
+      for (const s of series) {
+        for (const v of s) {
           if (v > maxVal) maxVal = v;
         }
       }
     }
 
-    if (maxVal <= 0) return;
+    this._bucketData = { labels, series, colors, maxVal };
+    this._lastBucketDataRef = this._data;
+    this._lastGroupBy = config.group_by;
+    this._lastAggregate = config.aggregate;
 
-    const numSeries = this._data.length;
-    const barGroupWidth = plotW / bars.length;
-    const barPadding = barGroupWidth * 0.15;
-    const groupInnerWidth = barGroupWidth - barPadding * 2;
+    return this._bucketData;
+  }
 
-    // -----------------------------------------------------------------------
-    // Draw axes
-    // -----------------------------------------------------------------------
-    const textColor = this.isDarkTheme
-      ? "rgba(255,255,255,0.6)"
-      : "rgba(0,0,0,0.55)";
-    const gridColor = this.isDarkTheme
-      ? "rgba(255,255,255,0.08)"
-      : "rgba(0,0,0,0.08)";
+  // -------------------------------------------------------------------------
+  // uPlot builders
+  // -------------------------------------------------------------------------
 
-    ctx.font = "11px sans-serif";
-    ctx.fillStyle = textColor;
-    ctx.strokeStyle = gridColor;
-    ctx.lineWidth = 1;
+  private _buildUplotData(bucketData: BucketData): uPlot.AlignedData {
+    const n = bucketData.labels.length;
+    if (n === 0) return [[], []];
+    const xs = Array.from({ length: n }, (_, i) => i);
+    return [xs, ...bucketData.series] as uPlot.AlignedData;
+  }
 
-    // Y-axis grid lines & labels (5 steps)
-    const ySteps = 5;
-    for (let i = 0; i <= ySteps; i++) {
-      const val = (maxVal * i) / ySteps;
-      const y = padding.top + plotH - (plotH * i) / ySteps;
+  private _buildOptions(bucketData: BucketData): uPlot.Options {
+    const config = this._config as InsightBarConfig;
+    const { labels, colors } = bucketData;
+    const n = labels.length;
+    const chartWidth = Math.max(100, this.wrapper?.clientWidth || this._cardWidth - 32);
+    const isDark = this.isDarkTheme;
 
-      ctx.beginPath();
-      ctx.moveTo(padding.left, y);
-      ctx.lineTo(padding.left + plotW, y);
-      ctx.stroke();
+    const axisStroke = isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.55)";
+    const gridStroke = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
 
-      ctx.textAlign = "right";
-      ctx.textBaseline = "middle";
-      ctx.fillText(formatValue(val), padding.left - 4, y);
-    }
+    const series: uPlot.Series[] = [{}];
+    this._data.forEach((dataset, i) => {
+      series.push({
+        label: dataset.friendlyName ?? `Entity ${i + 1}`,
+        stroke: colors[i],
+        fill: colors[i],
+        // uPlot path drawing disabled — bars are rendered in the draw hook
+        paths: () => null,
+        points: { show: false },
+      } as uPlot.Series);
+    });
 
-    // -----------------------------------------------------------------------
-    // Draw bars
-    // -----------------------------------------------------------------------
-    bars.forEach((bar, barIdx) => {
-      const groupX = padding.left + barIdx * barGroupWidth + barPadding;
+    return {
+      width: chartWidth,
+      height: this._chartHeight,
+      scales: {
+        x: { time: false },
+        y: {
+          range: (_u: uPlot, _min: number, _max: number) => {
+            const bd = this._bucketData;
+            const cfg = this._config as InsightBarConfig | undefined;
+            if (!bd) return [0, 1] as [number, number];
+            let maxVal = 0;
+            if (cfg?.layout === "stacked") {
+              for (let bi = 0; bi < bd.labels.length; bi++) {
+                const sum = bd.series.reduce((acc, s, si) =>
+                  this._hiddenSeries.has(si) ? acc : acc + (s[bi] ?? 0), 0);
+                if (sum > maxVal) maxVal = sum;
+              }
+            } else {
+              for (let si = 0; si < bd.series.length; si++) {
+                if (this._hiddenSeries.has(si)) continue;
+                for (const v of bd.series[si]) { if (v > maxVal) maxVal = v; }
+              }
+            }
+            return [0, maxVal > 0 ? maxVal * 1.05 : 1] as [number, number];
+          },
+        },
+      },
+      axes: [
+        {
+          // x axis — categorical bucket labels
+          stroke: axisStroke,
+          grid: { show: false },
+          ticks: { show: false },
+          splits: (_u: uPlot) => Array.from({ length: n }, (_, i) => i),
+          values: (_u: uPlot, vals: number[]) =>
+            vals.map((v) => labels[Math.round(v)] ?? ""),
+          size: 36,
+        },
+        {
+          // y axis
+          stroke: axisStroke,
+          grid: { stroke: gridStroke, width: 1 },
+          ticks: { show: false },
+          values: (_u: uPlot, vals: (number | null)[]) =>
+            vals.map((v) => (v == null ? "" : formatValue(v))),
+          size: 50,
+        },
+      ],
+      series,
+      legend: { show: false },
+      cursor: { show: false },
+      hooks: {
+        draw: [(u: uPlot) => this._drawBarsHook(u)],
+      },
+      padding: [8, 8, 0, 0],
+    } as unknown as uPlot.Options;
+  }
+
+  // -------------------------------------------------------------------------
+  // Bar drawing hook
+  // -------------------------------------------------------------------------
+
+  private _drawBarsHook(u: uPlot): void {
+    const config = this._config as InsightBarConfig | undefined;
+    const bucketData = this._bucketData;
+    if (!config || !bucketData) return;
+
+    const { labels, series, colors, maxVal } = bucketData;
+    const n = labels.length;
+    if (n === 0 || maxVal <= 0) return;
+
+    const ctx = u.ctx;
+    const { left, top: _top, width, height: _height } = u.bbox;
+    const numSeries = series.length;
+
+    const bucketW = width / n;
+    const padFrac = 0.15;
+    const barGroupW = bucketW * (1 - padFrac * 2);
+
+    // y=0 in canvas pixel coordinates
+    const yBase = u.valToPos(0, "y", true);
+
+    ctx.save();
+
+    for (let bi = 0; bi < n; bi++) {
+      const groupX = left + bi * bucketW + bucketW * padFrac;
 
       if (config.layout === "stacked") {
-        let yOffset = 0;
-        bar.values.forEach((val, si) => {
-          const barH = (val / maxVal) * plotH;
-          const x = groupX;
-          const y = padding.top + plotH - yOffset - barH;
-          ctx.fillStyle = bar.colors[si];
-          ctx.fillRect(x, y, groupInnerWidth, barH);
-          yOffset += barH;
-        });
+        let cumulative = 0;
+        for (let si = 0; si < numSeries; si++) {
+          if (this._hiddenSeries.has(si)) continue;
+          const val = series[si][bi] ?? 0;
+          if (val <= 0) continue;
+          ctx.globalAlpha = this._hoveredSeriesIdx !== null && this._hoveredSeriesIdx !== si ? 0.15 : 1;
+          const yTop = u.valToPos(cumulative + val, "y", true);
+          const yBottom = u.valToPos(cumulative, "y", true);
+          ctx.fillStyle = colors[si];
+          ctx.fillRect(groupX, yTop, barGroupW, yBottom - yTop);
+          cumulative += val;
+        }
       } else {
         // grouped
-        const barW = groupInnerWidth / numSeries;
-        bar.values.forEach((val, si) => {
-          const barH = (val / maxVal) * plotH;
+        const barW = barGroupW / numSeries;
+        for (let si = 0; si < numSeries; si++) {
+          if (this._hiddenSeries.has(si)) continue;
+          const val = series[si][bi] ?? 0;
+          if (val <= 0) continue;
+          ctx.globalAlpha = this._hoveredSeriesIdx !== null && this._hoveredSeriesIdx !== si ? 0.15 : 1;
+          const yTop = u.valToPos(val, "y", true);
           const x = groupX + si * barW;
-          const y = padding.top + plotH - barH;
-          ctx.fillStyle = bar.colors[si];
-          ctx.fillRect(x, y, barW * 0.85, barH);
-        });
+          ctx.fillStyle = colors[si];
+          ctx.fillRect(x, yTop, barW * 0.85, yBase - yTop);
+        }
       }
+    }
 
-      // X-axis label
-      const labelX =
-        padding.left + barIdx * barGroupWidth + barGroupWidth / 2;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
-      ctx.fillStyle = textColor;
-      ctx.fillText(
-        bar.label,
-        labelX,
-        padding.top + plotH + 6,
-      );
-    });
+    ctx.restore();
   }
+
+  // -------------------------------------------------------------------------
+  // uPlot sync
+  // -------------------------------------------------------------------------
+
+  private _syncUplot(): void {
+    const config = this._config as InsightBarConfig | undefined;
+    if (!config || !this.wrapper) return;
+    if (this._data.length === 0) return;
+
+    const bucketData = this._buildBucketData();
+
+    if (bucketData.labels.length === 0) {
+      this._uplot?.destroy();
+      this._uplot = undefined;
+      return;
+    }
+
+    const uData = this._buildUplotData(bucketData);
+    const prevBucketCount = (this._uplot?.data[0] as number[] | undefined)?.length;
+    const bucketCountChanged = bucketData.labels.length !== prevBucketCount;
+    const entityCountChanged = this._uplot
+      ? this._data.length !== this._uplot.series.length - 1
+      : false;
+
+    const needsRebuild =
+      this._needsRebuild ||
+      !this._uplot ||
+      bucketCountChanged ||
+      entityCountChanged;
+
+    if (needsRebuild) {
+      this._uplot?.destroy();
+      this._uplot = undefined;
+      this._uplot = new uPlot(this._buildOptions(bucketData), uData, this.wrapper);
+      this._needsRebuild = false;
+
+      if (!this._resizeObserver) {
+        this._resizeObserver = new ResizeObserver(() => {
+          if (this._uplot && this.wrapper) {
+            this._uplot.setSize({
+              width: Math.max(100, this.wrapper.clientWidth),
+              height: this._chartHeight,
+            });
+          }
+        });
+        this._resizeObserver.observe(this.wrapper);
+      }
+    } else if (this._data !== this._lastSyncedDataRef) {
+      this._uplot!.setData(uData, true);
+    }
+
+    this._lastSyncedDataRef = this._data;
+  }
+
+  // -------------------------------------------------------------------------
+  // Styles
+  // -------------------------------------------------------------------------
 
   static styles: CSSResultGroup = [
     super.styles,
     css`
-      .bar-canvas {
+      #chart {
+        width: 100%;
         display: block;
+      }
+
+      /* uPlot core layout — injected to document.head by uPlot, replicated here for Shadow DOM */
+      .u-wrap {
+        display: block;
+        position: relative;
+        user-select: none;
+        width: 100%;
+      }
+      .u-over,
+      .u-under {
+        position: absolute;
+      }
+      .u-under {
+        overflow: hidden;
+      }
+      .u-axis {
+        position: absolute;
+      }
+      .u-wrap canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .bar-legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px 12px;
+        font-size: 12px;
+        color: var(--secondary-text-color);
+        padding: 4px 0 2px;
+      }
+      .bar-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .bar-legend-item.dimmed {
+        opacity: 0.35;
+      }
+      .bar-legend-item.hidden {
+        opacity: 0.4;
+      }
+      .bar-legend-item.hidden .bar-legend-marker {
+        border-style: dashed !important;
+      }
+      .bar-legend-marker {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        flex-shrink: 0;
       }
     `,
   ];
