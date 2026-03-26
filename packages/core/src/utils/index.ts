@@ -88,6 +88,26 @@ export const DEFAULT_COLORS: readonly string[] = [
 // ---------------------------------------------------------------------------
 
 /**
+ * Convert a hex colour string to an [r, g, b] tuple (0–255 each).
+ *
+ * Supports 3-digit (#RGB) and 6-digit (#RRGGBB) hex strings.
+ * Returns [0, 0, 0] for invalid input.
+ */
+export function hexToRgb(hex: string): [number, number, number] {
+  const clean = hex.replace(/^#/, "");
+  const full =
+    clean.length === 3
+      ? clean.split("").map((c) => c + c).join("")
+      : clean;
+  if (full.length !== 6) return [0, 0, 0];
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return [0, 0, 0];
+  return [r, g, b];
+}
+
+/**
  * Convert a hex colour string to an rgba() CSS value.
  *
  * Supports 3-digit (#RGB) and 6-digit (#RRGGBB) hex strings.

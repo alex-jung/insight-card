@@ -364,4 +364,18 @@ export interface InsightHeatmapConfig extends InsightBaseConfig {
   color_scale?: string | ColorStop[];
   /** How time axes are laid out in the heatmap grid */
   layout?: "hour_day" | "weekday_hour" | "month_day";
+  /**
+   * Show a horizontal colour scale bar with min/max labels below the chart.
+   * @default false
+   */
+  show_colorbar?: boolean;
+  /**
+   * Render the aggregated value as text inside each cell.
+   * @default false
+   */
+  show_cell_values?: boolean;
+  /**
+   * Decimal places for cell value labels. Defaults to auto (0 for integers, 1 for floats).
+   */
+  cell_value_decimals?: number;
 }

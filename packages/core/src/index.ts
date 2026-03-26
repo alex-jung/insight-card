@@ -52,6 +52,7 @@ export { InsightBaseEditor } from "./editor/base-editor.js";
 // Utilities
 export {
   DEFAULT_COLORS,
+  hexToRgb,
   hexToRgba,
   generateColors,
   formatValue,
