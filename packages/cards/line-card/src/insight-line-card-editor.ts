@@ -1270,14 +1270,14 @@ export class InsightLineCardEditor extends InsightBaseEditor {
                 flex-wrap: wrap;
                 justify-content: space-evenly;
                 gap: 8px;
-                padding: 20px 0px;
+                padding-bottom: 20px;
             }
 
             .control-row {
                 display: flex;
                 flex-direction: column;
                 gap: 4px;
-                padding: 20px 0px;
+                padding: 8px 0px;
             }
 
             .control-label {
