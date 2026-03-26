@@ -12,6 +12,7 @@ import uPlot from "uplot";
 import {
   InsightBaseCard,
   type InsightBarConfig,
+  type ThresholdConfig,
   generateColors,
   formatValue,
   findNumericSensor,
@@ -119,6 +120,9 @@ export class InsightBarCard extends InsightBaseCard {
   /** Cached u.over offset — updated in ready hook, used for tooltip positioning */
   private _overLeft = 0;
   private _overTop = 0;
+
+  /** Cached --error-color for threshold lines */
+  private _thresholdDefaultColor = "#db4437";
 
   /** Index of the currently hovered legend item — drives bar opacity in draw hook */
   @state() private _hoveredSeriesIdx: number | null = null;
@@ -375,20 +379,36 @@ export class InsightBarCard extends InsightBaseCard {
             const bd = this._bucketData;
             const cfg = this._config as InsightBarConfig | undefined;
             if (!bd) return [0, 1] as [number, number];
-            let maxVal = 0;
+
+            // Compute max from visible series
+            let computedMax = 0;
             if (cfg?.layout === "stacked") {
               for (let bi = 0; bi < bd.labels.length; bi++) {
                 const sum = bd.series.reduce((acc, s, si) =>
                   this._hiddenSeries.has(si) ? acc : acc + (s[bi] ?? 0), 0);
-                if (sum > maxVal) maxVal = sum;
+                if (sum > computedMax) computedMax = sum;
               }
             } else {
               for (let si = 0; si < bd.series.length; si++) {
                 if (this._hiddenSeries.has(si)) continue;
-                for (const v of bd.series[si]) { if (v > maxVal) maxVal = v; }
+                for (const v of bd.series[si]) { if (v > computedMax) computedMax = v; }
               }
             }
-            return [0, maxVal > 0 ? maxVal * 1.05 : 1] as [number, number];
+
+            // Also account for threshold line values so they're always visible
+            const thresholdMax = cfg?.thresholds?.length
+              ? Math.max(...cfg.thresholds.map((t) => t.value))
+              : 0;
+
+            // Soft y_min: axis goes below y_min only if data requires it
+            const yMin = cfg?.y_min != null ? Math.min(0, cfg.y_min) : 0;
+            // Soft y_max: keep at y_max (or threshold max) even if data is lower
+            const dataMax = Math.max(computedMax, thresholdMax);
+            const yMax = cfg?.y_max != null
+              ? Math.max(dataMax * 1.05, cfg.y_max)
+              : dataMax > 0 ? dataMax * 1.05 : 1;
+
+            return [yMin, yMax > yMin ? yMax : yMin + 1] as [number, number];
           },
         },
       },
@@ -428,10 +448,18 @@ export class InsightBarCard extends InsightBaseCard {
             this._overTop = u.over.offsetTop;
             u.over.addEventListener("mousemove", (e) => this._onChartMouseMove(u, e));
             u.over.addEventListener("mouseleave", () => this._hideTooltip());
+            this._thresholdDefaultColor =
+              getComputedStyle(this).getPropertyValue("--error-color").trim() || "#db4437";
           },
         ],
         destroy: [() => { this._tooltipEl = undefined; }],
-        draw: [(u: uPlot) => this._drawBarsHook(u)],
+        draw: [
+          (u: uPlot) => this._drawBarsHook(u),
+          (u: uPlot) => {
+            const cfg = this._config as InsightBarConfig | undefined;
+            if (cfg?.thresholds?.length) this._drawThresholds(u, cfg.thresholds);
+          },
+        ],
       },
       padding: [
         config.padding_top ?? 8,
@@ -500,6 +528,36 @@ export class InsightBarCard extends InsightBaseCard {
       }
     }
 
+    ctx.restore();
+  }
+
+  // -------------------------------------------------------------------------
+  // Threshold lines
+  // -------------------------------------------------------------------------
+
+  private _drawThresholds(u: uPlot, thresholds: ThresholdConfig[]): void {
+    const dpr = window.devicePixelRatio ?? 1;
+    const ctx = u.ctx;
+    ctx.save();
+    for (const t of thresholds) {
+      const y = Math.round(u.valToPos(t.value, "y", true));
+      if (y < u.bbox.top || y > u.bbox.top + u.bbox.height) continue;
+      ctx.beginPath();
+      ctx.strokeStyle = t.color ?? this._thresholdDefaultColor;
+      ctx.lineWidth = dpr;
+      ctx.setLineDash((t.dash ?? [4, 3]).map((v) => v * dpr));
+      ctx.moveTo(u.bbox.left, y);
+      ctx.lineTo(u.bbox.left + u.bbox.width, y);
+      ctx.stroke();
+      if (t.label) {
+        ctx.setLineDash([]);
+        ctx.fillStyle = t.color ?? this._thresholdDefaultColor;
+        ctx.font = `${11 * dpr}px sans-serif`;
+        ctx.textAlign = "right";
+        ctx.textBaseline = "bottom";
+        ctx.fillText(t.label, u.bbox.left + u.bbox.width - 4 * dpr, y - 2 * dpr);
+      }
+    }
     ctx.restore();
   }
 

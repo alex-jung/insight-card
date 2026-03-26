@@ -309,6 +309,18 @@ export interface InsightBarConfig extends InsightBaseConfig {
   layout?: "grouped" | "stacked";
   /** Aggregation function applied per bucket */
   aggregate?: "mean" | "sum" | "min" | "max";
+  /**
+   * Soft Y minimum — axis extends below this value only if data requires it.
+   * Defaults to 0 (bars start at the zero baseline).
+   */
+  y_min?: number;
+  /**
+   * Soft Y maximum — axis extends above this value only if data requires it.
+   * Useful to keep a fixed scale (e.g. y_max: 100 for percentages).
+   */
+  y_max?: number;
+  /** Horizontal reference lines drawn across the chart. */
+  thresholds?: ThresholdConfig[];
 }
 
 // ---------------------------------------------------------------------------
