@@ -373,7 +373,7 @@ export class InsightBarCard extends InsightBaseCard {
       width: chartWidth,
       height: this._chartHeight,
       scales: {
-        x: { time: false },
+        x: { time: false, range: () => [-0.5, n - 0.5] as [number, number] },
         y: {
           range: (_u: uPlot, _min: number, _max: number) => {
             const bd = this._bucketData;
