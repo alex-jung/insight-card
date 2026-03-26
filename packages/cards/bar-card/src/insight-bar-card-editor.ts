@@ -12,6 +12,9 @@ import {
     type CSSResultGroup,
 } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { InsightBarEntityTab } from "./insight-bar-entity-tab.js";
+import { InsightBarEntityEditor } from "./insight-bar-entity-editor.js";
+InsightBarEntityEditor;
 import {
     mdiFormatListBulleted,
     mdiChartBar,
@@ -20,7 +23,6 @@ import {
     mdiCog,
     mdiGestureTap,
     mdiPlus,
-    mdiDelete,
 } from "@mdi/js";
 
 import {
@@ -36,10 +38,8 @@ import {
     IMG_BAR_STACKED,
     localize,
     serialiseEntityConfig,
-    generateColors,
     type InsightBaseConfig,
     type InsightBarConfig,
-    type InsightEntityConfig,
     type ThresholdConfig,
     type ColorThresholdConfig,
     type LovelaceCardConfig,
@@ -140,7 +140,8 @@ const ADVANCED_SCHEMA: HaFormSchema[] = [
 
 @customElement("insight-bar-card-editor")
 export class InsightBarCardEditor extends InsightBaseEditor {
-    @state() private _entities: InsightEntityConfig[] = [];
+    @state() private _tabs: InsightBarEntityTab[] = [];
+    @state() private _currTab = "1";
 
     // Required by abstract base — unused since we override render()
     protected renderCardOptions(): TemplateResult {
@@ -150,9 +151,10 @@ export class InsightBarCardEditor extends InsightBaseEditor {
     override setConfig(config: LovelaceCardConfig): void {
         super.setConfig(config);
         const cfg = config as unknown as InsightBarConfig;
-        this._entities = (cfg.entities ?? []).map((e) =>
-            typeof e === "string" ? { entity: e } : (e as InsightEntityConfig),
+        this._tabs = (cfg.entities ?? []).map(
+            (e, i) => new InsightBarEntityTab(i + 1, e),
         );
+        if (this._tabs.length === 0) this._addTab();
     }
 
     private get _barConfig(): InsightBarConfig {
@@ -290,7 +292,10 @@ export class InsightBarCardEditor extends InsightBaseEditor {
     // ---------------------------------------------------------------------------
 
     private _renderEntitySection(): TemplateResult {
-        const palette = generateColors(Math.max(this._entities.length, 5));
+        const currentTab =
+            this._tabs.find((t) => t.index.toString() === this._currTab) ??
+            this._tabs[0];
+
         return html`
             <ha-expansion-panel outlined>
                 <ha-svg-icon
@@ -300,85 +305,88 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                 <span slot="header">
                     ${localize("editor.section.entities", this._lang)}
                 </span>
-                <div class="panel-content">
-                    ${this._entities.map((ec, idx) => {
-                        const color = ec.color ?? palette[idx];
-                        return html`
-                            <div class="entity-row">
-                                <div class="overlay-color-field">
-                                    <input
-                                        type="color"
-                                        class="color-swatch"
-                                        .value=${color}
-                                        @input=${(e: Event) =>
-                                            this._updateEntityAt(idx, {
-                                                ...ec,
-                                                color: (
-                                                    e.target as HTMLInputElement
-                                                ).value,
-                                            })}
-                                    />
-                                </div>
-                                <ha-entity-picker
-                                    .hass=${this.hass}
-                                    .value=${ec.entity ?? ""}
-                                    @value-changed=${(
-                                        e: CustomEvent<{ value: string }>,
-                                    ) =>
-                                        this._updateEntityAt(idx, {
-                                            ...ec,
-                                            entity: e.detail.value,
-                                        })}
-                                ></ha-entity-picker>
-                                <ha-textfield
-                                    .value=${ec.name ?? ""}
-                                    placeholder="Name"
-                                    @change=${(e: Event) =>
-                                        this._updateEntityAt(idx, {
-                                            ...ec,
-                                            name:
-                                                (e.target as HTMLInputElement)
-                                                    .value || undefined,
-                                        })}
-                                ></ha-textfield>
-                                <ha-icon-button
-                                    .path=${mdiDelete}
-                                    @click=${() => this._removeEntityAt(idx)}
-                                ></ha-icon-button>
-                            </div>
-                        `;
-                    })}
-                    <ha-button @click=${this._addBarEntity}>
-                        <ha-svg-icon slot="icon" .path=${mdiPlus}></ha-svg-icon>
-                        ${localize("editor.action.add_entity", this._lang)}
-                    </ha-button>
+                <div class="entities-panel">
+                    <div class="entities-toolbar">
+                        <ha-tab-group @wa-tab-show=${this._handleTabChanged}>
+                            ${this._tabs.map(
+                                (tab) => html`
+                                    <ha-tab-group-tab
+                                        slot="nav"
+                                        .panel=${tab.index}
+                                        .active=${this._currTab ===
+                                        tab.index.toString()}
+                                    >
+                                        ${tab.index}
+                                    </ha-tab-group-tab>
+                                `,
+                            )}
+                        </ha-tab-group>
+                        <ha-icon-button
+                            .path=${mdiPlus}
+                            .label=${localize(
+                                "editor.action.add_entity",
+                                this._lang,
+                            )}
+                            @click=${this._addTab}
+                        ></ha-icon-button>
+                    </div>
+
+                    ${currentTab
+                        ? html`
+                              <insight-bar-entity-editor
+                                  .hass=${this.hass}
+                                  .tab=${currentTab}
+                                  @onChange=${this._handleEntityChange}
+                                  @onDelete=${this._handleEntityDelete}
+                              ></insight-bar-entity-editor>
+                          `
+                        : nothing}
                 </div>
             </ha-expansion-panel>
         `;
     }
 
-    private readonly _addBarEntity = (): void => {
-        this._entities = [...this._entities, { entity: "" }];
+    private _addTab = (): void => {
+        const newTab = new InsightBarEntityTab(this._tabs.length + 1, undefined);
+        this._tabs = [...this._tabs, newTab];
+        this._currTab = newTab.index.toString();
         this._syncEntitiesToConfig();
     };
 
-    private _removeEntityAt(idx: number): void {
-        this._entities = this._entities.filter((_, i) => i !== idx);
+    private _handleTabChanged(e: CustomEvent): void {
+        const next = e.detail.name?.toString();
+        if (next && next !== this._currTab) this._currTab = next;
+    }
+
+    private _handleEntityChange(e: CustomEvent): void {
+        e.stopPropagation();
+        const idx = this._tabs.findIndex(
+            (t) => t.index.toString() === this._currTab,
+        );
+        if (idx === -1) return;
+        this._tabs[idx].config = e.detail;
         this._syncEntitiesToConfig();
     }
 
-    private _updateEntityAt(idx: number, ec: InsightEntityConfig): void {
-        this._entities = this._entities.map((e, i) => (i === idx ? ec : e));
+    private _handleEntityDelete(e: CustomEvent<number>): void {
+        e.stopPropagation();
+        const delIndex = e.detail;
+        this._tabs = this._tabs
+            .filter((t) => t.index !== delIndex)
+            .map((t, i) => new InsightBarEntityTab(i + 1, t.config));
+        const newCurr = Math.max(1, parseInt(this._currTab) - 1);
+        this._currTab =
+            this._tabs.length > 0
+                ? Math.min(newCurr, this._tabs.length).toString()
+                : "1";
         this._syncEntitiesToConfig();
     }
 
     private _syncEntitiesToConfig(): void {
         this._updateConfig({
-            entities: this._entities
-                .filter((e) => e.entity)
-                .map((e) =>
-                    serialiseEntityConfig(e),
-                ) as InsightBarConfig["entities"],
+            entities: this._tabs
+                .filter((t) => t.config.entity)
+                .map((t) => serialiseEntityConfig(t.config)) as InsightBarConfig["entities"],
         });
     }
 
@@ -896,6 +904,23 @@ export class InsightBarCardEditor extends InsightBaseEditor {
 
             .panel-content {
                 padding: 16px 0px 16px 0px;
+            }
+
+            .entities-panel {
+                padding: 8px 0;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .entities-toolbar {
+                display: flex;
+                align-items: flex-start;
+                gap: 4px;
+            }
+
+            ha-tab-group {
+                flex: 1;
             }
 
             .toggle-row {
