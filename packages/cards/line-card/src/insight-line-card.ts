@@ -34,6 +34,8 @@ import {
     normaliseEntityConfig,
 } from "@insight-chart/core";
 
+import { mergeTimestamps, alignSeries, normaliseDash } from "./line-utils.js";
+
 // ---------------------------------------------------------------------------
 // Augment global for HA card registration
 // ---------------------------------------------------------------------------
@@ -402,12 +404,7 @@ export class InsightLineCard extends InsightBaseCard {
                     : undefined,
                 show: !ec.hidden,
                 width: ec.line_width ?? config.line_width ?? 2,
-                dash:
-                    ec.stroke_dash != null
-                        ? Array.isArray(ec.stroke_dash)
-                            ? ec.stroke_dash
-                            : [ec.stroke_dash, ec.stroke_dash]
-                        : undefined,
+                dash: normaliseDash(ec.stroke_dash),
                 // true = always show static dots; false/"hover" = no static dots
                 points: { show: config.show_points === true, size: 5 },
                 paths: pathBuilder,
@@ -443,25 +440,12 @@ export class InsightLineCard extends InsightBaseCard {
             return data;
         });
 
-        // Merge all timestamps across all entities and sort
-        const allTimestamps = new Set<number>();
-        for (const data of datasets) {
-            for (const point of data) {
-                // uPlot expects seconds, not milliseconds
-                allTimestamps.add(Math.floor(point.t / 1000));
-            }
-        }
-        const timestamps = Array.from(allTimestamps).sort((a, b) => a - b);
+        // Merge all timestamps across all entities and sort (uPlot: seconds)
+        const timestamps = mergeTimestamps(datasets);
 
-        // Build a lookup for each entity
+        // Build a lookup for each entity, null for missing timestamps
         const valueSeries: (number | null | undefined)[][] = datasets.map(
-            (data) => {
-                const map = new Map<number, number>();
-                for (const point of data) {
-                    map.set(Math.floor(point.t / 1000), point.v);
-                }
-                return timestamps.map((ts) => map.get(ts) ?? null);
-            },
+            (data) => alignSeries(data, timestamps),
         );
 
         console.log("uPlot data built", valueSeries);
