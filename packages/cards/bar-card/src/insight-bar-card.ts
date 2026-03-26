@@ -487,6 +487,8 @@ export class InsightBarCard extends InsightBaseCard {
     const { left, top: _top, width, height: _height } = u.bbox;
     const numSeries = series.length;
     const baseAlpha = Math.min(1, Math.max(0, config.fill_opacity ?? 1));
+    const dpr = uPlot.pxRatio;
+    const radiusPx = (config.bar_radius ?? 0) * dpr;
 
     const bucketW = width / n;
     const padFrac = 0.15;
@@ -501,6 +503,13 @@ export class InsightBarCard extends InsightBaseCard {
       const groupX = left + bi * bucketW + bucketW * padFrac;
 
       if (config.layout === "stacked") {
+        // Determine the last visible non-zero series index for this bucket
+        // — only that topmost segment gets rounded corners.
+        let topSi = -1;
+        for (let si = numSeries - 1; si >= 0; si--) {
+          if (!this._hiddenSeries.has(si) && (series[si][bi] ?? 0) > 0) { topSi = si; break; }
+        }
+
         let cumulative = 0;
         for (let si = 0; si < numSeries; si++) {
           if (this._hiddenSeries.has(si)) continue;
@@ -511,12 +520,14 @@ export class InsightBarCard extends InsightBaseCard {
           const yTop = u.valToPos(cumulative + val, "y", true);
           const yBottom = u.valToPos(cumulative, "y", true);
           ctx.fillStyle = colors[si];
-          ctx.fillRect(groupX, yTop, barGroupW, yBottom - yTop);
+          const r = si === topSi ? Math.min(radiusPx, barGroupW / 2, (yBottom - yTop) / 2) : 0;
+          this._fillBar(ctx, groupX, yTop, barGroupW, yBottom - yTop, r);
           cumulative += val;
         }
       } else {
         // grouped
         const barW = barGroupW / numSeries;
+        const singleW = barW * 0.85;
         for (let si = 0; si < numSeries; si++) {
           if (this._hiddenSeries.has(si)) continue;
           const val = series[si][bi] ?? 0;
@@ -525,13 +536,30 @@ export class InsightBarCard extends InsightBaseCard {
             ? baseAlpha * 0.15 : baseAlpha;
           const yTop = u.valToPos(val, "y", true);
           const x = groupX + si * barW;
+          const h = yBase - yTop;
           ctx.fillStyle = colors[si];
-          ctx.fillRect(x, yTop, barW * 0.85, yBase - yTop);
+          const r = Math.min(radiusPx, singleW / 2, h / 2);
+          this._fillBar(ctx, x, yTop, singleW, h, r);
         }
       }
     }
 
     ctx.restore();
+  }
+
+  /** Fill a bar rect with optional top-corner radius. */
+  private _fillBar(
+    ctx: CanvasRenderingContext2D,
+    x: number, y: number, w: number, h: number,
+    r: number,
+  ): void {
+    if (r <= 0) {
+      ctx.fillRect(x, y, w, h);
+      return;
+    }
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, [r, r, 0, 0]);
+    ctx.fill();
   }
 
   // -------------------------------------------------------------------------

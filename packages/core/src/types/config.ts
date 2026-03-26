@@ -326,6 +326,11 @@ export interface InsightBarConfig extends InsightBaseConfig {
    * @default 1
    */
   fill_opacity?: number;
+  /**
+   * Corner radius of the bar tops in pixels.
+   * @default 0
+   */
+  bar_radius?: number;
 }
 
 // ---------------------------------------------------------------------------
