@@ -135,6 +135,21 @@ export class InsightBarCard extends InsightBaseCard {
   /** Cached --error-color for threshold lines */
   private _thresholdDefaultColor = "#db4437";
 
+  /** Zoom drag state */
+  private _isDragging = false;
+  private _dragStartX = 0;
+  private _zoomOverlay?: HTMLDivElement;
+
+  /**
+   * The slice of _buildBucketData() currently shown in uPlot.
+   * Equals the full data when _zoomRange is null, otherwise a sliced copy.
+   * Must be set in _syncUplot() BEFORE new uPlot() / setData so that all
+   * closures (range, draw, tooltip) read consistent data.
+   */
+  private _activeBucketData?: BucketData;
+
+  /** Currently zoomed bucket index range [start, end] into the full bucket data. */
+  @state() private _zoomRange: [number, number] | null = null;
   /** Index of the currently hovered legend item — drives bar opacity in draw hook */
   @state() private _hoveredSeriesIdx: number | null = null;
   /** Set of hidden series indices — toggled by legend click */
@@ -186,7 +201,13 @@ export class InsightBarCard extends InsightBaseCard {
 
   protected renderChart(): TemplateResult {
     return html`
-      <div id="chart"></div>
+      <div id="chart" style="position:relative;">
+        ${this._zoomRange ? html`
+          <div class="bar-zoom-reset" @click=${() => { this._zoomRange = null; }}>
+            ↺ Reset Zoom
+          </div>
+        ` : nothing}
+      </div>
       ${this._renderLegend()}
     `;
   }
@@ -234,6 +255,7 @@ export class InsightBarCard extends InsightBaseCard {
     super.updated(changedProps);
     if (changedProps.has("_config")) {
       this._hiddenSeries = new Set();
+      this._zoomRange = null;
     }
     // Double rAF ensures layout is complete before we measure clientWidth
     requestAnimationFrame(() => requestAnimationFrame(() => this._syncUplot()));
@@ -347,6 +369,21 @@ export class InsightBarCard extends InsightBaseCard {
     return this._bucketData;
   }
 
+  private _getDisplayBucketData(): BucketData {
+    const full = this._buildBucketData();
+    if (!this._zoomRange) return full;
+    const [start, end] = this._zoomRange;
+    const s = Math.max(0, start);
+    const e = Math.min(full.labels.length - 1, end);
+    if (s >= e) return full;
+    return {
+      labels: full.labels.slice(s, e + 1),
+      series: full.series.map((sr) => sr.slice(s, e + 1)),
+      colors: full.colors,
+      maxVal: 0, // recalculated dynamically by range()
+    };
+  }
+
   // -------------------------------------------------------------------------
   // uPlot builders
   // -------------------------------------------------------------------------
@@ -387,7 +424,7 @@ export class InsightBarCard extends InsightBaseCard {
         x: { time: false, range: () => [-0.5, n - 0.5] as [number, number] },
         y: {
           range: (_u: uPlot, _min: number, _max: number) => {
-            const bd = this._bucketData;
+            const bd = this._activeBucketData;
             const cfg = this._config as InsightBarConfig | undefined;
             if (!bd) return [0, 1] as [number, number];
 
@@ -471,9 +508,66 @@ export class InsightBarCard extends InsightBaseCard {
             u.over.addEventListener("mouseleave", () => this._hideTooltip());
             this._thresholdDefaultColor =
               getComputedStyle(this).getPropertyValue("--error-color").trim() || "#db4437";
+
+            if (config.zoom) {
+              this._zoomOverlay = document.createElement("div");
+              this._zoomOverlay.className = "u-zoom-sel";
+              u.root.appendChild(this._zoomOverlay);
+
+              u.over.addEventListener("mousedown", (e: MouseEvent) => {
+                this._isDragging = true;
+                this._dragStartX = e.offsetX;
+                const ov = this._zoomOverlay!;
+                ov.style.top = `${this._overTop}px`;
+                ov.style.height = `${u.over.offsetHeight}px`;
+                ov.style.left = `${e.offsetX + this._overLeft}px`;
+                ov.style.width = "0px";
+                ov.style.display = "block";
+              });
+
+              u.over.addEventListener("mousemove", (e: MouseEvent) => {
+                if (!this._isDragging || !this._zoomOverlay) return;
+                const x0 = Math.min(this._dragStartX, e.offsetX) + this._overLeft;
+                const x1 = Math.max(this._dragStartX, e.offsetX) + this._overLeft;
+                this._zoomOverlay.style.left = `${x0}px`;
+                this._zoomOverlay.style.width = `${x1 - x0}px`;
+              });
+
+              const endDrag = (e: MouseEvent) => {
+                if (!this._isDragging) return;
+                this._isDragging = false;
+                if (this._zoomOverlay) this._zoomOverlay.style.display = "none";
+
+                const bd = this._activeBucketData;
+                if (!bd || bd.labels.length === 0) return;
+                const n = bd.labels.length;
+                const plotW = u.bbox.width / uPlot.pxRatio;
+                const x0 = Math.min(this._dragStartX, e.offsetX);
+                const x1 = Math.max(this._dragStartX, e.offsetX);
+                if (x1 - x0 < 10) return; // too small — treat as click, not drag
+
+                const dispStart = Math.max(0, Math.floor(x0 / (plotW / n)));
+                const dispEnd = Math.min(n - 1, Math.floor(x1 / (plotW / n)));
+                if (dispEnd <= dispStart) return;
+
+                // Map displayed indices back to full bucket data indices
+                const offset = this._zoomRange?.[0] ?? 0;
+                this._zoomRange = [offset + dispStart, offset + dispEnd];
+              };
+
+              u.over.addEventListener("mouseup", endDrag);
+
+              u.over.addEventListener("dblclick", () => {
+                this._zoomRange = null;
+              });
+            }
           },
         ],
-        destroy: [() => { this._tooltipEl = undefined; }],
+        destroy: [() => {
+          this._tooltipEl = undefined;
+          this._zoomOverlay?.remove();
+          this._zoomOverlay = undefined;
+        }],
         draw: [
           (u: uPlot) => this._drawBarsHook(u),
           (u: uPlot) => {
@@ -497,12 +591,12 @@ export class InsightBarCard extends InsightBaseCard {
 
   private _drawBarsHook(u: uPlot): void {
     const config = this._config as InsightBarConfig | undefined;
-    const bucketData = this._bucketData;
+    const bucketData = this._activeBucketData;
     if (!config || !bucketData) return;
 
-    const { labels, series, colors, maxVal } = bucketData;
+    const { labels, series, colors } = bucketData;
     const n = labels.length;
-    if (n === 0 || maxVal <= 0) return;
+    if (n === 0) return;
 
     const ctx = u.ctx;
     const { left, top: _top, width, height: _height } = u.bbox;
@@ -625,7 +719,8 @@ export class InsightBarCard extends InsightBaseCard {
   // -------------------------------------------------------------------------
 
   private _onChartMouseMove(u: uPlot, e: MouseEvent): void {
-    const bd = this._bucketData;
+    if (this._isDragging) { this._hideTooltip(); return; }
+    const bd = this._activeBucketData;
     if (!bd || bd.labels.length === 0 || !this._tooltipEl) return;
 
     const n = bd.labels.length;
@@ -686,7 +781,10 @@ export class InsightBarCard extends InsightBaseCard {
     // (data arriving after first paint) and DOM is settled after double-rAF.
     this._refreshChartHeight();
 
-    const bucketData = this._buildBucketData();
+    // _activeBucketData must be set BEFORE _buildOptions / new uPlot so that
+    // all closures (range, draw, tooltip) read consistent data.
+    const bucketData = this._getDisplayBucketData();
+    this._activeBucketData = bucketData;
 
     if (bucketData.labels.length === 0) {
       this._uplot?.destroy();
@@ -794,6 +892,31 @@ export class InsightBarCard extends InsightBaseCard {
         font-weight: 500;
         text-align: right;
       }
+
+      /* Zoom */
+      .u-zoom-sel {
+        position: absolute;
+        background: var(--primary-color, #3b82f6);
+        opacity: 0.15;
+        pointer-events: none;
+        display: none;
+        z-index: 10;
+      }
+      .bar-zoom-reset {
+        position: absolute;
+        top: 6px;
+        right: 20px;
+        font-size: 11px;
+        color: var(--primary-color);
+        background: var(--card-background-color);
+        border: 1px solid var(--primary-color);
+        border-radius: 4px;
+        padding: 1px 6px;
+        cursor: pointer;
+        z-index: 100;
+        opacity: 0.85;
+      }
+      .bar-zoom-reset:hover { opacity: 1; }
 
       .bar-legend {
         display: flex;

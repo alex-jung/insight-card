@@ -74,27 +74,20 @@ export class InsightLineCard extends InsightBaseCard {
             .zoom-reset-btn {
                 position: absolute;
                 top: 6px;
-                right: 6px;
-                z-index: 1;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 28px;
-                height: 28px;
-                border: none;
-                border-radius: 6px;
-                background: var(--card-background-color, #fff);
-                color: var(--primary-text-color);
-                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                right: 20px;
+                z-index: 100;
+                font-size: 11px;
+                color: var(--primary-color);
+                background: var(--card-background-color);
+                border: 1px solid var(--primary-color);
+                border-radius: 4px;
+                padding: 1px 6px;
                 cursor: pointer;
                 opacity: 0.85;
                 transition: opacity 0.15s;
             }
             .zoom-reset-btn:hover {
                 opacity: 1;
-            }
-            .zoom-reset-btn ha-svg-icon {
-                --mdc-icon-size: 16px;
             }
 
             /* uPlot core layout — must be in Shadow DOM since uPlot injects to document.head */
@@ -1087,14 +1080,8 @@ export class InsightLineCard extends InsightBaseCard {
             >
                 <div id="chart"></div>
                 ${this._isZoomed
-                    ? html`<button
-                          class="zoom-reset-btn"
-                          @click=${this._resetZoom}
-                          title="Reset zoom"
-                      >
-                          <ha-svg-icon
-                              .path=${"M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"}
-                          ></ha-svg-icon>
+                    ? html`<button class="zoom-reset-btn" @click=${this._resetZoom}>
+                          ↺ Reset Zoom
                       </button>`
                     : ""}
             </div>

@@ -337,6 +337,12 @@ export interface InsightBarConfig extends InsightBaseConfig {
    * Entities with an explicit `color` are not affected.
    */
   color_thresholds?: ColorThresholdConfig[];
+  /**
+   * Enable drag-to-zoom on the chart. Drag to select a bucket range,
+   * double-click to reset.
+   * @default false
+   */
+  zoom?: boolean;
 }
 
 // ---------------------------------------------------------------------------
