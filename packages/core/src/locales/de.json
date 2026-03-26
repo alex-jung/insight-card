@@ -25,6 +25,7 @@
       "show_points": "Datenpunkte",
       "line_width": "Linienbreite",
       "fill_opacity": "Fülldeckkraft",
+      "layout": "Diagrammtyp",
       "bar_fill_opacity": "Balken-Fülldeckkraft",
       "bar_radius": "Balken-Eckenradius",
       "y_min": "Minimum",
@@ -88,6 +89,10 @@
         "smooth": "Smooth",
         "linear": "Linear"
       },
+      "layout": {
+        "grouped": "Gruppiert",
+        "stacked": "Gestapelt"
+      },
       "points": {
         "none": "Keine",
         "hover": "Bei Hover",
@@ -125,7 +130,7 @@
       "color_thresholds": "Farbschwellenwerte (Gradient)",
       "primary_axis": "Primärachse",
       "secondary_axis": "Sekundärachse",
-      "layout": "Layout",
+      "layout": "Diagrammtyp",
       "margin": "Außenabstand",
       "padding": "Innenabstand"
     }

@@ -32,6 +32,8 @@ import {
     SVG_SHOW_LEGEND,
     SVG_SHOW_X_AXIS,
     SVG_SHOW_Y_AXIS,
+    IMG_BAR_GROUPED,
+    IMG_BAR_STACKED,
     localize,
     serialiseEntityConfig,
     generateColors,
@@ -188,20 +190,48 @@ export class InsightBarCardEditor extends InsightBaseEditor {
         { value: "720", label: "30d" },
     ];
 
+    private _buildGeneralSchema(): HaFormSchema[] {
+        const lang = this._lang;
+        return [
+            { name: "title", selector: { text: {} } },
+            {
+                name: "layout",
+                required: true,
+                selector: {
+                    select: {
+                        mode: "box",
+                        options: [
+                            {
+                                value: "grouped",
+                                label: localize("editor.option.layout.grouped", lang),
+                                image: IMG_BAR_GROUPED,
+                            },
+                            {
+                                value: "stacked",
+                                label: localize("editor.option.layout.stacked", lang),
+                                image: IMG_BAR_STACKED,
+                            },
+                        ],
+                    },
+                },
+            },
+        ];
+    }
+
     private _renderGeneralSection(): TemplateResult {
         const cfg = this._barConfig;
         return html`
             <div class="section">
                 <ha-form
                     .hass=${this.hass}
-                    .schema=${[{ name: "title", selector: { text: {} } }]}
-                    .data=${{ title: cfg.title ?? "" }}
+                    .schema=${this._buildGeneralSchema()}
+                    .data=${{ title: cfg.title ?? "", layout: cfg.layout ?? "grouped" }}
                     .computeLabel=${this._computeLabel}
                     @value-changed=${(
                         e: CustomEvent<{ value: Record<string, unknown> }>,
                     ) =>
                         this._updateConfig(
-                            e.detail.value as Partial<InsightBarConfig>,
+                            e.detail.value as unknown as Partial<InsightBaseConfig>,
                         )}
                 ></ha-form>
                 <div class="control-row">
@@ -248,21 +278,6 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                             this._updateConfig({
                                 aggregate: e.detail
                                     .value as InsightBarConfig["aggregate"],
-                            } as unknown as Partial<InsightBaseConfig>)}
-                    ></ha-control-select>
-                </div>
-                <div class="control-row">
-                    <span class="control-label">Layout</span>
-                    <ha-control-select
-                        .options=${[
-                            { value: "grouped", label: "Grouped" },
-                            { value: "stacked", label: "Stacked" },
-                        ]}
-                        .value=${cfg.layout ?? "grouped"}
-                        @value-changed=${(e: CustomEvent<{ value: string }>) =>
-                            this._updateConfig({
-                                layout: e.detail
-                                    .value as InsightBarConfig["layout"],
                             } as unknown as Partial<InsightBaseConfig>)}
                     ></ha-control-select>
                 </div>
@@ -895,7 +910,7 @@ export class InsightBarCardEditor extends InsightBaseEditor {
                 display: flex;
                 flex-direction: column;
                 gap: 4px;
-                padding: 8px 0 8px 0px;
+                padding: 8px 0px;
             }
 
             .control-label {

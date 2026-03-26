@@ -25,6 +25,7 @@
       "show_points": "Data points",
       "line_width": "Line width",
       "fill_opacity": "Fill opacity",
+      "layout": "Chart style",
       "bar_fill_opacity": "Bar fill opacity",
       "bar_radius": "Bar corner radius",
       "y_min": "Minimum",
@@ -88,6 +89,10 @@
         "smooth": "Smooth",
         "linear": "Linear"
       },
+      "layout": {
+        "grouped": "Grouped",
+        "stacked": "Stacked"
+      },
       "points": {
         "none": "None",
         "hover": "On hover",
@@ -125,7 +130,7 @@
       "color_thresholds": "Color thresholds (gradient)",
       "primary_axis": "Primary axis",
       "secondary_axis": "Secondary axis",
-      "layout": "Layout",
+      "layout": "Chart style",
       "margin": "Margin",
       "padding": "Padding"
     }
