@@ -34,6 +34,8 @@ import {
     normaliseEntityConfig,
 } from "@insight-chart/core";
 
+import { mergeTimestamps, alignSeries, normaliseDash } from "./line-utils.js";
+
 // ---------------------------------------------------------------------------
 // Augment global for HA card registration
 // ---------------------------------------------------------------------------
@@ -74,27 +76,20 @@ export class InsightLineCard extends InsightBaseCard {
             .zoom-reset-btn {
                 position: absolute;
                 top: 6px;
-                right: 6px;
-                z-index: 1;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 28px;
-                height: 28px;
-                border: none;
-                border-radius: 6px;
-                background: var(--card-background-color, #fff);
-                color: var(--primary-text-color);
-                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                right: 20px;
+                z-index: 100;
+                font-size: 11px;
+                color: var(--primary-color);
+                background: var(--card-background-color);
+                border: 1px solid var(--primary-color);
+                border-radius: 4px;
+                padding: 1px 6px;
                 cursor: pointer;
                 opacity: 0.85;
                 transition: opacity 0.15s;
             }
             .zoom-reset-btn:hover {
                 opacity: 1;
-            }
-            .zoom-reset-btn ha-svg-icon {
-                --mdc-icon-size: 16px;
             }
 
             /* uPlot core layout — must be in Shadow DOM since uPlot injects to document.head */
@@ -409,12 +404,7 @@ export class InsightLineCard extends InsightBaseCard {
                     : undefined,
                 show: !ec.hidden,
                 width: ec.line_width ?? config.line_width ?? 2,
-                dash:
-                    ec.stroke_dash != null
-                        ? Array.isArray(ec.stroke_dash)
-                            ? ec.stroke_dash
-                            : [ec.stroke_dash, ec.stroke_dash]
-                        : undefined,
+                dash: normaliseDash(ec.stroke_dash),
                 // true = always show static dots; false/"hover" = no static dots
                 points: { show: config.show_points === true, size: 5 },
                 paths: pathBuilder,
@@ -450,25 +440,12 @@ export class InsightLineCard extends InsightBaseCard {
             return data;
         });
 
-        // Merge all timestamps across all entities and sort
-        const allTimestamps = new Set<number>();
-        for (const data of datasets) {
-            for (const point of data) {
-                // uPlot expects seconds, not milliseconds
-                allTimestamps.add(Math.floor(point.t / 1000));
-            }
-        }
-        const timestamps = Array.from(allTimestamps).sort((a, b) => a - b);
+        // Merge all timestamps across all entities and sort (uPlot: seconds)
+        const timestamps = mergeTimestamps(datasets);
 
-        // Build a lookup for each entity
+        // Build a lookup for each entity, null for missing timestamps
         const valueSeries: (number | null | undefined)[][] = datasets.map(
-            (data) => {
-                const map = new Map<number, number>();
-                for (const point of data) {
-                    map.set(Math.floor(point.t / 1000), point.v);
-                }
-                return timestamps.map((ts) => map.get(ts) ?? null);
-            },
+            (data) => alignSeries(data, timestamps),
         );
 
         console.log("uPlot data built", valueSeries);
@@ -949,7 +926,7 @@ export class InsightLineCard extends InsightBaseCard {
                 if (val == null) return "";
                 const unit = dataset.unit ? ` ${dataset.unit}` : "";
                 const color = this._tooltipColors[i] ?? "#888";
-                const name = dataset.friendlyName;
+                const name = this.entityConfigs[i]?.name ?? dataset.friendlyName;
                 return `<div class="u-tooltip-row">
         <span class="u-tooltip-dot" style="background:${color}"></span>
         <span class="u-tooltip-name">${name}</span>
@@ -1078,7 +1055,9 @@ export class InsightLineCard extends InsightBaseCard {
         return html`
             <div
                 class="chart-wrapper"
-                @click=${() => {
+                @click=${(e: MouseEvent) => {
+                    // Ignore clicks that originated from the uPlot legend
+                    if ((e.target as Element)?.closest(".u-legend")) return;
                     this._tapTimer = setTimeout(
                         () => this._handleAction("tap_action"),
                         250,
@@ -1087,14 +1066,8 @@ export class InsightLineCard extends InsightBaseCard {
             >
                 <div id="chart"></div>
                 ${this._isZoomed
-                    ? html`<button
-                          class="zoom-reset-btn"
-                          @click=${this._resetZoom}
-                          title="Reset zoom"
-                      >
-                          <ha-svg-icon
-                              .path=${"M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"}
-                          ></ha-svg-icon>
+                    ? html`<button class="zoom-reset-btn" @click=${this._resetZoom}>
+                          ↺ Reset Zoom
                       </button>`
                     : ""}
             </div>

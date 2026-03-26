@@ -181,6 +181,26 @@ export interface InsightBaseConfig {
    * @default 0
    */
   margin_bottom?: number;
+  /**
+   * Inner padding on the top of the chart canvas (px).
+   * @default 8
+   */
+  padding_top?: number;
+  /**
+   * Inner padding on the right of the chart canvas (px).
+   * @default 16
+   */
+  padding_right?: number;
+  /**
+   * Inner padding on the bottom of the chart canvas (px).
+   * @default 8
+   */
+  padding_bottom?: number;
+  /**
+   * Inner padding on the left of the chart canvas (px).
+   * @default 16
+   */
+  padding_left?: number;
   /** Override grid placement in Sections View */
   grid_options?: GridOptionsConfig;
 }
@@ -272,30 +292,12 @@ export interface InsightLineConfig extends InsightBaseConfig {
    * Required when `aggregate` is set.
    */
   aggregate_period?: string;
-  /**
-   * Inner padding on the top of the chart canvas (px).
-   * @default 8
-   */
-  padding_top?: number;
-  /**
-   * Inner padding on the right of the chart canvas (px).
-   * @default 16
-   */
-  padding_right?: number;
-  /**
-   * Inner padding on the bottom of the chart canvas (px).
-   * @default 8
-   */
-  padding_bottom?: number;
-  /**
-   * Inner padding on the left of the chart canvas (px).
-   * @default 16
-   */
-  padding_left?: number;
   /** Action triggered by a single tap/click on the chart. */
   tap_action?: ActionConfig;
   /** Action triggered by a double-tap/double-click on the chart. */
   double_tap_action?: ActionConfig;
+  /** Action triggered by a long press (≥500 ms) on the chart. */
+  hold_action?: ActionConfig;
 }
 
 // ---------------------------------------------------------------------------
@@ -309,6 +311,40 @@ export interface InsightBarConfig extends InsightBaseConfig {
   layout?: "grouped" | "stacked";
   /** Aggregation function applied per bucket */
   aggregate?: "mean" | "sum" | "min" | "max";
+  /**
+   * Soft Y minimum — axis extends below this value only if data requires it.
+   * Defaults to 0 (bars start at the zero baseline).
+   */
+  y_min?: number;
+  /**
+   * Soft Y maximum — axis extends above this value only if data requires it.
+   * Useful to keep a fixed scale (e.g. y_max: 100 for percentages).
+   */
+  y_max?: number;
+  /** Horizontal reference lines drawn across the chart. */
+  thresholds?: ThresholdConfig[];
+  /**
+   * Bar fill opacity (0–1).
+   * @default 1
+   */
+  fill_opacity?: number;
+  /**
+   * Corner radius of the bar tops in pixels.
+   * @default 0
+   */
+  bar_radius?: number;
+  /**
+   * Value-based bar coloring. Each bar is colored according to the highest
+   * threshold whose value is ≤ the bar's aggregated value.
+   * Entities with an explicit `color` are not affected.
+   */
+  color_thresholds?: ColorThresholdConfig[];
+  /**
+   * Enable drag-to-zoom on the chart. Drag to select a bucket range,
+   * double-click to reset.
+   * @default false
+   */
+  zoom?: boolean;
 }
 
 // ---------------------------------------------------------------------------

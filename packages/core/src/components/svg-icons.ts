@@ -66,6 +66,36 @@ export const IMG_CURVE_LINEAR = svgToDataUrl(`<svg xmlns="http://www.w3.org/2000
   <polyline points="15,65 45,35 75,48 105,22 145,32" fill="none" stroke="#4AAFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`);
 
+export const IMG_BAR_GROUPED = svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90">
+  <rect width="160" height="90" rx="6" fill="#f4f6f9"/>
+  <line x1="15" y1="22" x2="145" y2="22" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="42" x2="145" y2="42" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="62" x2="145" y2="62" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="75" x2="145" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <line x1="15" y1="12" x2="15" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <rect x="22" y="45" width="13" height="30" rx="1" fill="#4AAFFF"/>
+  <rect x="36" y="55" width="13" height="20" rx="1" fill="#FF6B4A"/>
+  <rect x="62" y="28" width="13" height="47" rx="1" fill="#4AAFFF"/>
+  <rect x="76" y="38" width="13" height="37" rx="1" fill="#FF6B4A"/>
+  <rect x="102" y="48" width="13" height="27" rx="1" fill="#4AAFFF"/>
+  <rect x="116" y="33" width="13" height="42" rx="1" fill="#FF6B4A"/>
+</svg>`);
+
+export const IMG_BAR_STACKED = svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90">
+  <rect width="160" height="90" rx="6" fill="#f4f6f9"/>
+  <line x1="15" y1="22" x2="145" y2="22" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="42" x2="145" y2="42" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="62" x2="145" y2="62" stroke="#e0e0e0" stroke-width="0.8"/>
+  <line x1="15" y1="75" x2="145" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <line x1="15" y1="12" x2="15" y2="75" stroke="#c0c8d0" stroke-width="1"/>
+  <rect x="25" y="55" width="26" height="20" rx="1" fill="#FF6B4A"/>
+  <rect x="25" y="38" width="26" height="17" rx="1" fill="#4AAFFF"/>
+  <rect x="67" y="42" width="26" height="33" rx="1" fill="#FF6B4A"/>
+  <rect x="67" y="20" width="26" height="22" rx="1" fill="#4AAFFF"/>
+  <rect x="109" y="50" width="26" height="25" rx="1" fill="#FF6B4A"/>
+  <rect x="109" y="35" width="26" height="15" rx="1" fill="#4AAFFF"/>
+</svg>`);
+
 // ---------------------------------------------------------------------------
 // Toggle button icons (24×24, currentColor)
 // ---------------------------------------------------------------------------
