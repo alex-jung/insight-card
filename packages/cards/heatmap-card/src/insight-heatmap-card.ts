@@ -292,6 +292,12 @@ export class InsightHeatmapCard extends InsightBaseCard {
     private _lastHeatLocale?: string;
     /** Computed canvas height — drives Lit template so Lit owns the style, not inline JS */
     @state() private _canvasHeight = 0;
+    /**
+     * Stable card height captured when canvas is absent (no circular dependency).
+     * Only re-read when _canvasHeight === 0 or ResizeObserver detects a genuine resize.
+     */
+    private _stableH = 0;
+    private _ro?: ResizeObserver;
 
     /** Layout state cached for use in mouse event handlers */
     private _tooltipState?: {
@@ -307,6 +313,26 @@ export class InsightHeatmapCard extends InsightBaseCard {
         unit: string;
     };
     private _tooltipEl?: HTMLDivElement;
+
+    override connectedCallback(): void {
+        super.connectedCallback();
+        this._ro = new ResizeObserver((entries) => {
+            const newH = entries[0].contentRect.height;
+            // Only react to genuine card resizes (≥20 px delta from last stable value).
+            // Ignore transient layout noise caused by our own canvas updates.
+            if (newH > 0 && Math.abs(newH - this._stableH) >= 20) {
+                this._stableH = 0;        // force re-measure in _drawHeatmap
+                this._canvasHeight = 0;   // triggers Lit re-render → new draw cycle
+            }
+        });
+        this._ro.observe(this);
+    }
+
+    override disconnectedCallback(): void {
+        super.disconnectedCallback();
+        this._ro?.disconnect();
+        this._ro = undefined;
+    }
 
     static getConfigElement(): HTMLElement {
         return document.createElement("insight-heatmap-card-editor");
@@ -361,16 +387,40 @@ export class InsightHeatmapCard extends InsightBaseCard {
 
     private _drawHeatmap(): void {
         const config = this._config as InsightHeatmapConfig | undefined;
-        if (!config || this._loading || this._data.length === 0) return;
-
-        const dataset = this._data[0];
-        if (!dataset || dataset.data.length === 0) return;
+        if (!config) return;
 
         const canvasEl =
             this.shadowRoot?.querySelector<HTMLCanvasElement>(
                 ".heatmap-canvas",
             );
         if (!canvasEl) return;
+
+        // Measure the card height only when the canvas is absent — at that point
+        // there is no circular dependency between canvas size and card size.
+        // Once captured in _stableH, the same value is reused for all subsequent
+        // draws until ResizeObserver detects a genuine card resize.
+        if (this._canvasHeight === 0) {
+            const h = this.offsetHeight;
+            if (h > 0) this._stableH = h;
+        }
+        const totalH = this._stableH;
+        if (totalH === 0) return;
+
+        const xAxisHeight = config.show_x_axis !== false ? 20 : 0;
+        const colorbarHeight = config.show_colorbar ? 32 : 0;
+        const titleH = this._header?.offsetHeight ?? 0;
+        const displayHeight = Math.max(40, totalH - titleH - xAxisHeight - colorbarHeight);
+
+        if (this._canvasHeight !== displayHeight) {
+            this._canvasHeight = displayHeight;
+            return;
+        }
+
+        // Skip drawing until data is available and loading is complete
+        if (this._loading || this._data.length === 0) return;
+
+        const dataset = this._data[0];
+        if (!dataset || dataset.data.length === 0) return;
 
         const layout = config.layout ?? "hour_day";
         let cells: HeatCell[];
@@ -410,15 +460,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
 
         // Layout constants
         const labelW = 28;
-        const xAxisHeight = config.show_x_axis !== false ? 20 : 0;
-        const colorbarHeight = config.show_colorbar ? 32 : 0;
         const padding = { top: 8, right: 8, bottom: 4, left: labelW };
-
-        // Canvas height = card height minus title, x-axis and colorbar
-        const totalH = this.offsetHeight;
-        if (totalH === 0) return;
-        const titleH = this._header?.offsetHeight ?? 0;
-        const displayHeight = Math.max(40, totalH - titleH - xAxisHeight - colorbarHeight);
 
         const dpr = window.devicePixelRatio ?? 1;
         const displayWidth = canvasEl.clientWidth || this._cardWidth - 32;
@@ -427,12 +469,6 @@ export class InsightHeatmapCard extends InsightBaseCard {
         // Cell dimensions derived from available height
         const cellW = plotW / numCols;
         const cellH = (displayHeight - padding.top - padding.bottom) / numRows;
-
-        // If canvas height changed, let Lit re-render first — next RAF will draw
-        if (this._canvasHeight !== displayHeight) {
-            this._canvasHeight = displayHeight;
-            return;
-        }
 
         canvasEl.width = displayWidth * dpr;
         canvasEl.height = displayHeight * dpr;
@@ -443,6 +479,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
         ctx.scale(dpr, dpr);
 
         const colorStops = resolveColorScale(config.color_scale);
+        const reverseScale = config.reverse_scale === true;
 
         let minVal = Infinity;
         let maxVal = -Infinity;
@@ -468,7 +505,8 @@ export class InsightHeatmapCard extends InsightBaseCard {
         }
 
         for (const cell of cells) {
-            const t = (cell.value - minVal) / range;
+            const t0 = (cell.value - minVal) / range;
+            const t = reverseScale ? 1 - t0 : t0;
             const [r, g, b] = interpolateColorRgb(colorStops, t);
             ctx.fillStyle = `rgb(${r},${g},${b})`;
             ctx.fillRect(

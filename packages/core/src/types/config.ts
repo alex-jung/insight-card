@@ -365,6 +365,11 @@ export interface InsightHeatmapConfig extends InsightBaseConfig {
   /** How time axes are laid out in the heatmap grid */
   layout?: "hour_day" | "weekday_hour" | "month_day";
   /**
+   * Reverse the colour scale direction.
+   * @default false
+   */
+  reverse_scale?: boolean;
+  /**
    * Show a horizontal colour scale bar with min/max labels below the chart.
    * @default false
    */
