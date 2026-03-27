@@ -122,10 +122,10 @@ const ADVANCED_SCHEMA: HaFormSchema[] = [
 ];
 
 const PALETTE_OPTIONS = [
-    { value: "YlOrRd",  label: "YlOrRd"  },
-    { value: "Blues",   label: "Blues"   },
-    { value: "Greens",  label: "Greens"  },
-    { value: "RdBu",    label: "RdBu"    },
+    { value: "YlOrRd",  label: "YlOrRd — Yellow · Orange · Red"  },
+    { value: "Blues",   label: "Blues"                           },
+    { value: "Greens",  label: "Greens"                          },
+    { value: "RdBu",    label: "RdBu — Red · White · Blue"       },
     { value: "Viridis", label: "Viridis" },
     { value: "Plasma",  label: "Plasma"  },
     { value: "Purples", label: "Purples" },

@@ -486,13 +486,16 @@ export class InsightHeatmapCard extends InsightBaseCard {
         const numCols = colLabels.length;
         const numRows = rowLabels.length;
 
-        // Padding values come from config (defaults set in getDefaultConfig)
+        // Padding values come from config (defaults set in getDefaultConfig).
+        // When show_y_axis is true, enforce a minimum left padding of 28 px so
+        // row labels are never pushed off-canvas by an explicit padding_left: 0.
         const showYAxis = config.show_y_axis !== false;
+        const rawLeft = config.padding_left ?? (showYAxis ? 28 : 4);
         const padding = {
             top:    config.padding_top    ?? 8,
             right:  config.padding_right  ?? 8,
             bottom: config.padding_bottom ?? 4,
-            left:   config.padding_left   ?? (showYAxis ? 28 : 4),
+            left:   showYAxis ? Math.max(rawLeft, 28) : rawLeft,
         };
 
         const dpr = window.devicePixelRatio ?? 1;
