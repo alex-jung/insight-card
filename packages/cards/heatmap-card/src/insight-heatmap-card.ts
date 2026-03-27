@@ -169,13 +169,34 @@ function buildHourDayGrid(data: { t: number; v: number }[]): {
     return { cells, rowLabels, colLabels };
 }
 
-function buildWeekdayHourGrid(data: { t: number; v: number }[]): {
+/**
+ * Monday-first row index: getDay() returns 0=Sun … 6=Sat.
+ * (day + 6) % 7 maps Mon→0, Tue→1 … Sun→6.
+ */
+function mondayFirstIdx(jsDay: number): number {
+    return (jsDay + 6) % 7;
+}
+
+/**
+ * Generate Monday-first short weekday labels via Intl.
+ * Jan 2 2023 is a Monday — iterating +0…+6 gives Mon…Sun.
+ */
+function weekdayLabels(locale?: string): string[] {
+    const fmt = new Intl.DateTimeFormat(locale ?? "en", { weekday: "short" });
+    return Array.from({ length: 7 }, (_, i) =>
+        fmt.format(new Date(2023, 0, 2 + i)),
+    );
+}
+
+function buildWeekdayHourGrid(
+    data: { t: number; v: number }[],
+    locale?: string,
+): {
     cells: HeatCell[];
     rowLabels: string[];
     colLabels: string[];
 } {
-    const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const rowLabels = DAY_NAMES;
+    const rowLabels = weekdayLabels(locale);
     const colLabels = Array.from({ length: 24 }, (_, h) =>
         h.toString().padStart(2, "0"),
     );
@@ -183,7 +204,7 @@ function buildWeekdayHourGrid(data: { t: number; v: number }[]): {
     const sums = new Map<string, { sum: number; count: number }>();
     for (const p of data) {
         const d = new Date(p.t);
-        const key = `${d.getDay()}_${d.getHours()}`;
+        const key = `${mondayFirstIdx(d.getDay())}_${d.getHours()}`;
         const prev = sums.get(key) ?? { sum: 0, count: 0 };
         sums.set(key, { sum: prev.sum + p.v, count: prev.count + 1 });
     }
@@ -222,6 +243,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
     };
     private _lastHeatDataRef?: (typeof this._data)[0]["data"];
     private _lastHeatLayout?: string;
+    private _lastHeatLocale?: string;
     /** Computed canvas height — drives Lit template so Lit owns the style, not inline JS */
     @state() private _canvasHeight = 0;
 
@@ -311,16 +333,18 @@ export class InsightHeatmapCard extends InsightBaseCard {
 
         // Rebuild grid only when the data reference or layout changes — skip on resize
         const rawData = dataset.data;
+        const locale = this.hass?.language;
         if (
             this._gridCache &&
             rawData === this._lastHeatDataRef &&
-            layout === this._lastHeatLayout
+            layout === this._lastHeatLayout &&
+            locale === this._lastHeatLocale
         ) {
             ({ cells, rowLabels, colLabels } = this._gridCache);
         } else {
             if (layout === "weekday_hour") {
                 ({ cells, rowLabels, colLabels } =
-                    buildWeekdayHourGrid(rawData));
+                    buildWeekdayHourGrid(rawData, locale));
             } else {
                 // hour_day (default) — month_day falls back to this for now
                 ({ cells, rowLabels, colLabels } = buildHourDayGrid(rawData));
@@ -328,6 +352,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
             this._gridCache = { cells, rowLabels, colLabels };
             this._lastHeatDataRef = rawData;
             this._lastHeatLayout = layout;
+            this._lastHeatLocale = locale;
         }
 
         if (cells.length === 0) return;
