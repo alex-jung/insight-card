@@ -365,6 +365,16 @@ export interface InsightHeatmapConfig extends InsightBaseConfig {
   /** How time axes are laid out in the heatmap grid */
   layout?: "hour_day" | "weekday_hour" | "month_day";
   /**
+   * Gap between cells in pixels.
+   * @default 1
+   */
+  cell_gap?: number;
+  /**
+   * Corner radius of each cell in pixels.
+   * @default 0
+   */
+  cell_radius?: number;
+  /**
    * Fix the minimum value for colour-scale normalisation.
    * Values below this are clamped to the minimum colour.
    * Defaults to the dataset minimum.

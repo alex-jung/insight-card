@@ -504,6 +504,8 @@ export class InsightHeatmapCard extends InsightBaseCard {
 
         const colorStops = resolveColorScale(config.color_scale);
         const reverseScale = config.reverse_scale === true;
+        const cellGap = config.cell_gap ?? 1;
+        const cellRadius = config.cell_radius ?? 0;
 
         let autoMin = Infinity;
         let autoMax = -Infinity;
@@ -535,12 +537,20 @@ export class InsightHeatmapCard extends InsightBaseCard {
             const t = reverseScale ? 1 - t0 : t0;
             const [r, g, b] = interpolateColorRgb(colorStops, t);
             ctx.fillStyle = `rgb(${r},${g},${b})`;
-            ctx.fillRect(
-                padding.left + cell.colIdx * cellW,
-                padding.top + cell.rowIdx * cellH,
-                cellW - 1,
-                cellH - 1,
-            );
+
+            const cx = padding.left + cell.colIdx * cellW;
+            const cy = padding.top + cell.rowIdx * cellH;
+            const cw = cellW - cellGap;
+            const ch = cellH - cellGap;
+
+            if (cellRadius > 0) {
+                const rx = Math.min(cellRadius, cw / 2, ch / 2);
+                ctx.beginPath();
+                ctx.roundRect(cx, cy, cw, ch, rx);
+                ctx.fill();
+            } else {
+                ctx.fillRect(cx, cy, cw, ch);
+            }
 
             if (showCellValues) {
                 // Pick contrasting text color based on cell luminance
@@ -556,8 +566,8 @@ export class InsightHeatmapCard extends InsightBaseCard {
 
                 ctx.fillText(
                     label,
-                    padding.left + cell.colIdx * cellW + (cellW - 1) / 2,
-                    padding.top + cell.rowIdx * cellH + (cellH - 1) / 2,
+                    cx + cw / 2,
+                    cy + ch / 2,
                 );
             }
         }
