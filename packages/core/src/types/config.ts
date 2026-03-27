@@ -365,6 +365,12 @@ export interface InsightHeatmapConfig extends InsightBaseConfig {
   /** How time axes are laid out in the heatmap grid */
   layout?: "hour_day" | "weekday_hour" | "month_day";
   /**
+   * Fill colour for cells that have no data.
+   * Accepts any CSS colour string (hex, rgba, named, "transparent").
+   * @default "transparent"
+   */
+  empty_color?: string;
+  /**
    * Gap between cells in pixels.
    * @default 1
    */

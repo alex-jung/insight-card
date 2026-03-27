@@ -506,6 +506,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
         const reverseScale = config.reverse_scale === true;
         const cellGap = config.cell_gap ?? 1;
         const cellRadius = config.cell_radius ?? 0;
+        const emptyColor = config.empty_color ?? "transparent";
 
         let autoMin = Infinity;
         let autoMax = -Infinity;
@@ -520,6 +521,29 @@ export class InsightHeatmapCard extends InsightBaseCard {
         const textColor = this.isDarkTheme
             ? "rgba(255,255,255,0.6)"
             : "rgba(0,0,0,0.55)";
+
+        // Draw empty cells first (background pass)
+        if (emptyColor !== "transparent") {
+            const filled = new Set(cells.map((c) => `${c.rowIdx}_${c.colIdx}`));
+            ctx.fillStyle = emptyColor;
+            for (let row = 0; row < numRows; row++) {
+                for (let col = 0; col < numCols; col++) {
+                    if (filled.has(`${row}_${col}`)) continue;
+                    const cx = padding.left + col * cellW;
+                    const cy = padding.top + row * cellH;
+                    const cw = cellW - cellGap;
+                    const ch = cellH - cellGap;
+                    if (cellRadius > 0) {
+                        const rx = Math.min(cellRadius, cw / 2, ch / 2);
+                        ctx.beginPath();
+                        ctx.roundRect(cx, cy, cw, ch, rx);
+                        ctx.fill();
+                    } else {
+                        ctx.fillRect(cx, cy, cw, ch);
+                    }
+                }
+            }
+        }
 
         // Draw cells
         const showCellValues = config.show_cell_values === true && cellH >= 10 && cellW >= 16;
