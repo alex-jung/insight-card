@@ -411,4 +411,10 @@ export interface InsightHeatmapConfig extends InsightBaseConfig {
    * Decimal places for cell value labels. Defaults to auto (0 for integers, 1 for floats).
    */
   cell_value_decimals?: number;
+  /** Action triggered by a single tap/click on the chart. */
+  tap_action?: ActionConfig;
+  /** Action triggered by a double-tap/double-click on the chart. */
+  double_tap_action?: ActionConfig;
+  /** Action triggered by a long press (≥500 ms) on the chart. */
+  hold_action?: ActionConfig;
 }

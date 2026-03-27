@@ -10,7 +10,9 @@
       "data_aggregation": "Datenaggregation",
       "overlays": "Überlagerungen",
       "interactions": "Interaktionen",
-      "advanced": "Erweitert"
+      "advanced": "Erweitert",
+      "appearance": "Darstellung",
+      "color_scale": "Farbskala"
     },
     "field": {
       "title": "Titel (optional)",

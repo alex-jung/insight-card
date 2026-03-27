@@ -487,11 +487,12 @@ export class InsightHeatmapCard extends InsightBaseCard {
         const numRows = rowLabels.length;
 
         // Padding values come from config (defaults set in getDefaultConfig)
+        const showYAxis = config.show_y_axis !== false;
         const padding = {
             top:    config.padding_top    ?? 8,
             right:  config.padding_right  ?? 8,
             bottom: config.padding_bottom ?? 4,
-            left:   config.padding_left   ?? 28,
+            left:   config.padding_left   ?? (showYAxis ? 28 : 4),
         };
 
         const dpr = window.devicePixelRatio ?? 1;
@@ -605,16 +606,18 @@ export class InsightHeatmapCard extends InsightBaseCard {
         }
 
         // Draw row labels (Y-axis)
-        ctx.font = "10px sans-serif";
-        ctx.fillStyle = textColor;
-        ctx.textAlign = "right";
-        ctx.textBaseline = "middle";
-        for (let r = 0; r < numRows; r++) {
-            ctx.fillText(
-                rowLabels[r],
-                padding.left - 4,
-                padding.top + r * cellH + cellH / 2,
-            );
+        if (showYAxis) {
+            ctx.font = "10px sans-serif";
+            ctx.fillStyle = textColor;
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            for (let r = 0; r < numRows; r++) {
+                ctx.fillText(
+                    rowLabels[r],
+                    padding.left - 4,
+                    padding.top + r * cellH + cellH / 2,
+                );
+            }
         }
 
         // Update X-axis element
