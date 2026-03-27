@@ -42,7 +42,7 @@ export default {
     }),
     terser({
       compress: {
-        pure_funcs: ["console.debug", "console.log", "console.warn", "console.info"],
+        pure_funcs: ["console.debug", "console.log", "console.warn"],
         passes: 1,
       },
       mangle: false,
