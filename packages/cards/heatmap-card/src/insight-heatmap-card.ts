@@ -383,6 +383,10 @@ export class InsightHeatmapCard extends InsightBaseCard {
             color_scale: "YlOrRd",
             layout: "hour_day",
             update_interval: 60,
+            padding_top: 8,
+            padding_right: 8,
+            padding_bottom: 4,
+            padding_left: 28,
         };
     }
 
@@ -482,9 +486,13 @@ export class InsightHeatmapCard extends InsightBaseCard {
         const numCols = colLabels.length;
         const numRows = rowLabels.length;
 
-        // Layout constants
-        const labelW = 28;
-        const padding = { top: 8, right: 8, bottom: 4, left: labelW };
+        // Padding values come from config (defaults set in getDefaultConfig)
+        const padding = {
+            top:    config.padding_top    ?? 8,
+            right:  config.padding_right  ?? 8,
+            bottom: config.padding_bottom ?? 4,
+            left:   config.padding_left   ?? 28,
+        };
 
         const dpr = window.devicePixelRatio ?? 1;
         const displayWidth = canvasEl.clientWidth || this._cardWidth - 32;
