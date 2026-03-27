@@ -17,8 +17,10 @@ import { styleMap } from "lit/directives/style-map.js";
 import {
     InsightBaseCard,
     type InsightHeatmapConfig,
+    type ActionConfig,
     type ColorStop,
     findNumericSensor,
+    normaliseEntityConfig,
     hexToRgb,
 } from "@insight-chart/core";
 
@@ -338,6 +340,10 @@ export class InsightHeatmapCard extends InsightBaseCard {
     };
     private _tooltipEl?: HTMLDivElement;
 
+    /** Action timers */
+    private _tapTimer?: ReturnType<typeof setTimeout>;
+    private _holdTimer?: ReturnType<typeof setTimeout>;
+
     override connectedCallback(): void {
         super.connectedCallback();
         this._ro = new ResizeObserver((entries) => {
@@ -405,6 +411,28 @@ export class InsightHeatmapCard extends InsightBaseCard {
                             ? `${this._canvasHeight}px`
                             : undefined,
                 })}
+                @click=${() => {
+                    clearTimeout(this._holdTimer);
+                    this._tapTimer = setTimeout(
+                        () => this._handleAction("tap_action"),
+                        250,
+                    );
+                }}
+                @dblclick=${() => {
+                    clearTimeout(this._tapTimer);
+                    clearTimeout(this._holdTimer);
+                    this._handleAction("double_tap_action");
+                }}
+                @pointerdown=${() => {
+                    clearTimeout(this._holdTimer);
+                    this._holdTimer = setTimeout(() => {
+                        clearTimeout(this._tapTimer);
+                        this._handleAction("hold_action");
+                    }, 500);
+                }}
+                @pointerup=${() => clearTimeout(this._holdTimer)}
+                @pointermove=${() => clearTimeout(this._holdTimer)}
+                @pointercancel=${() => clearTimeout(this._holdTimer)}
             ></canvas>
             <div class="x-axis"></div>
             <div class="colorbar"></div>
@@ -710,6 +738,71 @@ export class InsightHeatmapCard extends InsightBaseCard {
 
     private _hideTooltip(): void {
         if (this._tooltipEl) this._tooltipEl.style.display = "none";
+    }
+
+    // -------------------------------------------------------------------------
+    // HA Actions (tap / double-tap / hold)
+    // -------------------------------------------------------------------------
+
+    private _handleAction(
+        actionType: "tap_action" | "double_tap_action" | "hold_action",
+    ): void {
+        const cfg = this._config as InsightHeatmapConfig | undefined;
+        const action = cfg?.[actionType] as ActionConfig | undefined;
+
+        if (!action) {
+            if (actionType === "tap_action") this._fireMoreInfo();
+            return;
+        }
+        if (action.action === "none") return;
+
+        switch (action.action) {
+            case "more-info":
+                this._fireMoreInfo();
+                break;
+            case "navigate":
+                if (action.navigation_path) {
+                    history.pushState(null, "", action.navigation_path);
+                    this.dispatchEvent(
+                        new CustomEvent("location-changed", {
+                            bubbles: true,
+                            composed: true,
+                        }),
+                    );
+                }
+                break;
+            case "url":
+                if (action.url_path) window.open(action.url_path, "_blank");
+                break;
+            case "perform-action": {
+                const serviceStr =
+                    action.perform_action ?? action.service ?? "";
+                const [domain, service] = serviceStr.split(".", 2);
+                if (domain && service) {
+                    this.hass?.callService(
+                        domain,
+                        service,
+                        action.data ?? action.service_data ?? {},
+                    );
+                }
+                break;
+            }
+        }
+    }
+
+    private _fireMoreInfo(): void {
+        const cfg = this._config as InsightHeatmapConfig | undefined;
+        const entities = cfg?.entities;
+        if (!entities || entities.length === 0) return;
+        const entityId = normaliseEntityConfig(entities[0]).entity;
+        if (!entityId) return;
+        this.dispatchEvent(
+            new CustomEvent("hass-more-info", {
+                detail: { entityId },
+                bubbles: true,
+                composed: true,
+            }),
+        );
     }
 
     private _onMouseMove(e: MouseEvent): void {
