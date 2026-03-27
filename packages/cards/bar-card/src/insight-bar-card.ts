@@ -1121,7 +1121,7 @@ export class InsightBarCard extends InsightBaseCard {
         border-radius: 4px;
         padding: 1px 6px;
         cursor: pointer;
-        z-index: 100;
+        z-index: 1;
         opacity: 0.85;
       }
       .bar-zoom-reset:hover { opacity: 1; }

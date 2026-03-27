@@ -76,7 +76,7 @@ export class InsightLineCard extends InsightBaseCard {
                 position: absolute;
                 top: 6px;
                 right: 20px;
-                z-index: 100;
+                z-index: 1;
                 font-size: 11px;
                 color: var(--primary-color);
                 background: var(--card-background-color);
