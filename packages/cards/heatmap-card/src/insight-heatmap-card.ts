@@ -64,6 +64,30 @@ const PALETTES: Record<string, ColorStop[]> = {
         { position: 0.5, color: "#f7f7f7" },
         { position: 1, color: "#4575b4" },
     ],
+    Viridis: [
+        { position: 0,    color: "#440154" },
+        { position: 0.25, color: "#31688e" },
+        { position: 0.5,  color: "#35b779" },
+        { position: 0.75, color: "#90d743" },
+        { position: 1,    color: "#fde725" },
+    ],
+    Plasma: [
+        { position: 0,    color: "#0d0887" },
+        { position: 0.25, color: "#7e03a8" },
+        { position: 0.5,  color: "#cc4778" },
+        { position: 0.75, color: "#f89441" },
+        { position: 1,    color: "#f0f921" },
+    ],
+    Purples: [
+        { position: 0,   color: "#fcfbfd" },
+        { position: 0.5, color: "#9e9ac8" },
+        { position: 1,   color: "#3f007d" },
+    ],
+    Oranges: [
+        { position: 0,   color: "#fff5eb" },
+        { position: 0.5, color: "#fd8d3c" },
+        { position: 1,   color: "#7f2704" },
+    ],
 };
 
 // ---------------------------------------------------------------------------
