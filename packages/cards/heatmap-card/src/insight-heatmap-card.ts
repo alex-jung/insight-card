@@ -7,7 +7,7 @@
  * Supported layouts:
  *   - hour_day      — columns: days, rows: hours of the day
  *   - weekday_hour  — columns: hours, rows: weekdays
- *   - month_day     — columns: days of month, rows: months
+ *   - month_day     — columns: days 1–31, rows: months (localized)
  */
 
 import { html, css, type TemplateResult, type CSSResultGroup } from "lit";
@@ -223,6 +223,52 @@ function buildWeekdayHourGrid(
     return { cells, rowLabels, colLabels };
 }
 
+/**
+ * Generate short month labels via Intl (Jan 1 … Dec 1 of any non-leap year).
+ */
+function monthLabels(locale?: string): string[] {
+    const fmt = new Intl.DateTimeFormat(locale ?? "en", { month: "short" });
+    return Array.from({ length: 12 }, (_, i) =>
+        fmt.format(new Date(2023, i, 1)),
+    );
+}
+
+function buildMonthDayGrid(
+    data: { t: number; v: number }[],
+    locale?: string,
+): {
+    cells: HeatCell[];
+    rowLabels: string[];
+    colLabels: string[];
+} {
+    // rows: months 0–11, cols: days 1–31
+    const rowLabels = monthLabels(locale);
+    const colLabels = Array.from({ length: 31 }, (_, i) =>
+        (i + 1).toString(),
+    );
+
+    const sums = new Map<string, { sum: number; count: number }>();
+    for (const p of data) {
+        const d = new Date(p.t);
+        const key = `${d.getMonth()}_${d.getDate() - 1}`;
+        const prev = sums.get(key) ?? { sum: 0, count: 0 };
+        sums.set(key, { sum: prev.sum + p.v, count: prev.count + 1 });
+    }
+
+    const cells: HeatCell[] = [];
+    for (const [key, { sum, count }] of sums) {
+        const [monthStr, dayStr] = key.split("_");
+        cells.push({
+            rowIdx: parseInt(monthStr, 10),
+            colIdx: parseInt(dayStr, 10),
+            value: sum / count,
+            count,
+        });
+    }
+
+    return { cells, rowLabels, colLabels };
+}
+
 // ---------------------------------------------------------------------------
 // Card
 // ---------------------------------------------------------------------------
@@ -345,8 +391,10 @@ export class InsightHeatmapCard extends InsightBaseCard {
             if (layout === "weekday_hour") {
                 ({ cells, rowLabels, colLabels } =
                     buildWeekdayHourGrid(rawData, locale));
+            } else if (layout === "month_day") {
+                ({ cells, rowLabels, colLabels } =
+                    buildMonthDayGrid(rawData, locale));
             } else {
-                // hour_day (default) — month_day falls back to this for now
                 ({ cells, rowLabels, colLabels } = buildHourDayGrid(rawData));
             }
             this._gridCache = { cells, rowLabels, colLabels };
@@ -576,10 +624,14 @@ export class InsightHeatmapCard extends InsightBaseCard {
         // Format time label depending on layout
         const colLabel = colLabels[colIdx];
         const rowLabel = rowLabels[rowIdx];
-        const timeLabel =
-            layout === "weekday_hour"
-                ? `${rowLabel} ${colLabel}:00`
-                : `${colLabel} ${rowLabel}:00`;
+        let timeLabel: string;
+        if (layout === "weekday_hour") {
+            timeLabel = `${rowLabel} ${colLabel}:00`;
+        } else if (layout === "month_day") {
+            timeLabel = `${colLabel}. ${rowLabel}`;
+        } else {
+            timeLabel = `${colLabel} ${rowLabel}:00`;
+        }
 
         // Format value
         const valueStr =
