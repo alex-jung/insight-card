@@ -17,7 +17,7 @@ import { InsightBarEntityEditor } from "./insight-bar-entity-editor.js";
 InsightBarEntityEditor;
 import {
     mdiFormatListBulleted,
-    mdiChartBar,
+    mdiChartBox,
     mdiAxisArrow,
     mdiLayersOutline,
     mdiCog,
@@ -405,7 +405,7 @@ export class InsightBarCardEditor extends InsightBaseEditor {
             <ha-expansion-panel outlined>
                 <ha-svg-icon
                     slot="leading-icon"
-                    .path=${mdiChartBar}
+                    .path=${mdiChartBox}
                 ></ha-svg-icon>
                 <span slot="header">
                     ${localize("editor.section.chart_style", this._lang)}

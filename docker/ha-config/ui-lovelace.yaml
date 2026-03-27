@@ -197,3 +197,69 @@ views:
             hours: 2160
             group_by: month
             aggregate: mean
+
+    # ---------------------------------------------------------------------------
+    # SHOWCASE HEATMAP CARD
+    # ---------------------------------------------------------------------------
+    - title: Showcase Heatmap Card
+      icon: mdi:chart-box
+      cards:
+          # Layout: hour_day — Stunden × Tage (Standard)
+          - type: custom:insight-heatmap-card
+            title: Temperature — Hour × Day
+            entities:
+                - entity: sensor.test_temperature_living_room
+            hours: 168
+            layout: hour_day
+            color_scale: YlOrRd
+
+          # Layout: weekday_hour — Wochentag × Stunde
+          - type: custom:insight-heatmap-card
+            title: Temperature — Weekday × Hour
+            entities:
+                - entity: sensor.test_temperature_living_room
+            hours: 168
+            layout: weekday_hour
+            color_scale: Blues
+
+          # Farbskala: Greens
+          - type: custom:insight-heatmap-card
+            title: Power — Hour × Day (Greens)
+            entities:
+                - entity: sensor.test_power
+            hours: 168
+            layout: hour_day
+            color_scale: Greens
+
+          # Farbskala: RdBu (bidirektional)
+          - type: custom:insight-heatmap-card
+            title: Humidity — Hour × Day (RdBu)
+            entities:
+                - entity: sensor.test_humidity
+            hours: 168
+            layout: hour_day
+            color_scale: RdBu
+
+          # Custom color_scale
+          - type: custom:insight-heatmap-card
+            title: Temperature — Custom Scale
+            entities:
+                - entity: sensor.test_temperature_living_room
+            hours: 168
+            layout: hour_day
+            color_scale:
+                - position: 0
+                  color: "#f7fbff"
+                - position: 0.5
+                  color: "#6baed6"
+                - position: 1
+                  color: "#08306b"
+
+          # Längerer Zeitraum (30 Tage)
+          - type: custom:insight-heatmap-card
+            title: Temperature — 30 Days Hour × Day
+            entities:
+                - entity: sensor.test_temperature_living_room
+            hours: 720
+            layout: hour_day
+            color_scale: YlOrRd

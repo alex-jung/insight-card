@@ -16,7 +16,7 @@ import { customElement, state } from "lit/decorators.js";
 import {
     mdiFormatListBulleted,
     mdiPlus,
-    mdiChartLine,
+    mdiChartBox,
     mdiAxisArrow,
     mdiDatabaseClock,
     mdiLayersOutline,
@@ -554,7 +554,7 @@ export class InsightLineCardEditor extends InsightBaseEditor {
             <ha-expansion-panel outlined>
                 <ha-svg-icon
                     slot="leading-icon"
-                    .path=${mdiChartLine}
+                    .path=${mdiChartBox}
                 ></ha-svg-icon>
                 <span slot="header"
                     >${localize("editor.section.chart_style", this._lang)}</span

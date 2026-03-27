@@ -52,6 +52,7 @@ export { InsightBaseEditor } from "./editor/base-editor.js";
 // Utilities
 export {
   DEFAULT_COLORS,
+  hexToRgb,
   hexToRgba,
   generateColors,
   formatValue,
@@ -89,6 +90,9 @@ export {
     SVG_SHOW_LEGEND,
     SVG_SHOW_X_AXIS,
     SVG_SHOW_Y_AXIS,
+    SVG_SHOW_COLORBAR,
+    SVG_SHOW_CELL_VALUES,
+    SVG_REVERSE_SCALE,
 } from "./components/svg-icons.js";
 
 // Localization

@@ -364,4 +364,57 @@ export interface InsightHeatmapConfig extends InsightBaseConfig {
   color_scale?: string | ColorStop[];
   /** How time axes are laid out in the heatmap grid */
   layout?: "hour_day" | "weekday_hour" | "month_day";
+  /**
+   * Fill colour for cells that have no data.
+   * Accepts any CSS colour string (hex, rgba, named, "transparent").
+   * @default "transparent"
+   */
+  empty_color?: string;
+  /**
+   * Gap between cells in pixels.
+   * @default 1
+   */
+  cell_gap?: number;
+  /**
+   * Corner radius of each cell in pixels.
+   * @default 0
+   */
+  cell_radius?: number;
+  /**
+   * Fix the minimum value for colour-scale normalisation.
+   * Values below this are clamped to the minimum colour.
+   * Defaults to the dataset minimum.
+   */
+  value_min?: number;
+  /**
+   * Fix the maximum value for colour-scale normalisation.
+   * Values above this are clamped to the maximum colour.
+   * Defaults to the dataset maximum.
+   */
+  value_max?: number;
+  /**
+   * Reverse the colour scale direction.
+   * @default false
+   */
+  reverse_scale?: boolean;
+  /**
+   * Show a horizontal colour scale bar with min/max labels below the chart.
+   * @default false
+   */
+  show_colorbar?: boolean;
+  /**
+   * Render the aggregated value as text inside each cell.
+   * @default false
+   */
+  show_cell_values?: boolean;
+  /**
+   * Decimal places for cell value labels. Defaults to auto (0 for integers, 1 for floats).
+   */
+  cell_value_decimals?: number;
+  /** Action triggered by a single tap/click on the chart. */
+  tap_action?: ActionConfig;
+  /** Action triggered by a double-tap/double-click on the chart. */
+  double_tap_action?: ActionConfig;
+  /** Action triggered by a long press (≥500 ms) on the chart. */
+  hold_action?: ActionConfig;
 }

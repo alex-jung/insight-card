@@ -135,6 +135,53 @@ export const SVG_SHOW_X_AXIS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox=
   <line x1="22" y1="18" x2="22" y2="20" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
 </svg>`;
 
+export const SVG_SHOW_COLORBAR = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <rect x="2" y="2" width="4" height="5" rx="0.5" fill="currentColor" fill-opacity="0.85"/>
+  <rect x="7" y="2" width="4" height="5" rx="0.5" fill="currentColor" fill-opacity="0.6"/>
+  <rect x="12" y="2" width="4" height="5" rx="0.5" fill="currentColor" fill-opacity="0.3"/>
+  <rect x="17" y="2" width="5" height="5" rx="0.5" fill="currentColor" fill-opacity="0.1"/>
+  <rect x="2" y="8" width="4" height="5" rx="0.5" fill="currentColor" fill-opacity="0.4"/>
+  <rect x="7" y="8" width="4" height="5" rx="0.5" fill="currentColor" fill-opacity="0.75"/>
+  <rect x="12" y="8" width="4" height="5" rx="0.5" fill="currentColor" fill-opacity="0.5"/>
+  <rect x="17" y="8" width="5" height="5" rx="0.5" fill="currentColor" fill-opacity="0.65"/>
+  <rect x="2" y="17" width="5" height="4" rx="1" fill="currentColor" fill-opacity="0.9"/>
+  <rect x="7" y="17" width="5" height="4" fill="currentColor" fill-opacity="0.65"/>
+  <rect x="12" y="17" width="5" height="4" fill="currentColor" fill-opacity="0.4"/>
+  <rect x="17" y="17" width="5" height="4" rx="1" fill="currentColor" fill-opacity="0.15"/>
+</svg>`;
+
+export const SVG_SHOW_CELL_VALUES = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <rect x="1" y="1" width="7" height="7" rx="0.5" fill="currentColor" fill-opacity="0.7"/>
+  <rect x="9" y="1" width="7" height="7" rx="0.5" fill="currentColor" fill-opacity="0.25"/>
+  <rect x="17" y="1" width="6" height="7" rx="0.5" fill="currentColor" fill-opacity="0.85"/>
+  <rect x="1" y="9" width="7" height="7" rx="0.5" fill="currentColor" fill-opacity="0.15"/>
+  <rect x="9" y="9" width="7" height="7" rx="0.5" fill="currentColor" fill-opacity="0.55"/>
+  <rect x="17" y="9" width="6" height="7" rx="0.5" fill="currentColor" fill-opacity="0.4"/>
+  <rect x="1" y="17" width="7" height="6" rx="0.5" fill="currentColor" fill-opacity="0.9"/>
+  <rect x="9" y="17" width="7" height="6" rx="0.5" fill="currentColor" fill-opacity="0.3"/>
+  <rect x="17" y="17" width="6" height="6" rx="0.5" fill="currentColor" fill-opacity="0.6"/>
+  <line x1="3" y1="5" x2="7" y2="5" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+  <line x1="11" y1="5" x2="15" y2="5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+  <line x1="19" y1="5" x2="22" y2="5" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+  <line x1="3" y1="13" x2="7" y2="13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+  <line x1="11" y1="13" x2="15" y2="13" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+  <line x1="19" y1="13" x2="22" y2="13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+  <line x1="3" y1="21" x2="7" y2="21" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+  <line x1="11" y1="21" x2="15" y2="21" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+  <line x1="19" y1="21" x2="22" y2="21" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+</svg>`;
+
+export const SVG_REVERSE_SCALE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <rect x="2" y="8" width="5" height="8" rx="1" fill="currentColor" fill-opacity="0.9"/>
+  <rect x="7" y="8" width="4" height="8" fill="currentColor" fill-opacity="0.65"/>
+  <rect x="11" y="8" width="4" height="8" fill="currentColor" fill-opacity="0.35"/>
+  <rect x="15" y="8" width="7" height="8" rx="1" fill="currentColor" fill-opacity="0.1"/>
+  <polyline points="8,5 6,3 4,5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="6" y1="3" x2="6" y2="8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+  <polyline points="16,19 18,21 20,19" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="18" y1="21" x2="18" y2="16" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+</svg>`;
+
 export const SVG_SHOW_Y_AXIS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
   <line x1="4" y1="18" x2="22" y2="18" stroke="currentColor" stroke-width="1" opacity="0.3"/>
   <polyline points="4,15 8,10 12,12 17,6 22,9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>

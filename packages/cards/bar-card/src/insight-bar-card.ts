@@ -155,6 +155,7 @@ export class InsightBarCard extends InsightBaseCard {
       aggregate: "mean",
       layout: "grouped",
       update_interval: 60,
+      margin_bottom: 16,
     };
   }
 
