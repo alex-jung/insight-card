@@ -681,14 +681,15 @@ export class InsightHeatmapCard extends InsightBaseCard {
                 colorbarEl.style.marginLeft = `${padding.left}px`;
                 colorbarEl.style.marginRight = `${padding.right}px`;
 
-                // Build CSS gradient from color stops
+                // Build CSS gradient from color stops — reverse direction if scale is reversed
                 const gradientStops = colorStops
                     .map((s) => `${s.color} ${(s.position * 100).toFixed(1)}%`)
                     .join(", ");
+                const gradientDir = reverseScale ? "to left" : "to right";
 
                 colorbarEl.innerHTML = `
                     <span class="colorbar-min">${minVal.toFixed(1)}</span>
-                    <div class="colorbar-gradient" style="background:linear-gradient(to right,${gradientStops})"></div>
+                    <div class="colorbar-gradient" style="background:linear-gradient(${gradientDir},${gradientStops})"></div>
                     <span class="colorbar-max">${maxVal.toFixed(1)}</span>
                 `;
             }

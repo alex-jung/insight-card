@@ -267,21 +267,28 @@ export class InsightHeatmapCardEditor extends InsightBaseEditor {
                     ${localize("editor.section.color_scale", this._lang)}
                 </span>
                 <div class="panel-content">
-                    <div class="control-row">
-                        <span class="control-label">Palette</span>
-                        <ha-control-select
-                            .options=${PALETTE_OPTIONS}
-                            .value=${colorScale}
-                            @value-changed=${(
-                                e: CustomEvent<{ value: string }>,
-                            ) =>
-                                this._updateConfig({
-                                    color_scale: e.detail.value,
-                                } as unknown as Partial<InsightBaseConfig>)}
-                        ></ha-control-select>
-                    </div>
+                    <ha-form
+                        .hass=${this.hass}
+                        .schema=${[{
+                            name: "color_scale",
+                            selector: {
+                                select: {
+                                    options: PALETTE_OPTIONS,
+                                    mode: "dropdown",
+                                },
+                            },
+                        }]}
+                        .data=${{ color_scale: colorScale }}
+                        .computeLabel=${this._computeLabel}
+                        @value-changed=${(
+                            e: CustomEvent<{ value: Record<string, unknown> }>,
+                        ) =>
+                            this._updateConfig(
+                                e.detail.value as unknown as Partial<InsightBaseConfig>,
+                            )}
+                    ></ha-form>
 
-                    <div class="toggle-row">
+                    <div class="toggle-row palette-toggle-row">
                         <insight-toggle-button
                             .svg=${SVG_REVERSE_SCALE}
                             label="Reverse scale"
@@ -628,6 +635,7 @@ export class InsightHeatmapCardEditor extends InsightBaseEditor {
     private readonly _computeLabel = (schema: { name: string }): string => {
         const overrides: Record<string, string> = {
             _entity: localize("editor.field.entity", this._lang),
+            color_scale: "Palette",
             value_min: "Min value",
             value_max: "Max value",
             cell_gap: "Cell gap",
@@ -714,6 +722,10 @@ export class InsightHeatmapCardEditor extends InsightBaseEditor {
                 font-size: 0.875rem;
                 color: var(--secondary-text-color);
                 font-style: italic;
+            }
+
+            .palette-toggle-row {
+                margin-top: 16px;
             }
 
             .layout-section {
