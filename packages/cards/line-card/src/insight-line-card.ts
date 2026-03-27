@@ -310,10 +310,6 @@ export class InsightLineCard extends InsightBaseCard {
             zoom: true,
             line_width: 2,
             show_legend: true,
-            margin_bottom: 16,
-            margin_top: 16,
-            margin_left: 4,
-            margin_right: 4,
         };
     }
 
@@ -333,6 +329,14 @@ export class InsightLineCard extends InsightBaseCard {
             show_legend: true,
             show_x_axis: true,
             show_y_axis: true,
+            margin_top: 16,
+            margin_bottom: 16,
+            margin_left: 0,
+            margin_right: 0,
+            padding_top: 8,
+            padding_right: 16,
+            padding_bottom: 8,
+            padding_left: 16,
         };
     }
 
