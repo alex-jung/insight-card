@@ -42,8 +42,7 @@ export default {
     }),
     terser({
       compress: {
-        // Remove console.debug only — console.log kept temporarily for refresh debugging
-        pure_funcs: ["console.debug", "console.warn"],
+        pure_funcs: ["console.debug", "console.log", "console.warn", "console.info"],
         passes: 1,
       },
       mangle: false,
