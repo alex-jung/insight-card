@@ -11,9 +11,15 @@ A modular collection of Lovelace visualisation cards for Home Assistant, install
 
 ## Screenshots
 
+### Line Card
+
 ![Line Card — multi-entity area chart with zoom](docs/screenshots/line-card-hero.png)
 
+### Bar Card
+
 ![Bar Card — grouped and stacked](docs/screenshots/bar-card-hero.png)
+
+### Heatmap Card
 
 ![Heatmap Card — hour/day layout](docs/screenshots/heatmap-card-hero.png)
 
