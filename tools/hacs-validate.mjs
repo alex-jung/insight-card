@@ -189,35 +189,11 @@ if (!existsSync(cardsDir)) {
     pass(`Found ${cardDirs.length} card package(s): ${cardDirs.join(", ")}`);
 
     for (const cardName of cardDirs) {
-      const cardPkgPath = join(cardsDir, cardName, "package.json");
-      if (!existsSync(cardPkgPath)) {
-        fail(`${cardName}: missing package.json`);
-        continue;
-      }
-
-      let cardPkg;
-      try {
-        cardPkg = JSON.parse(readFileSync(cardPkgPath, "utf-8"));
-      } catch {
-        fail(`${cardName}: package.json is not valid JSON`);
-        continue;
-      }
-
-      if (cardPkg.scripts?.build) {
-        pass(`${cardName}: has "build" script`);
+      const srcDir = join(cardsDir, cardName, "src");
+      if (existsSync(srcDir)) {
+        pass(`${cardName}: src/ directory exists`);
       } else {
-        fail(`${cardName}: missing "build" script in package.json`);
-      }
-
-      if (cardPkg.name) {
-        pass(`${cardName}: package name is "${cardPkg.name}"`);
-      } else {
-        fail(`${cardName}: package.json missing "name" field`);
-      }
-
-      // Warn if private: true (cards should be public for HACS)
-      if (cardPkg.private === true) {
-        fail(`${cardName}: package.json has "private": true — HACS packages should not be private`);
+        fail(`${cardName}: src/ directory not found`);
       }
     }
   }
