@@ -365,6 +365,18 @@ export interface InsightHeatmapConfig extends InsightBaseConfig {
   /** How time axes are laid out in the heatmap grid */
   layout?: "hour_day" | "weekday_hour" | "month_day";
   /**
+   * Fix the minimum value for colour-scale normalisation.
+   * Values below this are clamped to the minimum colour.
+   * Defaults to the dataset minimum.
+   */
+  value_min?: number;
+  /**
+   * Fix the maximum value for colour-scale normalisation.
+   * Values above this are clamped to the maximum colour.
+   * Defaults to the dataset maximum.
+   */
+  value_max?: number;
+  /**
    * Reverse the colour scale direction.
    * @default false
    */

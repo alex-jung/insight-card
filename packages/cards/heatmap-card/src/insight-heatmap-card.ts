@@ -481,12 +481,14 @@ export class InsightHeatmapCard extends InsightBaseCard {
         const colorStops = resolveColorScale(config.color_scale);
         const reverseScale = config.reverse_scale === true;
 
-        let minVal = Infinity;
-        let maxVal = -Infinity;
+        let autoMin = Infinity;
+        let autoMax = -Infinity;
         for (const c of cells) {
-            if (c.value < minVal) minVal = c.value;
-            if (c.value > maxVal) maxVal = c.value;
+            if (c.value < autoMin) autoMin = c.value;
+            if (c.value > autoMax) autoMax = c.value;
         }
+        const minVal = config.value_min ?? autoMin;
+        const maxVal = config.value_max ?? autoMax;
         const range = maxVal - minVal || 1;
 
         const textColor = this.isDarkTheme
@@ -505,7 +507,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
         }
 
         for (const cell of cells) {
-            const t0 = (cell.value - minVal) / range;
+            const t0 = Math.max(0, Math.min(1, (cell.value - minVal) / range));
             const t = reverseScale ? 1 - t0 : t0;
             const [r, g, b] = interpolateColorRgb(colorStops, t);
             ctx.fillStyle = `rgb(${r},${g},${b})`;
