@@ -155,6 +155,8 @@ export class InsightBarCard extends InsightBaseCard {
       layout: "grouped",
       update_interval: 60,
       margin_bottom: 16,
+      margin_left: 0,
+      padding_left: 0,
     };
   }
 
