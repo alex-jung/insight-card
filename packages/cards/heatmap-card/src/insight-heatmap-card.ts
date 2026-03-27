@@ -225,6 +225,21 @@ export class InsightHeatmapCard extends InsightBaseCard {
     /** Computed canvas height — drives Lit template so Lit owns the style, not inline JS */
     @state() private _canvasHeight = 0;
 
+    /** Layout state cached for use in mouse event handlers */
+    private _tooltipState?: {
+        cells: HeatCell[];
+        colLabels: string[];
+        rowLabels: string[];
+        cellW: number;
+        cellH: number;
+        padding: { top: number; right: number; bottom: number; left: number };
+        layout: string;
+        minVal: number;
+        maxVal: number;
+        unit: string;
+    };
+    private _tooltipEl?: HTMLDivElement;
+
     static getConfigElement(): HTMLElement {
         return document.createElement("insight-heatmap-card-editor");
     }
@@ -267,6 +282,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
             ></canvas>
             <div class="x-axis"></div>
             <div class="colorbar"></div>
+            <div class="heatmap-tooltip"></div>
         `;
     }
 
@@ -445,6 +461,34 @@ export class InsightHeatmapCard extends InsightBaseCard {
             }
         }
 
+        // Cache layout state for mouse handlers
+        this._tooltipState = {
+            cells,
+            colLabels,
+            rowLabels,
+            cellW,
+            cellH,
+            padding,
+            layout,
+            minVal,
+            maxVal,
+            unit: this._data[0]?.unit ?? "",
+        };
+
+        // Register mouse listeners once
+        if (!this._tooltipEl) {
+            this._tooltipEl =
+                this.shadowRoot?.querySelector<HTMLDivElement>(
+                    ".heatmap-tooltip",
+                ) ?? undefined;
+            canvasEl.addEventListener("mousemove", (e) =>
+                this._onMouseMove(e),
+            );
+            canvasEl.addEventListener("mouseleave", () =>
+                this._hideTooltip(),
+            );
+        }
+
         // Update colorbar element
         const colorbarEl =
             this.shadowRoot?.querySelector<HTMLElement>(".colorbar");
@@ -469,11 +513,77 @@ export class InsightHeatmapCard extends InsightBaseCard {
         }
     }
 
+    private _hideTooltip(): void {
+        if (this._tooltipEl) this._tooltipEl.style.display = "none";
+    }
+
+    private _onMouseMove(e: MouseEvent): void {
+        const tooltip = this._tooltipEl;
+        const state = this._tooltipState;
+        if (!tooltip || !state) return;
+
+        const canvas = e.currentTarget as HTMLCanvasElement;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const { cells, colLabels, rowLabels, cellW, cellH, padding, layout, minVal, maxVal, unit } = state;
+
+        const colIdx = Math.floor((x - padding.left) / cellW);
+        const rowIdx = Math.floor((y - padding.top) / cellH);
+
+        if (
+            colIdx < 0 || colIdx >= colLabels.length ||
+            rowIdx < 0 || rowIdx >= rowLabels.length
+        ) {
+            this._hideTooltip();
+            return;
+        }
+
+        const cell = cells.find(
+            (c) => c.colIdx === colIdx && c.rowIdx === rowIdx,
+        );
+        if (!cell) {
+            this._hideTooltip();
+            return;
+        }
+
+        // Format time label depending on layout
+        const colLabel = colLabels[colIdx];
+        const rowLabel = rowLabels[rowIdx];
+        const timeLabel =
+            layout === "weekday_hour"
+                ? `${rowLabel} ${colLabel}:00`
+                : `${colLabel} ${rowLabel}:00`;
+
+        // Format value
+        const valueStr =
+            Number.isInteger(cell.value)
+                ? String(cell.value)
+                : cell.value.toFixed(1);
+        const valueLabel = unit ? `${valueStr} ${unit}` : valueStr;
+
+        tooltip.innerHTML = `
+            <div class="heatmap-tooltip-time">${timeLabel}</div>
+            <div class="heatmap-tooltip-value">${valueLabel}</div>
+        `;
+        tooltip.style.display = "block";
+
+        // Position with flip logic — avoid overflowing right/bottom edge
+        const flipX = x > rect.width / 2;
+        const flipY = y > rect.height / 2;
+        tooltip.style.left = flipX ? "" : `${x + 12}px`;
+        tooltip.style.right = flipX ? `${rect.width - x + 12}px` : "";
+        tooltip.style.top = flipY ? "" : `${y + 8}px`;
+        tooltip.style.bottom = flipY ? `${rect.height - y + 8}px` : "";
+    }
+
     static styles: CSSResultGroup = [
         super.styles,
         css`
             .chart-container {
                 height: 100%;
+                position: relative;
             }
             .heatmap-canvas {
                 display: block;
@@ -506,6 +616,26 @@ export class InsightHeatmapCard extends InsightBaseCard {
             .colorbar-min,
             .colorbar-max {
                 white-space: nowrap;
+            }
+            .heatmap-tooltip {
+                display: none;
+                position: absolute;
+                pointer-events: none;
+                background: var(--card-background-color, #fff);
+                border: 1px solid var(--divider-color, #e0e0e0);
+                border-radius: 6px;
+                padding: 6px 8px;
+                font-size: 0.75rem;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                z-index: 10;
+                white-space: nowrap;
+            }
+            .heatmap-tooltip-time {
+                color: var(--secondary-text-color);
+                margin-bottom: 2px;
+            }
+            .heatmap-tooltip-value {
+                font-weight: 500;
             }
         `,
     ];
