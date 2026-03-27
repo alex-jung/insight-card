@@ -36,7 +36,7 @@ Insight Cards solves the paradox: **simplicity of mini-graph-card + performance 
 1. Open HACS in Home Assistant
 2. Click the menu → *Custom repositories*
 3. Add `https://github.com/alex-jung/insight-card`, category *Dashboard*
-4. Install *Insight Cards*
+4. Find *Insight Cards* in HACS, click the three-dot menu → *Download*
 5. Reload your browser
 
 ### Manual
