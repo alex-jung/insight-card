@@ -10,7 +10,6 @@ import {
     css,
     type TemplateResult,
     type CSSResultGroup,
-    PropertyValues,
 } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
 import uPlot from "uplot";

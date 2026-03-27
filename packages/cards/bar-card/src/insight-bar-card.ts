@@ -14,7 +14,6 @@ import {
   normaliseEntityConfig,
   type InsightBarConfig,
   type ThresholdConfig,
-  type ColorThresholdConfig,
   type ActionConfig,
   generateColors,
   formatValue,

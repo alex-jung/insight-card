@@ -123,11 +123,6 @@ function interpolateColorRgb(
     return hexToRgb(stops[stops.length - 1].color);
 }
 
-function interpolateColor(stops: ColorStop[], t: number): string {
-    const [r, g, b] = interpolateColorRgb(stops, t);
-    return `rgb(${r},${g},${b})`;
-}
-
 function resolveColorScale(
     scale: InsightHeatmapConfig["color_scale"],
 ): ColorStop[] {
