@@ -9,6 +9,17 @@
 
 A modular collection of Lovelace visualisation cards for Home Assistant, installable via HACS.
 
+## Screenshots
+
+<!-- screenshot: docs/screenshots/line-card-hero.png -->
+> 📸 *Screenshot coming soon*
+
+<!-- screenshot: docs/screenshots/bar-card-hero.png -->
+> 📸 *Screenshot coming soon*
+
+<!-- screenshot: docs/screenshots/heatmap-card-hero.png -->
+> 📸 *Screenshot coming soon*
+
 ## Why Insight Cards?
 
 Existing graph cards each have critical weaknesses:
@@ -79,28 +90,6 @@ type: custom:insight-heatmap-card
 entities:
   - sensor.living_room_temperature
 ```
-
-## Screenshots
-
-### Hero — multi-entity area chart with zoom
-
-<!-- screenshot: docs/screenshots/line-card-hero.png -->
-> 📸 *Screenshot coming soon*
-
-### Bar chart — grouped and stacked
-
-<!-- screenshot: docs/screenshots/bar-card-hero.png -->
-> 📸 *Screenshot coming soon*
-
-### Heatmap — hour/day layout
-
-<!-- screenshot: docs/screenshots/heatmap-card-hero.png -->
-> 📸 *Screenshot coming soon*
-
-### Visual editor
-
-<!-- screenshot: docs/screenshots/editor.png -->
-> 📸 *Screenshot coming soon*
 
 ## Features
 
