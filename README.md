@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/github/license/alex-jung/insight-card?style=flat-square)](LICENSE)
 [![Downloads](https://img.shields.io/github/downloads/alex-jung/insight-card/total?style=flat-square)](https://github.com/alex-jung/insight-card/releases)
 
-A modular collection of Lovelace visualisation cards for Home Assistant, installable via HACS.
+A modular collection of Dashboard cards for Home Assistant, installable via HACS.
 
 ## Screenshots
 
