@@ -27,7 +27,7 @@ A modular collection of Dashboard cards for Home Assistant, installable via HACS
 
 Existing graph cards each have critical weaknesses:
 
-- **mini-graph-card**: Simple but limited — no zoom, no visual editor, max 10 days history
+- **mini-graph-card**: Simple but limited — no zoom, no visual editor, max 10 days history, YAML-only
 - **ApexCharts-card**: Powerful but performance problems with many entities, YAML-only
 - **Plotly-graph-card**: Interactive but steep learning curve, YAML-only
 
