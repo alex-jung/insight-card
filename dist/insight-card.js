@@ -2044,13 +2044,15 @@ var pkg_version="0.1.1";const t$3=globalThis,e$5=t$3.ShadowRoot&&(void 0===t$3.S
                     ></ha-form>
 
                     ${showCellValues?b`
-                              <ha-form
-                                  .hass=${this.hass}
-                                  .schema=${CELL_DECIMALS_SCHEMA}
-                                  .data=${{cell_value_decimals:cfg.cell_value_decimals}}
-                                  .computeLabel=${this._computeLabel}
-                                  @value-changed=${e=>this._updateConfig(dropEmpty(e.detail.value))}
-                              ></ha-form>
+                              <div class="cell-decimals-form">
+                                  <ha-form
+                                      .hass=${this.hass}
+                                      .schema=${CELL_DECIMALS_SCHEMA}
+                                      .data=${{cell_value_decimals:cfg.cell_value_decimals}}
+                                      .computeLabel=${this._computeLabel}
+                                      @value-changed=${e=>this._updateConfig(dropEmpty(e.detail.value))}
+                                  ></ha-form>
+                              </div>
                           `:A}
 
                     <div class="control-row">
@@ -2203,6 +2205,10 @@ var pkg_version="0.1.1";const t$3=globalThis,e$5=t$3.ShadowRoot&&(void 0===t$3.S
 
             .palette-toggle-row {
                 margin-top: 16px;
+            }
+
+            .cell-decimals-form {
+                margin-top: 8px;
             }
 
             .layout-section {
