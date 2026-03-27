@@ -387,6 +387,10 @@ export class InsightHeatmapCard extends InsightBaseCard {
             padding_right: 8,
             padding_bottom: 4,
             padding_left: 28,
+            margin_top: 0,
+            margin_bottom: 0,
+            margin_left: 0,
+            margin_right: 0,
         };
     }
 
@@ -435,9 +439,13 @@ export class InsightHeatmapCard extends InsightBaseCard {
         if (totalH === 0) return;
 
         const xAxisHeight = config.show_x_axis !== false ? 20 : 0;
+        // padding_bottom = space between x-axis (or canvas bottom) and colorbar/card edge
+        const paddingBottom = config.padding_bottom ?? 4;
         const colorbarHeight = config.show_colorbar ? 32 : 0;
         const titleH = this._header?.offsetHeight ?? 0;
-        const displayHeight = Math.max(40, totalH - titleH - xAxisHeight - colorbarHeight);
+        const marginTop = config.margin_top ?? 0;
+        const marginBottom = config.margin_bottom ?? 0;
+        const displayHeight = Math.max(40, totalH - titleH - xAxisHeight - paddingBottom - colorbarHeight - marginTop - marginBottom);
 
         if (this._canvasHeight !== displayHeight) {
             this._canvasHeight = displayHeight;
@@ -492,9 +500,9 @@ export class InsightHeatmapCard extends InsightBaseCard {
         const showYAxis = config.show_y_axis !== false;
         const rawLeft = config.padding_left ?? (showYAxis ? 28 : 4);
         const padding = {
-            top:    config.padding_top    ?? 8,
-            right:  config.padding_right  ?? 8,
-            bottom: config.padding_bottom ?? 4,
+            top:    config.padding_top   ?? 8,
+            right:  config.padding_right ?? 8,
+            bottom: 4, // fixed internal canvas gap; padding_bottom controls space below x-axis
             left:   showYAxis ? Math.max(rawLeft, 28) : rawLeft,
         };
 
@@ -628,6 +636,7 @@ export class InsightHeatmapCard extends InsightBaseCard {
         if (xAxisEl) {
             const show = config.show_x_axis !== false;
             xAxisEl.style.display = show ? "block" : "none";
+            xAxisEl.style.marginBottom = `${paddingBottom}px`;
             if (show) {
                 xAxisEl.style.marginLeft = `${padding.left}px`;
                 xAxisEl.style.marginRight = `${padding.right}px`;
@@ -794,7 +803,6 @@ export class InsightHeatmapCard extends InsightBaseCard {
                 align-items: center;
                 gap: 6px;
                 height: 20px;
-                margin-top: 6px;
                 font-size: 10px;
                 color: var(--secondary-text-color);
             }
