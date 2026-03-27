@@ -13,11 +13,9 @@ A modular collection of Lovelace visualisation cards for Home Assistant, install
 
 ![Line Card — multi-entity area chart with zoom](docs/screenshots/line-card-hero.png)
 
-<!-- screenshot: docs/screenshots/bar-card-hero.png -->
-> 📸 *Screenshot coming soon*
+![Bar Card — grouped and stacked](docs/screenshots/bar-card-hero.png)
 
-<!-- screenshot: docs/screenshots/heatmap-card-hero.png -->
-> 📸 *Screenshot coming soon*
+![Heatmap Card — hour/day layout](docs/screenshots/heatmap-card-hero.png)
 
 ## Why Insight Cards?
 
