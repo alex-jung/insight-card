@@ -2067,14 +2067,16 @@ var pkg_version="0.1.1";const t$3=globalThis,e$5=t$3.ShadowRoot&&(void 0===t$3.S
                                       />
                                       <ha-button
                                           @click=${()=>this._updateConfig({empty_color:"transparent"})}
-                                      >Transparent</ha-button>
+                                          >Transparent</ha-button
+                                      >
                                   `:b`
                                       <span class="color-transparent-label"
                                           >Transparent</span
                                       >
                                       <ha-button
                                           @click=${()=>this._updateConfig({empty_color:"#888888"})}
-                                      >Set color</ha-button>
+                                          >Set color</ha-button
+                                      >
                                   `}
                         </div>
                     </div>
@@ -2124,10 +2126,7 @@ var pkg_version="0.1.1";const t$3=globalThis,e$5=t$3.ShadowRoot&&(void 0===t$3.S
             </ha-expansion-panel>
         `}_renderAdvancedSection(){const cfg=this._cfg;return b`
             <ha-expansion-panel outlined>
-                <ha-svg-icon
-                    slot="leading-icon"
-                    .path=${mdiCog}
-                ></ha-svg-icon>
+                <ha-svg-icon slot="leading-icon" .path=${mdiCog}></ha-svg-icon>
                 <span slot="header">
                     ${localize("editor.section.advanced",this._lang)}
                 </span>
@@ -2208,7 +2207,7 @@ var pkg_version="0.1.1";const t$3=globalThis,e$5=t$3.ShadowRoot&&(void 0===t$3.S
             }
 
             .cell-decimals-form {
-                margin-top: 8px;
+                margin: 16px 0px;
             }
 
             .layout-section {

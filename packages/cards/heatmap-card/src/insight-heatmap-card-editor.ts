@@ -12,12 +12,7 @@ import {
     type CSSResultGroup,
 } from "lit";
 import { customElement } from "lit/decorators.js";
-import {
-    mdiPalette,
-    mdiChartBox,
-    mdiCog,
-    mdiGestureTap,
-} from "@mdi/js";
+import { mdiPalette, mdiChartBox, mdiCog, mdiGestureTap } from "@mdi/js";
 
 import {
     InsightBaseEditor,
@@ -122,12 +117,12 @@ const ADVANCED_SCHEMA: HaFormSchema[] = [
 ];
 
 const PALETTE_OPTIONS = [
-    { value: "YlOrRd",  label: "YlOrRd — Yellow · Orange · Red"  },
-    { value: "Blues",   label: "Blues"                           },
-    { value: "Greens",  label: "Greens"                          },
-    { value: "RdBu",    label: "RdBu — Red · White · Blue"       },
+    { value: "YlOrRd", label: "YlOrRd — Yellow · Orange · Red" },
+    { value: "Blues", label: "Blues" },
+    { value: "Greens", label: "Greens" },
+    { value: "RdBu", label: "RdBu — Red · White · Blue" },
     { value: "Viridis", label: "Viridis" },
-    { value: "Plasma",  label: "Plasma"  },
+    { value: "Plasma", label: "Plasma" },
     { value: "Purples", label: "Purples" },
     { value: "Oranges", label: "Oranges" },
 ];
@@ -169,17 +164,17 @@ export class InsightHeatmapCardEditor extends InsightBaseEditor {
     // -------------------------------------------------------------------------
 
     private readonly _hoursOptions = [
-        { value: "24",  label: "24h" },
-        { value: "48",  label: "48h" },
-        { value: "72",  label: "72h" },
-        { value: "168", label: "7d"  },
+        { value: "24", label: "24h" },
+        { value: "48", label: "48h" },
+        { value: "72", label: "72h" },
+        { value: "168", label: "7d" },
         { value: "720", label: "30d" },
     ];
 
     private readonly _layoutOptions = [
-        { value: "hour_day",     label: "Hour / Day"     },
+        { value: "hour_day", label: "Hour / Day" },
         { value: "weekday_hour", label: "Weekday / Hour" },
-        { value: "month_day",    label: "Month / Day"    },
+        { value: "month_day", label: "Month / Day" },
     ];
 
     private _buildGeneralSchema() {
@@ -229,7 +224,9 @@ export class InsightHeatmapCardEditor extends InsightBaseEditor {
                         .options=${this._hoursOptions}
                         .value=${String(cfg.hours ?? 168)}
                         @value-changed=${(e: CustomEvent<{ value: string }>) =>
-                            this._updateConfig({ hours: Number(e.detail.value) })}
+                            this._updateConfig({
+                                hours: Number(e.detail.value),
+                            })}
                     ></ha-control-select>
                 </div>
 
@@ -240,7 +237,8 @@ export class InsightHeatmapCardEditor extends InsightBaseEditor {
                         .value=${cfg.layout ?? "hour_day"}
                         @value-changed=${(e: CustomEvent<{ value: string }>) =>
                             this._updateConfig({
-                                layout: e.detail.value as InsightHeatmapConfig["layout"],
+                                layout: e.detail
+                                    .value as InsightHeatmapConfig["layout"],
                             } as unknown as Partial<InsightBaseConfig>)}
                     ></ha-control-select>
                 </div>
@@ -269,22 +267,25 @@ export class InsightHeatmapCardEditor extends InsightBaseEditor {
                 <div class="panel-content">
                     <ha-form
                         .hass=${this.hass}
-                        .schema=${[{
-                            name: "color_scale",
-                            selector: {
-                                select: {
-                                    options: PALETTE_OPTIONS,
-                                    mode: "dropdown",
+                        .schema=${[
+                            {
+                                name: "color_scale",
+                                selector: {
+                                    select: {
+                                        options: PALETTE_OPTIONS,
+                                        mode: "dropdown",
+                                    },
                                 },
                             },
-                        }]}
+                        ]}
                         .data=${{ color_scale: colorScale }}
                         .computeLabel=${this._computeLabel}
                         @value-changed=${(
                             e: CustomEvent<{ value: Record<string, unknown> }>,
                         ) =>
                             this._updateConfig(
-                                e.detail.value as unknown as Partial<InsightBaseConfig>,
+                                e.detail
+                                    .value as unknown as Partial<InsightBaseConfig>,
                             )}
                     ></ha-form>
 
@@ -461,7 +462,8 @@ export class InsightHeatmapCardEditor extends InsightBaseEditor {
                                               this._updateConfig({
                                                   empty_color: "transparent",
                                               } as unknown as Partial<InsightBaseConfig>)}
-                                      >Transparent</ha-button>
+                                          >Transparent</ha-button
+                                      >
                                   `
                                 : html`
                                       <span class="color-transparent-label"
@@ -472,7 +474,8 @@ export class InsightHeatmapCardEditor extends InsightBaseEditor {
                                               this._updateConfig({
                                                   empty_color: "#888888",
                                               } as unknown as Partial<InsightBaseConfig>)}
-                                      >Set color</ha-button>
+                                          >Set color</ha-button
+                                      >
                                   `}
                         </div>
                     </div>
@@ -488,10 +491,7 @@ export class InsightHeatmapCardEditor extends InsightBaseEditor {
         return html`
             <div class="layout-section">
                 <insight-section-title
-                    .label=${localize(
-                        "editor.subsection.layout",
-                        this._lang,
-                    )}
+                    .label=${localize("editor.subsection.layout", this._lang)}
                 ></insight-section-title>
                 <insight-box-model
                     .labelOuter=${localize(
@@ -604,10 +604,7 @@ export class InsightHeatmapCardEditor extends InsightBaseEditor {
         const cfg = this._cfg;
         return html`
             <ha-expansion-panel outlined>
-                <ha-svg-icon
-                    slot="leading-icon"
-                    .path=${mdiCog}
-                ></ha-svg-icon>
+                <ha-svg-icon slot="leading-icon" .path=${mdiCog}></ha-svg-icon>
                 <span slot="header">
                     ${localize("editor.section.advanced", this._lang)}
                 </span>
@@ -731,7 +728,7 @@ export class InsightHeatmapCardEditor extends InsightBaseEditor {
             }
 
             .cell-decimals-form {
-                margin-top: 8px;
+                margin: 16px 0px;
             }
 
             .layout-section {
