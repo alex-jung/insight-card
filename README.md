@@ -47,7 +47,7 @@ Insight Cards solves the paradox: **simplicity of mini-graph-card + performance 
 
 ### HACS (recommended)
 
-[![Add to Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=alex-jung&repository=insight-card&category=dashboard)
+[![Add to Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=alex-jung&repository=insight-card&category=plugin)
 
 ### Manual
 
